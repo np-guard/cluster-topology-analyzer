@@ -11,6 +11,14 @@ $ go mod download
 $ make
 ```
 
+### Using Docker Image
+
+If you have access to `us.icr.io/gitsecure` registry namespace, then you can download the image and run it from there
+
+```
+$ docker run us.icr.io/gitsecure/gitsecure-nettop:1.0.0 -h
+```
+
 ### Usage
 ```
 $ ./bin/net-top -h
@@ -174,6 +182,10 @@ $ ./bin/net-top -dirpath $HOME/microservices-demo -commitid 9133fdc043b20be15f95
 
 ### TODOs
 1. Support following network/service configurations:
+
     a. Routes
+
     b. ConfigMaps
+
     c. Network Policies
+    
