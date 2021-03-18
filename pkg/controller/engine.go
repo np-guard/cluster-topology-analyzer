@@ -2,6 +2,8 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
+	"os"
 
 	"github.ibm.com/gitsecure-net-top/pkg/analyzer"
 	"github.ibm.com/gitsecure-net-top/pkg/common"
@@ -40,8 +42,21 @@ func Start(args common.InArgs) error {
 		links[idx].GitURL = *args.GitURL
 	}
 	connections, _ := discoverConnections(resources, links)
+	printToStdOut := true
 	buf, _ := json.MarshalIndent(connections, "", "    ")
-	zap.S().Debugf("connection topology reports: \n ---\n%s\n---", string(buf))
+	if *args.OutputFile != "" {
+		fp, err := os.Create(*args.OutputFile)
+		if err != nil {
+			zap.S().Debugf("error creating file: %s: %v", *args.OutputFile, err)
+		} else {
+			printToStdOut = false
+			fp.Write(buf)
+			fp.Close()
+		}
+	}
+	if printToStdOut {
+		fmt.Printf("connection topology reports: \n ---\n%s\n---", string(buf))
+	}
 	return nil
 }
 

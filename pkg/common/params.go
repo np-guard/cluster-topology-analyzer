@@ -13,6 +13,7 @@ func ParseInArgs(args *InArgs) error {
 	args.GitURL = flag.String("giturl", "", "git repository url")
 	args.GitBranch = flag.String("gitbranch", "", "git repository branch")
 	args.CommitID = flag.String("commitid", "", "gitsecure run id")
+	args.OutputFile = flag.String("outputfile", "", "file path to store results")
 	flag.Parse()
 
 	if *args.DirPath == "" ||

@@ -23,6 +23,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 	case "ReplicaSet":
 		obj := ParseReplicaSet(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Name = obj.GetName()
+		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
@@ -33,6 +34,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 	case "ReplicationController":
 		obj := ParseReplicationController(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Name = obj.GetName()
+		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		// for k, v := range obj.Spec.Selector.MatchLabels {
 		// 	resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
@@ -42,6 +44,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 	case "Deployment":
 		obj := ParseDeployment(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Name = obj.GetName()
+		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
@@ -51,6 +54,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 	case "DaemonSet":
 		obj := ParseDaemonSet(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Name = obj.GetName()
+		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
@@ -59,6 +63,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 	case "StatefulSet":
 		obj := ParseStatefulSet(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Name = obj.GetName()
+		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
@@ -67,6 +72,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 	case "Job":
 		obj := ParseJob(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Name = obj.GetName()
+		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
@@ -88,7 +94,9 @@ func ScanK8sServiceObject(kind string, objDataBuf []byte) (common.Service, error
 	case "Service":
 		svcObj := ParseService(bytes.NewReader(objDataBuf))
 		serviceCtx.Resource.Name = svcObj.GetName()
+		serviceCtx.Resource.Namespace = svcObj.Namespace
 		serviceCtx.Resource.Kind = kind
+		serviceCtx.Resource.Type = string(svcObj.Spec.Type)
 		for k, v := range svcObj.Spec.Selector {
 			serviceCtx.Resource.Selectors = append(serviceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
 		}

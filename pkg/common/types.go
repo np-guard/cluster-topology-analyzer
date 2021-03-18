@@ -2,10 +2,11 @@ package common
 
 //InArgs :
 type InArgs struct {
-	DirPath   *string
-	GitURL    *string
-	GitBranch *string
-	CommitID  *string
+	DirPath    *string
+	GitURL     *string
+	GitBranch  *string
+	CommitID   *string
+	OutputFile *string
 }
 
 //Resource :
@@ -15,17 +16,18 @@ type Resource struct {
 	CommitID  string `json:"commitid"`
 
 	Resource struct {
-		Name         string   `json:"name"`
-		Selectors    []string `json:"selectors"`
-		FilePath     string   `json:"filepath"`
-		Kind         string   `json:"kind"`
+		Name         string   `json:"name, omitempty"`
+		Namespace    string   `json:"namespace,omitempty"`
+		Selectors    []string `json:"selectors, omitempty"`
+		FilePath     string   `json:"filepath, omitempty"`
+		Kind         string   `json:"kind, omitempty"`
 		ReplicaCount int      `json:"replica,omitempty"`
 		Image        struct {
 			ID string `json:"id, omitempty"`
 		} `json:"image"`
 		Network []NetworkAttr `json:"network"`
 		Envs    []string
-	}
+	} `json:"resource,  omitempty`
 }
 
 //NetworkAttr :
@@ -48,12 +50,14 @@ type Service struct {
 	GitBranch string `json:"git_branch"`
 	CommitID  string `json:"commitid"`
 	Resource  struct {
-		Name      string           `json:"name"`
-		Selectors []string         `json:"selectors"`
-		FilePath  string           `json:"filepath"`
-		Kind      string           `json:"kind"`
-		Network   []SvcNetworkAttr `json:"network"`
-	} `json:"resource"`
+		Name      string           `json:"name, omitempty"`
+		Namespace string           `json:"namespace, omitempty"`
+		Selectors []string         `json:"selectors, omitempty"`
+		Type      string           `json:"type, omitempty"`
+		FilePath  string           `json:"filepath, omitempty"`
+		Kind      string           `json:"kind, omitempty"`
+		Network   []SvcNetworkAttr `json:"network, omitempty"`
+	} `json:"resource, omitempty"`
 }
 
 //Connections :

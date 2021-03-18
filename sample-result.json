@@ -1,0 +1,1292 @@
+[
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "filepath": "/frontend.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "frontend"
+                },
+                "network": [
+                    {
+                        "container_url": 8080,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "adservice",
+                "selectors": [
+                    "app:adservice"
+                ],
+                "filepath": "/adservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "adservice"
+                },
+                "network": [
+                    {
+                        "container_url": 9555,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": null
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "adservice",
+                "namespace": "",
+                "selectors": [
+                    "app:adservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/adservice.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 9555,
+                        "target_port": 9555
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "filepath": "/checkoutservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "checkoutservice"
+                },
+                "network": [
+                    {
+                        "container_url": 5050,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "cartservice",
+                "selectors": [
+                    "app:cartservice"
+                ],
+                "filepath": "/cartservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "cartservice"
+                },
+                "network": [
+                    {
+                        "container_url": 7070,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "redis-cart:6379"
+                ]
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "cartservice",
+                "namespace": "",
+                "selectors": [
+                    "app:cartservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/cartservice.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 7070,
+                        "target_port": 7070
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "filepath": "/frontend.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "frontend"
+                },
+                "network": [
+                    {
+                        "container_url": 8080,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "cartservice",
+                "selectors": [
+                    "app:cartservice"
+                ],
+                "filepath": "/cartservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "cartservice"
+                },
+                "network": [
+                    {
+                        "container_url": 7070,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "redis-cart:6379"
+                ]
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "cartservice",
+                "namespace": "",
+                "selectors": [
+                    "app:cartservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/cartservice.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 7070,
+                        "target_port": 7070
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "filepath": "/frontend.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "frontend"
+                },
+                "network": [
+                    {
+                        "container_url": 8080,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "filepath": "/checkoutservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "checkoutservice"
+                },
+                "network": [
+                    {
+                        "container_url": 5050,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ]
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "checkoutservice",
+                "namespace": "",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/checkoutservice.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 5050,
+                        "target_port": 5050
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "filepath": "/checkoutservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "checkoutservice"
+                },
+                "network": [
+                    {
+                        "container_url": 5050,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "currencyservice",
+                "selectors": [
+                    "app:currencyservice"
+                ],
+                "filepath": "/currencyservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "currencyservice"
+                },
+                "network": [
+                    {
+                        "container_url": 7000,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": null
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "currencyservice",
+                "namespace": "",
+                "selectors": [
+                    "app:currencyservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/currencyservice.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 7000,
+                        "target_port": 7000
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "filepath": "/frontend.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "frontend"
+                },
+                "network": [
+                    {
+                        "container_url": 8080,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "currencyservice",
+                "selectors": [
+                    "app:currencyservice"
+                ],
+                "filepath": "/currencyservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "currencyservice"
+                },
+                "network": [
+                    {
+                        "container_url": 7000,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": null
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "currencyservice",
+                "namespace": "",
+                "selectors": [
+                    "app:currencyservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/currencyservice.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 7000,
+                        "target_port": 7000
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "filepath": "/checkoutservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "checkoutservice"
+                },
+                "network": [
+                    {
+                        "container_url": 5050,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "emailservice",
+                "selectors": [
+                    "app:emailservice"
+                ],
+                "filepath": "/emailservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "emailservice"
+                },
+                "network": [
+                    {
+                        "container_url": 8080,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": null
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "emailservice",
+                "namespace": "",
+                "selectors": [
+                    "app:emailservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/emailservice.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 5000,
+                        "target_port": 8080
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "Resource": {
+                "name": "",
+                "selectors": null,
+                "filepath": "",
+                "kind": "",
+                "image": {
+                    "id": ""
+                },
+                "network": null,
+                "Envs": null
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "filepath": "/frontend.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "frontend"
+                },
+                "network": [
+                    {
+                        "container_url": 8080,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ]
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "frontend",
+                "namespace": "",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/frontend.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 80,
+                        "target_port": 8080
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "Resource": {
+                "name": "",
+                "selectors": null,
+                "filepath": "",
+                "kind": "",
+                "image": {
+                    "id": ""
+                },
+                "network": null,
+                "Envs": null
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "filepath": "/frontend.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "frontend"
+                },
+                "network": [
+                    {
+                        "container_url": 8080,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ]
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "frontend-external",
+                "namespace": "",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "type": "LoadBalancer",
+                "filepath": "/frontend.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 80,
+                        "target_port": 8080
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "filepath": "/checkoutservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "checkoutservice"
+                },
+                "network": [
+                    {
+                        "container_url": 5050,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "paymentservice",
+                "selectors": [
+                    "app:paymentservice"
+                ],
+                "filepath": "/paymentservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "paymentservice"
+                },
+                "network": [
+                    {
+                        "container_url": 50051,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": null
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "paymentservice",
+                "namespace": "",
+                "selectors": [
+                    "app:paymentservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/paymentservice.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 50051,
+                        "target_port": 50051
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "filepath": "/checkoutservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "checkoutservice"
+                },
+                "network": [
+                    {
+                        "container_url": 5050,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "productcatalogservice",
+                "selectors": [
+                    "app:productcatalogservice"
+                ],
+                "filepath": "/productcatalogservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "productcatalogservice"
+                },
+                "network": [
+                    {
+                        "container_url": 3550,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": null
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "productcatalogservice",
+                "namespace": "",
+                "selectors": [
+                    "app:productcatalogservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/productcatalogservice.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 3550,
+                        "target_port": 3550
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "filepath": "/frontend.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "frontend"
+                },
+                "network": [
+                    {
+                        "container_url": 8080,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "productcatalogservice",
+                "selectors": [
+                    "app:productcatalogservice"
+                ],
+                "filepath": "/productcatalogservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "productcatalogservice"
+                },
+                "network": [
+                    {
+                        "container_url": 3550,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": null
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "productcatalogservice",
+                "namespace": "",
+                "selectors": [
+                    "app:productcatalogservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/productcatalogservice.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 3550,
+                        "target_port": 3550
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "recommendationservice",
+                "selectors": [
+                    "app:recommendationservice"
+                ],
+                "filepath": "/recommendationservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "recommendationservice"
+                },
+                "network": [
+                    {
+                        "container_url": 8080,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "productcatalogservice",
+                "selectors": [
+                    "app:productcatalogservice"
+                ],
+                "filepath": "/productcatalogservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "productcatalogservice"
+                },
+                "network": [
+                    {
+                        "container_url": 3550,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": null
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "productcatalogservice",
+                "namespace": "",
+                "selectors": [
+                    "app:productcatalogservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/productcatalogservice.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 3550,
+                        "target_port": 3550
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "filepath": "/frontend.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "frontend"
+                },
+                "network": [
+                    {
+                        "container_url": 8080,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "recommendationservice",
+                "selectors": [
+                    "app:recommendationservice"
+                ],
+                "filepath": "/recommendationservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "recommendationservice"
+                },
+                "network": [
+                    {
+                        "container_url": 8080,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550"
+                ]
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "recommendationservice",
+                "namespace": "",
+                "selectors": [
+                    "app:recommendationservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/recommendationservice.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 8080,
+                        "target_port": 8080
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "cartservice",
+                "selectors": [
+                    "app:cartservice"
+                ],
+                "filepath": "/cartservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "cartservice"
+                },
+                "network": [
+                    {
+                        "container_url": 7070,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "redis-cart:6379"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "redis-cart",
+                "selectors": [
+                    "app:redis-cart"
+                ],
+                "filepath": "/redis.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "redis:alpine"
+                },
+                "network": [
+                    {
+                        "container_url": 6379,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": null
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "redis-cart",
+                "namespace": "",
+                "selectors": [
+                    "app:redis-cart"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/redis.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 6379,
+                        "target_port": 6379
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "filepath": "/checkoutservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "checkoutservice"
+                },
+                "network": [
+                    {
+                        "container_url": 5050,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "shippingservice",
+                "selectors": [
+                    "app:shippingservice"
+                ],
+                "filepath": "/shippingservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "shippingservice"
+                },
+                "network": [
+                    {
+                        "container_url": 50051,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": null
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "shippingservice",
+                "namespace": "",
+                "selectors": [
+                    "app:shippingservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/shippingservice.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 50051,
+                        "target_port": 50051
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "filepath": "/frontend.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "frontend"
+                },
+                "network": [
+                    {
+                        "container_url": 8080,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ]
+            }
+        },
+        "target": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "Resource": {
+                "name": "shippingservice",
+                "selectors": [
+                    "app:shippingservice"
+                ],
+                "filepath": "/shippingservice.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "shippingservice"
+                },
+                "network": [
+                    {
+                        "container_url": 50051,
+                        "protocol": ""
+                    }
+                ],
+                "Envs": null
+            }
+        },
+        "link": {
+            "git_url": "fg",
+            "git_branch": "f",
+            "commitid": "f",
+            "resource": {
+                "name": "shippingservice",
+                "namespace": "",
+                "selectors": [
+                    "app:shippingservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/shippingservice.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 50051,
+                        "target_port": 50051
+                    }
+                ]
+            }
+        }
+    }
+]
