@@ -31,6 +31,8 @@ Usage of ./bin/net-top:
     	git repository branch
   -giturl string
     	git repository url
+  -outputfile string
+    	file path to store results
 ```
 
 ### Example
