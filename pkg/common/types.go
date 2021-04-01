@@ -16,12 +16,13 @@ type Resource struct {
 	CommitID  string `json:"commitid"`
 
 	Resource struct {
-		Name         string   `json:"name, omitempty"`
-		Namespace    string   `json:"namespace,omitempty"`
-		Selectors    []string `json:"selectors, omitempty"`
-		FilePath     string   `json:"filepath, omitempty"`
-		Kind         string   `json:"kind, omitempty"`
-		ReplicaCount int      `json:"replica,omitempty"`
+		Name         string            `json:"name, omitempty"`
+		Namespace    string            `json:"namespace,omitempty"`
+		Selectors    []string          `json:"selectors, omitempty"`
+		Labels       map[string]string `json:"labels, omitempty"`
+		FilePath     string            `json:"filepath, omitempty"`
+		Kind         string            `json:"kind, omitempty"`
+		ReplicaCount int               `json:"replica,omitempty"`
 		Image        struct {
 			ID string `json:"id, omitempty"`
 		} `json:"image"`
@@ -50,13 +51,14 @@ type Service struct {
 	GitBranch string `json:"git_branch"`
 	CommitID  string `json:"commitid"`
 	Resource  struct {
-		Name      string           `json:"name, omitempty"`
-		Namespace string           `json:"namespace, omitempty"`
-		Selectors []string         `json:"selectors, omitempty"`
-		Type      string           `json:"type, omitempty"`
-		FilePath  string           `json:"filepath, omitempty"`
-		Kind      string           `json:"kind, omitempty"`
-		Network   []SvcNetworkAttr `json:"network, omitempty"`
+		Name      string   `json:"name, omitempty"`
+		Namespace string   `json:"namespace, omitempty"`
+		Selectors []string `json:"selectors, omitempty"`
+		// Labels    map[string]string `json:"labels, omitempty"`
+		Type     string           `json:"type, omitempty"`
+		FilePath string           `json:"filepath, omitempty"`
+		Kind     string           `json:"kind, omitempty"`
+		Network  []SvcNetworkAttr `json:"network, omitempty"`
 	} `json:"resource, omitempty"`
 }
 

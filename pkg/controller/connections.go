@@ -78,6 +78,9 @@ func findSource(resources []common.Resource, service common.Service) ([]common.R
 				zap.S().Debugf("resource: %s", r.Resource.Name)
 			}
 			for _, e := range r.Resource.Envs {
+				if strings.HasPrefix(e, "http://") {
+					e = strings.TrimLeft(e, "http://")
+				}
 				if debug {
 					zap.S().Debugf("deployment env: %s", e)
 				}
