@@ -1,12 +1,12 @@
-# GitSecure Network Topology Analyzer
+# Shift-left Network Topology Analyzer
 
 ### Build the project
 
 Make sure  you have golang 1.13+ on your platform
 
 ```
-$ git clone git@github.ibm.com:gitsecure/gitsecure-net-top.git
-$ cd gitsecure-net-top
+$ git clone git@github.com:shift-left-netconfig/cluster-topology-analyzer.git
+$ cd cluster-topology-analyzer
 $ go mod download
 $ make
 ```
