@@ -25,6 +25,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 		resourceCtx.Resource.Name = obj.GetName()
 		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Labels = obj.GetLabels()
+		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
 		resourceCtx.Resource.Kind = kind
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
@@ -38,6 +39,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
+		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
 		// for k, v := range obj.Spec.Selector.MatchLabels {
 		// 	resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
 		// }
@@ -49,6 +51,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
+		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
 		}
@@ -60,6 +63,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
+		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
 		}
@@ -70,6 +74,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
+		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
 		}
@@ -80,6 +85,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
+		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
 		}
