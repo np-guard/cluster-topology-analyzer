@@ -94,7 +94,10 @@ func findSource(resources []common.Resource, service common.Service) ([]common.R
 					zap.S().Debugf("deployment env: %s", e)
 				}
 				if strings.Compare(ep, e) == 0 {
-					tRes = append(tRes, r)
+					foundSrc := r
+					//specify the used ports for target by the found src
+					foundSrc.Resource.UsedPorts = []int{p.Port}
+					tRes = append(tRes, foundSrc)
 					found = true
 				}
 			}

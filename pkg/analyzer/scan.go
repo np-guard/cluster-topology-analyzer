@@ -98,6 +98,29 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 	return resourceCtx, nil
 }
 
+func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMapData, error) {
+	var cfgmapCtx common.CfgMapData = make(map[string][]string, 0)
+	obj := ParseConfigMap(bytes.NewReader(objDataBuf))
+
+	//parsed object should be a map from namespace/name to -> data values of interest
+	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
+	data := make([]string, 0)
+	//iterate data values at obj.Data
+	for _, v := range obj.Data {
+		//TODO: could also be a case where value is address as a service name without port, since default port may be used...
+		//if strings.Contains(v, ":") {
+		//	data = append(data, v)
+		//}
+		value, isPotentialAddress := identifyAddressValue(v)
+		if isPotentialAddress {
+			data = append(data, value)
+		}
+	}
+	//return fullName, data, nil
+	cfgmapCtx[fullName] = data
+	return cfgmapCtx, nil
+}
+
 //ScanK8sServiceObject :
 func ScanK8sServiceObject(kind string, objDataBuf []byte) (common.Service, error) {
 	var svcSpecv1 v1.ServiceSpec
@@ -133,12 +156,35 @@ func parseDeployResource(podSpec v1.PodTemplateSpec, resourceCtx *common.Resourc
 			resourceCtx.Resource.Network = append(resourceCtx.Resource.Network, n)
 		}
 		for _, e := range container.Env {
-			if strings.Contains(e.Value, ":") {
-				resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, e.Value)
+			//adding only values of env vars of the form "<service name>:50051"
+			//consider also cases such as "http://<service name>" with default http port
+			//TODO: could also be a case where value is address as a service name without port, since default port may be used...
+			//if strings.Contains(e.Value, ":") {
+			//	resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, e.Value)
+			//}
+			value, isPotentialAddress := identifyAddressValue(e.Value)
+			if isPotentialAddress {
+				resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, value)
+			}
+		}
+		for _, envFrom := range container.EnvFrom {
+			if envFrom.ConfigMapRef != nil {
+				resourceCtx.Resource.ConfigMapRef = envFrom.ConfigMapRef.Name
 			}
 		}
 	}
 	return nil
+}
+
+func identifyAddressValue(value string) (string, bool) {
+	if strings.HasPrefix(value, "http://") && strings.Count(value, ":") == 1 {
+		return value + ":80", true //add default port for http
+	}
+	if strings.Contains(value, ":") {
+		return value, true
+	}
+	//TODO: could be a service name as address without default port and without http:// prefix
+	return value, false
 }
 
 func parseServiceResource(svcSpec v1.ServiceSpec, serviceCtx *common.Service) error {
