@@ -168,6 +168,7 @@ func parseDeployResource(podSpec v1.PodTemplateSpec, resourceCtx *common.Resourc
 			}
 		}
 		for _, envFrom := range container.EnvFrom {
+			//TODO: add support for configMapKeyRef (https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
 			if envFrom.ConfigMapRef != nil {
 				resourceCtx.Resource.ConfigMapRef = envFrom.ConfigMapRef.Name
 			}
