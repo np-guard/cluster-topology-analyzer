@@ -42,7 +42,7 @@ func discoverConnections(resources []common.Resource, links []common.Service) ([
 	return connections, nil
 }
 
-//return true if selectors2 are contained in selectors1
+//areSelectorsContained returns true if selectors2 is contained in selectors1
 func areSelectorsContained(selectors1 []string, selectors2 []string) bool {
 	elementMap := make(map[string]string)
 	for _, s := range selectors1 {
@@ -57,13 +57,14 @@ func areSelectorsContained(selectors1 []string, selectors2 []string) bool {
 	return true
 }
 
-//all service selector values should be contained in the deployment selector values
-//TODO: refer to namespaces
+//findService returns a list of services from input links matching the input selectors, and a bool
+//flag indicating if matching services were found
 func findService(selectors []string, links []common.Service) ([]common.Service, bool) {
 	var matchedSvc []common.Service
 	var found bool
+	//TODO: refer to namespaces - the matching services and input deployment should be in the same namespace
 	for _, l := range links {
-		//service selectors should be contained in the input selectors of the deployment
+		//all service selector values should be contained in the input selectors of the deployment
 		res := areSelectorsContained(selectors, l.Resource.Selectors)
 		if res {
 			matchedSvc = append(matchedSvc, l)

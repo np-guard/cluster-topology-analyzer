@@ -49,8 +49,8 @@ func Start(args common.InArgs) error {
 			configmapFullName := resources[idx].Resource.Namespace + "/" + resources[idx].Resource.ConfigMapRef
 			if data, ok := configmaps[configmapFullName]; ok {
 				//add to d Envs the values from data
-				// TODO: keep only data values with addresses of known services names
-				// pattern for relevant data value: http://[svc name]:[port] or [svc-name]:[port] or [svc-name] or  http://[svc name] (implied port 80)
+				//TODO: keep only data values with addresses of known services names
+				//pattern for relevant data value: http://[svc name]:[port] or [svc-name]:[port] or [svc-name] or  http://[svc name] (implied port 80)
 				//The port is optional when it is the default port for a given protocol (e.g., HTTP=80).
 				resources[idx].Resource.Envs = append(resources[idx].Resource.Envs, data...)
 			}
@@ -84,7 +84,6 @@ func parseResouce(obj parsedK8sObjects) ([]common.Resource, []common.Service, []
 	links := []common.Service{}
 	deployments := []common.Resource{}
 	configMaps := []common.CfgMapData{}
-	//configmaps := make(map[string][]string, 0)
 
 	for _, p := range obj.DeployObjects {
 		if p.GroupKind == "Service" {
@@ -101,7 +100,6 @@ func parseResouce(obj parsedK8sObjects) ([]common.Resource, []common.Service, []
 				zap.S().Errorf("error scanning Configmap object: %v", err)
 				continue
 			}
-			//configmaps[fullName] = data
 			configMaps = append(configMaps, res)
 		} else {
 			res, err := analyzer.ScanK8sDeployObject(p.GroupKind, p.RuntimeObject)

@@ -102,21 +102,15 @@ func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMapData, 
 	var cfgmapCtx common.CfgMapData = make(map[string][]string, 0)
 	obj := ParseConfigMap(bytes.NewReader(objDataBuf))
 
-	//parsed object should be a map from namespace/name to -> data values of interest
+	//parsed object is a map from ConfigMap's full name (namespace/name) to its data values of interest (list of strings)
 	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
 	data := make([]string, 0)
-	//iterate data values at obj.Data
 	for _, v := range obj.Data {
-		//TODO: could also be a case where value is address as a service name without port, since default port may be used...
-		//if strings.Contains(v, ":") {
-		//	data = append(data, v)
-		//}
 		value, isPotentialAddress := identifyAddressValue(v)
 		if isPotentialAddress {
 			data = append(data, value)
 		}
 	}
-	//return fullName, data, nil
 	cfgmapCtx[fullName] = data
 	return cfgmapCtx, nil
 }
@@ -156,12 +150,6 @@ func parseDeployResource(podSpec v1.PodTemplateSpec, resourceCtx *common.Resourc
 			resourceCtx.Resource.Network = append(resourceCtx.Resource.Network, n)
 		}
 		for _, e := range container.Env {
-			//adding only values of env vars of the form "<service name>:50051"
-			//consider also cases such as "http://<service name>" with default http port
-			//TODO: could also be a case where value is address as a service name without port, since default port may be used...
-			//if strings.Contains(e.Value, ":") {
-			//	resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, e.Value)
-			//}
 			value, isPotentialAddress := identifyAddressValue(e.Value)
 			if isPotentialAddress {
 				resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, value)
@@ -177,14 +165,22 @@ func parseDeployResource(podSpec v1.PodTemplateSpec, resourceCtx *common.Resourc
 	return nil
 }
 
+//identifyAddressValue checks if value is a potential service address (value is originated from deployment's env or configmap values)
+//It returns a string value (if it's a potential address it may be added with default port) and a bool inidcating
+//if this is indeed a data value of interest as a potential address
+//service addressess considered are of the form "[http://]<service name>:<port number>"
 func identifyAddressValue(value string) (string, bool) {
 	if strings.HasPrefix(value, "http://") && strings.Count(value, ":") == 1 {
+		//consider also cases such as "http://<service name>" with default http port
+		//TODO: could also be a case where value is address as a service name without port, since default port may be used
 		return value + ":80", true //add default port for http
 	}
 	if strings.Contains(value, ":") {
 		return value, true
 	}
-	//TODO: could be a service name as address without default port and without http:// prefix
+	//TODO: could be a service name as address without default port and without prefix of http://
+	//TODO: what about other protocols prefixes? (https?)
+	//TODO: consider only string values containing services names
 	return value, false
 }
 
