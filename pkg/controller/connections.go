@@ -42,26 +42,36 @@ func discoverConnections(resources []common.Resource, links []common.Service) ([
 	return connections, nil
 }
 
+//areSelectorsContained returns true if selectors2 is contained in selectors1
+func areSelectorsContained(selectors1 []string, selectors2 []string) bool {
+	elementMap := make(map[string]string)
+	for _, s := range selectors1 {
+		elementMap[s] = ""
+	}
+	for _, val := range selectors2 {
+		_, ok := elementMap[val]
+		if !ok {
+			return false
+		}
+	}
+	return true
+}
+
+//findService returns a list of services from input links matching the input selectors, and a bool
+//flag indicating if matching services were found
 func findService(selectors []string, links []common.Service) ([]common.Service, bool) {
 	var matchedSvc []common.Service
 	var found bool
-	for _, s := range selectors {
-		for _, l := range links {
-			for _, ls := range l.Resource.Selectors {
-				if strings.Compare(s, ls) == 0 {
-					matchedSvc = append(matchedSvc, l)
-					found = true
-					break
-				}
-				// if found {
-				// 	break
-				// }
-			}
-			// if found {
-			// 	break
-			// }
+	//TODO: refer to namespaces - the matching services and input deployment should be in the same namespace
+	for _, l := range links {
+		//all service selector values should be contained in the input selectors of the deployment
+		res := areSelectorsContained(selectors, l.Resource.Selectors)
+		if res {
+			matchedSvc = append(matchedSvc, l)
+			found = true
 		}
 	}
+
 	if debug {
 		zap.S().Debugf("matched service: %v", matchedSvc)
 	}
@@ -85,7 +95,10 @@ func findSource(resources []common.Resource, service common.Service) ([]common.R
 					zap.S().Debugf("deployment env: %s", e)
 				}
 				if strings.Compare(ep, e) == 0 {
-					tRes = append(tRes, r)
+					foundSrc := r
+					//specify the used ports for target by the found src
+					foundSrc.Resource.UsedPorts = []int{p.Port}
+					tRes = append(tRes, foundSrc)
 					found = true
 				}
 			}

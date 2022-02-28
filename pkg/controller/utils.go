@@ -23,6 +23,7 @@ const (
 	job                   string = "Job"
 	cronJob               string = "CronTab"
 	service               string = "Service"
+	configmap             string = "ConfigMap"
 )
 
 type parsedK8sObjects struct {
@@ -86,8 +87,8 @@ func getK8sDeploymentResources(repoDir *string) []parsedK8sObjects {
 
 func parseK8sYaml(fileR []byte) []deployObject {
 	dObjs := []deployObject{}
-	acceptedK8sTypes := regexp.MustCompile(fmt.Sprintf("(%s|%s|%s|%s|%s|%s|%s|%s|%s)",
-		pod, replicaSet, replicationController, deployment, daemonset, statefulset, job, cronJob, service))
+	acceptedK8sTypes := regexp.MustCompile(fmt.Sprintf("(%s|%s|%s|%s|%s|%s|%s|%s|%s|%s)",
+		pod, replicaSet, replicationController, deployment, daemonset, statefulset, job, cronJob, service, configmap))
 	fileAsString := string(fileR[:])
 	sepYamlfiles := strings.Split(fileAsString, "---")
 	for _, f := range sepYamlfiles {

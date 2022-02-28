@@ -9,6 +9,8 @@ type InArgs struct {
 	OutputFile *string
 }
 
+type CfgMapData map[string][]string
+
 //Resource :
 type Resource struct {
 	GitURL    string `json:"git_url"`
@@ -16,18 +18,21 @@ type Resource struct {
 	CommitID  string `json:"commitid"`
 
 	Resource struct {
-		Name         string            `json:"name, omitempty"`
-		Namespace    string            `json:"namespace,omitempty"`
-		Selectors    []string          `json:"selectors, omitempty"`
-		Labels       map[string]string `json:"labels, omitempty"`
-		FilePath     string            `json:"filepath, omitempty"`
-		Kind         string            `json:"kind, omitempty"`
-		ReplicaCount int               `json:"replica,omitempty"`
-		Image        struct {
+		Name               string            `json:"name, omitempty"`
+		Namespace          string            `json:"namespace,omitempty"`
+		Selectors          []string          `json:"selectors, omitempty"`
+		Labels             map[string]string `json:"labels, omitempty"`
+		ServiceAccountName string            `json:"serviceaccountname, omitempty"`
+		FilePath           string            `json:"filepath, omitempty"`
+		Kind               string            `json:"kind, omitempty"`
+		ReplicaCount       int               `json:"replica,omitempty"`
+		Image              struct {
 			ID string `json:"id, omitempty"`
 		} `json:"image"`
-		Network []NetworkAttr `json:"network"`
-		Envs    []string
+		Network      []NetworkAttr `json:"network"`
+		Envs         []string
+		ConfigMapRef string `json:"-"`
+		UsedPorts    []int
 	} `json:"resource,  omitempty`
 }
 

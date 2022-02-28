@@ -25,6 +25,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 		resourceCtx.Resource.Name = obj.GetName()
 		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Labels = obj.GetLabels()
+		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
 		resourceCtx.Resource.Kind = kind
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
@@ -38,6 +39,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
+		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
 		// for k, v := range obj.Spec.Selector.MatchLabels {
 		// 	resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
 		// }
@@ -49,6 +51,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
+		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
 		}
@@ -60,6 +63,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
+		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
 		}
@@ -70,6 +74,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
+		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
 		}
@@ -80,6 +85,7 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
+		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
 		for k, v := range obj.Spec.Selector.MatchLabels {
 			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
 		}
@@ -90,6 +96,23 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 
 	parseDeployResource(podSpecv1, &resourceCtx)
 	return resourceCtx, nil
+}
+
+func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMapData, error) {
+	var cfgmapCtx common.CfgMapData = make(map[string][]string, 0)
+	obj := ParseConfigMap(bytes.NewReader(objDataBuf))
+
+	//parsed object is a map from ConfigMap's full name (namespace/name) to its data values of interest (list of strings)
+	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
+	data := []string{}
+	for _, v := range obj.Data {
+		value, isPotentialAddress := identifyAddressValue(v)
+		if isPotentialAddress {
+			data = append(data, value)
+		}
+	}
+	cfgmapCtx[fullName] = data
+	return cfgmapCtx, nil
 }
 
 //ScanK8sServiceObject :
@@ -127,12 +150,38 @@ func parseDeployResource(podSpec v1.PodTemplateSpec, resourceCtx *common.Resourc
 			resourceCtx.Resource.Network = append(resourceCtx.Resource.Network, n)
 		}
 		for _, e := range container.Env {
-			if strings.Contains(e.Value, ":") {
-				resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, e.Value)
+			value, isPotentialAddress := identifyAddressValue(e.Value)
+			if isPotentialAddress {
+				resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, value)
+			}
+		}
+		for _, envFrom := range container.EnvFrom {
+			//TODO: add support for configMapKeyRef (https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
+			if envFrom.ConfigMapRef != nil {
+				resourceCtx.Resource.ConfigMapRef = envFrom.ConfigMapRef.Name
 			}
 		}
 	}
 	return nil
+}
+
+//identifyAddressValue checks if value is a potential service address (value is originated from deployment's env or configmap values)
+//It returns a string value (if it's a potential address it may be added with default port) and a bool inidcating
+//if this is indeed a data value of interest as a potential address
+//service addresses considered are of the form "[http://]<service name>:<port number>"
+func identifyAddressValue(value string) (string, bool) {
+	if strings.HasPrefix(value, "http://") && strings.Count(value, ":") == 1 {
+		//consider also cases such as "http://<service name>" with default http port
+		//TODO: could also be a case where value is address as a service name without port, since default port may be used
+		return value + ":80", true //add default port for http
+	}
+	if strings.Contains(value, ":") {
+		return value, true
+	}
+	//TODO: could be a service name as address without default port and without prefix of http://
+	//TODO: what about other protocols prefixes? (https?)
+	//TODO: consider only string values containing services names
+	return value, false
 }
 
 func parseServiceResource(svcSpec v1.ServiceSpec, serviceCtx *common.Service) error {

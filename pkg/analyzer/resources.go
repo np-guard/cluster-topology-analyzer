@@ -130,3 +130,16 @@ func ParseServiceAccount(r io.Reader) *v1.ServiceAccount {
 	}
 	return &rc
 }
+
+// ParseConfigMap parses ConfigMap
+func ParseConfigMap(r io.Reader) *v1.ConfigMap {
+	if r == nil {
+		return nil
+	}
+	rc := v1.ConfigMap{}
+	err := yaml.NewYAMLOrJSONDecoder(r, 200).Decode(&rc)
+	if err != nil {
+		return nil
+	}
+	return &rc
+}
