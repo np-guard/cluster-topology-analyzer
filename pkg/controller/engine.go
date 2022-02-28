@@ -30,11 +30,9 @@ func Start(args common.InArgs) error {
 		if len(l) != 0 {
 			links = append(links, l...)
 		}
-		if len(c) != 0 {
-			for _, cfgObj := range c {
-				for k, v := range cfgObj {
-					configmaps[k] = v
-				}
+		for _, cfgObj := range c {
+			for k, v := range cfgObj {
+				configmaps[k] = v
 			}
 		}
 		// zap.S().Debugf("resources: %v \n\n links: %v", resources, links)
@@ -86,7 +84,8 @@ func parseResouce(obj parsedK8sObjects) ([]common.Resource, []common.Service, []
 	configMaps := []common.CfgMapData{}
 
 	for _, p := range obj.DeployObjects {
-		if p.GroupKind == "Service" {
+		switch p.GroupKind {
+		case "Service":
 			res, err := analyzer.ScanK8sServiceObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
 				zap.S().Errorf("error scanning service object: %v", err)
@@ -94,14 +93,14 @@ func parseResouce(obj parsedK8sObjects) ([]common.Resource, []common.Service, []
 			}
 			res.Resource.FilePath = obj.ManifestFilepath
 			links = append(links, res)
-		} else if p.GroupKind == "ConfigMap" {
+		case "ConfigMap":
 			res, err := analyzer.ScanK8sConfigmapObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
 				zap.S().Errorf("error scanning Configmap object: %v", err)
 				continue
 			}
 			configMaps = append(configMaps, res)
-		} else {
+		default:
 			res, err := analyzer.ScanK8sDeployObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
 				zap.S().Debugf("Skipping object with type: %s", p.GroupKind)

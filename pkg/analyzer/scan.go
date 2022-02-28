@@ -104,7 +104,7 @@ func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMapData, 
 
 	//parsed object is a map from ConfigMap's full name (namespace/name) to its data values of interest (list of strings)
 	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
-	data := make([]string, 0)
+	data := []string{}
 	for _, v := range obj.Data {
 		value, isPotentialAddress := identifyAddressValue(v)
 		if isPotentialAddress {
@@ -168,7 +168,7 @@ func parseDeployResource(podSpec v1.PodTemplateSpec, resourceCtx *common.Resourc
 //identifyAddressValue checks if value is a potential service address (value is originated from deployment's env or configmap values)
 //It returns a string value (if it's a potential address it may be added with default port) and a bool inidcating
 //if this is indeed a data value of interest as a potential address
-//service addressess considered are of the form "[http://]<service name>:<port number>"
+//service addresses considered are of the form "[http://]<service name>:<port number>"
 func identifyAddressValue(value string) (string, bool) {
 	if strings.HasPrefix(value, "http://") && strings.Count(value, ":") == 1 {
 		//consider also cases such as "http://<service name>" with default http port
