@@ -11,14 +11,6 @@ $ go mod download
 $ make
 ```
 
-### Using Docker Image
-
-If you have access to `us.icr.io/gitsecure` registry namespace, then you can download the image and run it from there
-
-```
-$ docker run us.icr.io/gitsecure/gitsecure-nettop:1.0.0 -h
-```
-
 ### Usage
 ```
 $ ./bin/net-top -h
@@ -40,7 +32,7 @@ Usage of ./bin/net-top:
 1. Clone a sample source code repository that you want to scan
 ```
 $ cd $HOME
-$ git@github.com:nadgowdas/microservices-demo.git
+$ git clone git@github.com:nadgowdas/microservices-demo.git
 ```
 
 2. Point topology analyzer to this sample repo
