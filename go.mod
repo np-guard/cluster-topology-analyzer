@@ -1,6 +1,6 @@
 module github.ibm.com/gitsecure-net-top
 
-go 1.13
+go 1.17
 
 require (
 	go.uber.org/zap v1.21.0
