@@ -1,4 +1,4 @@
-module github.ibm.com/gitsecure-net-top
+module github.com/cluster-topology-analyzer
 
 go 1.17
 

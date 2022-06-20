@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.ibm.com/gitsecure-net-top/pkg/common"
+	"github.com/cluster-topology-analyzer/pkg/common"
 )
 
 // TestOutput calls controller.Start() with an example repo dir tests/onlineboutique/ ,
