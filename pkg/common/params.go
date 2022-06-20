@@ -14,6 +14,7 @@ func ParseInArgs(args *InArgs) error {
 	args.GitBranch = flag.String("gitbranch", "", "git repository branch")
 	args.CommitID = flag.String("commitid", "", "gitsecure run id")
 	args.OutputFile = flag.String("outputfile", "", "file path to store results")
+	args.SynthNetpols = flag.Bool("netpols", false, "Whether to synthesize NetworkPolicies out of the discovered connections")
 	flag.Parse()
 
 	if *args.DirPath == "" ||

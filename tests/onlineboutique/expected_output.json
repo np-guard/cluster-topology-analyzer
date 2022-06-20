@@ -4,7 +4,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "frontend",
                 "selectors": [
                     "app:frontend"
@@ -13,15 +13,13 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 8080,
-                        "protocol": ""
+                        "container_url": 8080
                     }
                 ],
                 "Envs": [
@@ -42,7 +40,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "checkoutservice",
                 "selectors": [
                     "app:checkoutservice"
@@ -51,15 +49,13 @@
                     "app": "checkoutservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 5050,
-                        "protocol": ""
+                        "container_url": 5050
                     }
                 ],
                 "Envs": [
@@ -79,12 +75,10 @@
             "commitid": "",
             "resource": {
                 "name": "checkoutservice",
-                "namespace": "",
                 "selectors": [
                     "app:checkoutservice"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -100,7 +94,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "frontend",
                 "selectors": [
                     "app:frontend"
@@ -109,15 +103,13 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 8080,
-                        "protocol": ""
+                        "container_url": 8080
                     }
                 ],
                 "Envs": [
@@ -138,7 +130,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "recommendationservice",
                 "selectors": [
                     "app:recommendationservice"
@@ -147,15 +139,13 @@
                     "app": "recommendationservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/recommendationservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 8080,
-                        "protocol": ""
+                        "container_url": 8080
                     }
                 ],
                 "Envs": [
@@ -170,12 +160,10 @@
             "commitid": "",
             "resource": {
                 "name": "recommendationservice",
-                "namespace": "",
                 "selectors": [
                     "app:recommendationservice"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -191,7 +179,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "loadgenerator",
                 "selectors": [
                     "app:loadgenerator"
@@ -200,7 +188,6 @@
                     "app": "loadgenerator"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/loadgenerator:v0.2.3"
@@ -218,7 +205,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "frontend",
                 "selectors": [
                     "app:frontend"
@@ -227,15 +214,13 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 8080,
-                        "protocol": ""
+                        "container_url": 8080
                     }
                 ],
                 "Envs": [
@@ -256,12 +241,10 @@
             "commitid": "",
             "resource": {
                 "name": "frontend",
-                "namespace": "",
                 "selectors": [
                     "app:frontend"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -277,7 +260,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "loadgenerator",
                 "selectors": [
                     "app:loadgenerator"
@@ -286,7 +269,6 @@
                     "app": "loadgenerator"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/loadgenerator:v0.2.3"
@@ -304,7 +286,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "frontend",
                 "selectors": [
                     "app:frontend"
@@ -313,15 +295,13 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 8080,
-                        "protocol": ""
+                        "container_url": 8080
                     }
                 ],
                 "Envs": [
@@ -342,12 +322,10 @@
             "commitid": "",
             "resource": {
                 "name": "frontend-external",
-                "namespace": "",
                 "selectors": [
                     "app:frontend"
                 ],
                 "type": "LoadBalancer",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -363,7 +341,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "checkoutservice",
                 "selectors": [
                     "app:checkoutservice"
@@ -372,15 +350,13 @@
                     "app": "checkoutservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 5050,
-                        "protocol": ""
+                        "container_url": 5050
                     }
                 ],
                 "Envs": [
@@ -400,7 +376,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "paymentservice",
                 "selectors": [
                     "app:paymentservice"
@@ -409,15 +385,13 @@
                     "app": "paymentservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/paymentservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 50051,
-                        "protocol": ""
+                        "container_url": 50051
                     }
                 ],
                 "Envs": null,
@@ -430,12 +404,10 @@
             "commitid": "",
             "resource": {
                 "name": "paymentservice",
-                "namespace": "",
                 "selectors": [
                     "app:paymentservice"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -451,7 +423,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "checkoutservice",
                 "selectors": [
                     "app:checkoutservice"
@@ -460,15 +432,13 @@
                     "app": "checkoutservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 5050,
-                        "protocol": ""
+                        "container_url": 5050
                     }
                 ],
                 "Envs": [
@@ -488,7 +458,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "productcatalogservice",
                 "selectors": [
                     "app:productcatalogservice"
@@ -497,15 +467,13 @@
                     "app": "productcatalogservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 3550,
-                        "protocol": ""
+                        "container_url": 3550
                     }
                 ],
                 "Envs": null,
@@ -518,12 +486,10 @@
             "commitid": "",
             "resource": {
                 "name": "productcatalogservice",
-                "namespace": "",
                 "selectors": [
                     "app:productcatalogservice"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -539,7 +505,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "recommendationservice",
                 "selectors": [
                     "app:recommendationservice"
@@ -548,15 +514,13 @@
                     "app": "recommendationservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/recommendationservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 8080,
-                        "protocol": ""
+                        "container_url": 8080
                     }
                 ],
                 "Envs": [
@@ -571,7 +535,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "productcatalogservice",
                 "selectors": [
                     "app:productcatalogservice"
@@ -580,15 +544,13 @@
                     "app": "productcatalogservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 3550,
-                        "protocol": ""
+                        "container_url": 3550
                     }
                 ],
                 "Envs": null,
@@ -601,12 +563,10 @@
             "commitid": "",
             "resource": {
                 "name": "productcatalogservice",
-                "namespace": "",
                 "selectors": [
                     "app:productcatalogservice"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -622,7 +582,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "frontend",
                 "selectors": [
                     "app:frontend"
@@ -631,15 +591,13 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 8080,
-                        "protocol": ""
+                        "container_url": 8080
                     }
                 ],
                 "Envs": [
@@ -660,7 +618,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "productcatalogservice",
                 "selectors": [
                     "app:productcatalogservice"
@@ -669,15 +627,13 @@
                     "app": "productcatalogservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 3550,
-                        "protocol": ""
+                        "container_url": 3550
                     }
                 ],
                 "Envs": null,
@@ -690,12 +646,10 @@
             "commitid": "",
             "resource": {
                 "name": "productcatalogservice",
-                "namespace": "",
                 "selectors": [
                     "app:productcatalogservice"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -711,7 +665,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "checkoutservice",
                 "selectors": [
                     "app:checkoutservice"
@@ -720,15 +674,13 @@
                     "app": "checkoutservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 5050,
-                        "protocol": ""
+                        "container_url": 5050
                     }
                 ],
                 "Envs": [
@@ -748,7 +700,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "cartservice",
                 "selectors": [
                     "app:cartservice"
@@ -757,15 +709,13 @@
                     "app": "cartservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/cartservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 7070,
-                        "protocol": ""
+                        "container_url": 7070
                     }
                 ],
                 "Envs": [
@@ -780,12 +730,10 @@
             "commitid": "",
             "resource": {
                 "name": "cartservice",
-                "namespace": "",
                 "selectors": [
                     "app:cartservice"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -801,7 +749,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "frontend",
                 "selectors": [
                     "app:frontend"
@@ -810,15 +758,13 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 8080,
-                        "protocol": ""
+                        "container_url": 8080
                     }
                 ],
                 "Envs": [
@@ -839,7 +785,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "cartservice",
                 "selectors": [
                     "app:cartservice"
@@ -848,15 +794,13 @@
                     "app": "cartservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/cartservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 7070,
-                        "protocol": ""
+                        "container_url": 7070
                     }
                 ],
                 "Envs": [
@@ -871,12 +815,10 @@
             "commitid": "",
             "resource": {
                 "name": "cartservice",
-                "namespace": "",
                 "selectors": [
                     "app:cartservice"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -892,7 +834,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "checkoutservice",
                 "selectors": [
                     "app:checkoutservice"
@@ -901,15 +843,13 @@
                     "app": "checkoutservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 5050,
-                        "protocol": ""
+                        "container_url": 5050
                     }
                 ],
                 "Envs": [
@@ -929,7 +869,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "currencyservice",
                 "selectors": [
                     "app:currencyservice"
@@ -938,15 +878,13 @@
                     "app": "currencyservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/currencyservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 7000,
-                        "protocol": ""
+                        "container_url": 7000
                     }
                 ],
                 "Envs": null,
@@ -959,12 +897,10 @@
             "commitid": "",
             "resource": {
                 "name": "currencyservice",
-                "namespace": "",
                 "selectors": [
                     "app:currencyservice"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -980,7 +916,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "frontend",
                 "selectors": [
                     "app:frontend"
@@ -989,15 +925,13 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 8080,
-                        "protocol": ""
+                        "container_url": 8080
                     }
                 ],
                 "Envs": [
@@ -1018,7 +952,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "currencyservice",
                 "selectors": [
                     "app:currencyservice"
@@ -1027,15 +961,13 @@
                     "app": "currencyservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/currencyservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 7000,
-                        "protocol": ""
+                        "container_url": 7000
                     }
                 ],
                 "Envs": null,
@@ -1048,12 +980,10 @@
             "commitid": "",
             "resource": {
                 "name": "currencyservice",
-                "namespace": "",
                 "selectors": [
                     "app:currencyservice"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -1069,7 +999,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "checkoutservice",
                 "selectors": [
                     "app:checkoutservice"
@@ -1078,15 +1008,13 @@
                     "app": "checkoutservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 5050,
-                        "protocol": ""
+                        "container_url": 5050
                     }
                 ],
                 "Envs": [
@@ -1106,7 +1034,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "shippingservice",
                 "selectors": [
                     "app:shippingservice"
@@ -1115,15 +1043,13 @@
                     "app": "shippingservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/shippingservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 50051,
-                        "protocol": ""
+                        "container_url": 50051
                     }
                 ],
                 "Envs": null,
@@ -1136,12 +1062,10 @@
             "commitid": "",
             "resource": {
                 "name": "shippingservice",
-                "namespace": "",
                 "selectors": [
                     "app:shippingservice"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -1157,7 +1081,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "frontend",
                 "selectors": [
                     "app:frontend"
@@ -1166,15 +1090,13 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 8080,
-                        "protocol": ""
+                        "container_url": 8080
                     }
                 ],
                 "Envs": [
@@ -1195,7 +1117,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "shippingservice",
                 "selectors": [
                     "app:shippingservice"
@@ -1204,15 +1126,13 @@
                     "app": "shippingservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/shippingservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 50051,
-                        "protocol": ""
+                        "container_url": 50051
                     }
                 ],
                 "Envs": null,
@@ -1225,12 +1145,10 @@
             "commitid": "",
             "resource": {
                 "name": "shippingservice",
-                "namespace": "",
                 "selectors": [
                     "app:shippingservice"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -1246,7 +1164,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "cartservice",
                 "selectors": [
                     "app:cartservice"
@@ -1255,15 +1173,13 @@
                     "app": "cartservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/cartservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 7070,
-                        "protocol": ""
+                        "container_url": 7070
                     }
                 ],
                 "Envs": [
@@ -1278,7 +1194,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "redis-cart",
                 "selectors": [
                     "app:redis-cart"
@@ -1286,16 +1202,13 @@
                 "labels": {
                     "app": "redis-cart"
                 },
-                "serviceaccountname": "",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "redis:alpine"
                 },
                 "network": [
                     {
-                        "container_url": 6379,
-                        "protocol": ""
+                        "container_url": 6379
                     }
                 ],
                 "Envs": null,
@@ -1308,12 +1221,10 @@
             "commitid": "",
             "resource": {
                 "name": "redis-cart",
-                "namespace": "",
                 "selectors": [
                     "app:redis-cart"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
@@ -1329,7 +1240,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "frontend",
                 "selectors": [
                     "app:frontend"
@@ -1338,15 +1249,13 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 8080,
-                        "protocol": ""
+                        "container_url": 8080
                     }
                 ],
                 "Envs": [
@@ -1367,7 +1276,7 @@
             "git_url": "",
             "git_branch": "",
             "commitid": "",
-            "Resource": {
+            "resource": {
                 "name": "adservice",
                 "selectors": [
                     "app:adservice"
@@ -1376,15 +1285,13 @@
                     "app": "adservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/adservice:v0.2.3"
                 },
                 "network": [
                     {
-                        "container_url": 9555,
-                        "protocol": ""
+                        "container_url": 9555
                     }
                 ],
                 "Envs": null,
@@ -1397,12 +1304,10 @@
             "commitid": "",
             "resource": {
                 "name": "adservice",
-                "namespace": "",
                 "selectors": [
                     "app:adservice"
                 ],
                 "type": "ClusterIP",
-                "filepath": "",
                 "kind": "Service",
                 "network": [
                     {
