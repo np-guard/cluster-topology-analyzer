@@ -13,12 +13,33 @@ import (
 
 // TestOutput calls controller.Start() with an example repo dir tests/onlineboutique/ ,
 // checking for the json output to match expected output at tests/expected_output.json
-func TestOutput(t *testing.T) {
+func TestConnectionsOutput(t *testing.T) {
 	currentDir, _ := os.Getwd()
 	dirPath := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "kubernetes-manifests.yaml")
 	outFile := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "output.json")
 	expectedOutput := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "expected_output.json")
-	args := getTestArgs(dirPath, outFile)
+	args := getTestArgs(dirPath, outFile, false)
+
+	Start(args)
+
+	res, err := compareFiles(expectedOutput, outFile)
+
+	if err != nil {
+		t.Fatalf("expected err to be nil, but got %v", err)
+	}
+	if !res {
+		t.Fatalf("expected res to be true, but got false")
+	}
+
+	os.Remove(outFile)
+}
+
+func TestNetpolsOutput(t *testing.T) {
+	currentDir, _ := os.Getwd()
+	dirPath := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "kubernetes-manifests.yaml")
+	outFile := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "output.json")
+	expectedOutput := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "expected_netpol_output.json")
+	args := getTestArgs(dirPath, outFile, true)
 
 	Start(args)
 
@@ -49,7 +70,7 @@ func readLines(path string) ([]string, error) {
 	return lines, scanner.Err()
 }
 
-func getTestArgs(dirPath, outFile string) common.InArgs {
+func getTestArgs(dirPath, outFile string, netpols bool) common.InArgs {
 	args := common.InArgs{}
 	emptyStr := ""
 	args.DirPath = &dirPath
@@ -57,6 +78,7 @@ func getTestArgs(dirPath, outFile string) common.InArgs {
 	args.GitBranch = &emptyStr
 	args.GitURL = &emptyStr
 	args.OutputFile = &outFile
+	args.SynthNetpols = &netpols
 	return args
 }
 

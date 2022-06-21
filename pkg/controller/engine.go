@@ -26,10 +26,14 @@ func Start(args common.InArgs) error {
 
 	// 3. Write the output to a file or to stdout
 	var buf []byte
+	var err error
 	if args.SynthNetpols != nil && *args.SynthNetpols {
-		buf = synthNetpols(connections)
+		buf, err = json.MarshalIndent(synthNetpols(connections), "", "    ")
 	} else {
-		buf, _ = json.MarshalIndent(connections, "", "    ")
+		buf, err = json.MarshalIndent(connections, "", "    ")
+	}
+	if err != nil {
+		return err
 	}
 	if *args.OutputFile != "" {
 		fp, err := os.Create(*args.OutputFile)
