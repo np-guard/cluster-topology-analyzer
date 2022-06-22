@@ -40,7 +40,7 @@ func (deployConn *DeploymentConnectivity) addEgressRule(
 	deployConn.egress_conns = append(deployConn.egress_conns, rule)
 }
 
-func synthNetpols(connections []common.Connections) []network.NetworkPolicy {
+func synthNetpols(connections []common.Connections) []*network.NetworkPolicy {
 	deployConnectivity := determineConnectivityPerDeployment(connections)
 	netpols := buildNetpolPerDeployment(deployConnectivity)
 	return netpols
@@ -123,8 +123,8 @@ func toCoreProtocol(protocol string) core.Protocol {
 	}
 }
 
-func buildNetpolPerDeployment(deployConnectivity []*DeploymentConnectivity) []network.NetworkPolicy {
-	var netpols []network.NetworkPolicy
+func buildNetpolPerDeployment(deployConnectivity []*DeploymentConnectivity) []*network.NetworkPolicy {
+	var netpols []*network.NetworkPolicy
 	for _, deployConn := range deployConnectivity {
 		if len(deployConn.egress_conns) > 0 {
 			deployConn.addEgressRule(nil, []network.NetworkPolicyPort{getDnsPort()})
@@ -145,7 +145,7 @@ func buildNetpolPerDeployment(deployConnectivity []*DeploymentConnectivity) []ne
 				PolicyTypes: []network.PolicyType{network.PolicyTypeIngress, network.PolicyTypeEgress},
 			},
 		}
-		netpols = append(netpols, netpol)
+		netpols = append(netpols, &netpol)
 	}
 	return netpols
 }

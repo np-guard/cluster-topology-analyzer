@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -34,7 +35,7 @@ func TestConnectionsOutput(t *testing.T) {
 	os.Remove(outFile)
 }
 
-func TestNetpolsOutput(t *testing.T) {
+func TestNetpolsJsonOutput(t *testing.T) {
 	currentDir, _ := os.Getwd()
 	dirPath := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "kubernetes-manifests.yaml")
 	outFile := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "output.json")
@@ -45,6 +46,38 @@ func TestNetpolsOutput(t *testing.T) {
 
 	res, err := compareFiles(expectedOutput, outFile)
 
+	if err != nil {
+		t.Fatalf("expected err to be nil, but got %v", err)
+	}
+	if !res {
+		t.Fatalf("expected res to be true, but got false")
+	}
+
+	os.Remove(outFile)
+}
+
+func TestNetpolsInterface(t *testing.T) {
+	currentDir, _ := os.Getwd()
+	dirPath := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "kubernetes-manifests.yaml")
+	outFile := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "output.json")
+	expectedOutput := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "expected_netpol_output.json")
+
+	netpols, err := PoliciesFromFolderPath(dirPath)
+	if err != nil {
+		t.Fatalf("expected err to be nil, but got %v", err)
+	}
+	if len(netpols) == 0 {
+		t.Fatalf("expected policies to be non-empty, but got empty")
+	}
+
+	buf, _ := json.MarshalIndent(netpols, "", "    ")
+	fp, err := os.Create(outFile)
+	if err != nil {
+		t.Fatalf("failed opening output file: %v", err)
+	}
+	fp.Write(buf)
+	fp.Close()
+	res, err := compareFiles(expectedOutput, outFile)
 	if err != nil {
 		t.Fatalf("expected err to be nil, but got %v", err)
 	}

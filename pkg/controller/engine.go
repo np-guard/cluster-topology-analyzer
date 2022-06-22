@@ -8,25 +8,21 @@ import (
 
 	"github.com/cluster-topology-analyzer/pkg/analyzer"
 	"github.com/cluster-topology-analyzer/pkg/common"
+	networking "k8s.io/api/networking/v1"
+
 	"go.uber.org/zap"
 )
 
 //Start :
 func Start(args common.InArgs) error {
-	//1. Get all relevant resources from the repo and parse them
-	dObjs := getK8sDeploymentResources(args.DirPath)
-	if len(dObjs) == 0 {
-		zap.S().Info("no deployment objects discovered in the repository")
-		return nil
+	// 1. Discover all connections between resources
+	connections, err := extractConnections(args)
+	if err != nil {
+		return err
 	}
-	resources, links := parseResources(dObjs, args)
 
-	// 2. Discover all connections between resources
-	connections, _ := discoverConnections(resources, links)
-
-	// 3. Write the output to a file or to stdout
+	// 2. Write the output to a file or to stdout
 	var buf []byte
-	var err error
 	if args.SynthNetpols != nil && *args.SynthNetpols {
 		buf, err = json.MarshalIndent(synthNetpols(connections), "", "    ")
 	} else {
@@ -48,6 +44,35 @@ func Start(args common.InArgs) error {
 		fmt.Printf("connection topology reports: \n ---\n%s\n---", string(buf))
 	}
 	return nil
+}
+
+func PoliciesFromFolderPath(fullTargetPath string) ([]*networking.NetworkPolicy, error) {
+	emptyStr := ""
+	args := common.InArgs{}
+	args.DirPath = &fullTargetPath
+	args.CommitID = &emptyStr
+	args.GitBranch = &emptyStr
+	args.GitURL = &emptyStr
+
+	connections, err := extractConnections(args)
+	if err != nil {
+		return []*networking.NetworkPolicy{}, err
+	}
+	return synthNetpols(connections), nil
+}
+
+func extractConnections(args common.InArgs) ([]common.Connections, error) {
+	//1. Get all relevant resources from the repo and parse them
+	dObjs := getK8sDeploymentResources(args.DirPath)
+	if len(dObjs) == 0 {
+		msg := "no deployment objects discovered in the repository"
+		zap.S().Errorf(msg)
+		return []common.Connections{}, errors.New(msg)
+	}
+	resources, links := parseResources(dObjs, args)
+
+	// 2. Discover all connections between resources
+	return discoverConnections(resources, links)
 }
 
 func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resource, []common.Service) {
