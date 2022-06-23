@@ -1,0 +1,1454 @@
+[
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "labels": {
+                    "app": "checkoutservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 5050
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ],
+                "UsedPorts": [
+                    5000
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "emailservice",
+                "selectors": [
+                    "app:emailservice"
+                ],
+                "labels": {
+                    "app": "emailservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/emailservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 8080
+                    }
+                ],
+                "Envs": null,
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "emailservice",
+                "selectors": [
+                    "app:emailservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 5000,
+                        "target_port": 8080
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "labels": {
+                    "app": "frontend"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 8080
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ],
+                "UsedPorts": [
+                    5050
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "labels": {
+                    "app": "checkoutservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 5050
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ],
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 5050,
+                        "target_port": 5050
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "labels": {
+                    "app": "frontend"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 8080
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ],
+                "UsedPorts": [
+                    8080
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "recommendationservice",
+                "selectors": [
+                    "app:recommendationservice"
+                ],
+                "labels": {
+                    "app": "recommendationservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/recommendationservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 8080
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550"
+                ],
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "recommendationservice",
+                "selectors": [
+                    "app:recommendationservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 8080,
+                        "target_port": 8080
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "loadgenerator",
+                "selectors": [
+                    "app:loadgenerator"
+                ],
+                "labels": {
+                    "app": "loadgenerator"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/loadgenerator:v0.2.3"
+                },
+                "network": null,
+                "Envs": [
+                    "frontend:80"
+                ],
+                "UsedPorts": [
+                    80
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "labels": {
+                    "app": "frontend"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 8080
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ],
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 80,
+                        "target_port": 8080
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "loadgenerator",
+                "selectors": [
+                    "app:loadgenerator"
+                ],
+                "labels": {
+                    "app": "loadgenerator"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/loadgenerator:v0.2.3"
+                },
+                "network": null,
+                "Envs": [
+                    "frontend:80"
+                ],
+                "UsedPorts": [
+                    80
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "labels": {
+                    "app": "frontend"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 8080
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ],
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "frontend-external",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "type": "LoadBalancer",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 80,
+                        "target_port": 8080
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "labels": {
+                    "app": "checkoutservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 5050
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ],
+                "UsedPorts": [
+                    50051
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "paymentservice",
+                "selectors": [
+                    "app:paymentservice"
+                ],
+                "labels": {
+                    "app": "paymentservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/paymentservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 50051
+                    }
+                ],
+                "Envs": null,
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "paymentservice",
+                "selectors": [
+                    "app:paymentservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 50051,
+                        "target_port": 50051
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "labels": {
+                    "app": "checkoutservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 5050
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ],
+                "UsedPorts": [
+                    3550
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "productcatalogservice",
+                "selectors": [
+                    "app:productcatalogservice"
+                ],
+                "labels": {
+                    "app": "productcatalogservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 3550
+                    }
+                ],
+                "Envs": null,
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "productcatalogservice",
+                "selectors": [
+                    "app:productcatalogservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 3550,
+                        "target_port": 3550
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "recommendationservice",
+                "selectors": [
+                    "app:recommendationservice"
+                ],
+                "labels": {
+                    "app": "recommendationservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/recommendationservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 8080
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550"
+                ],
+                "UsedPorts": [
+                    3550
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "productcatalogservice",
+                "selectors": [
+                    "app:productcatalogservice"
+                ],
+                "labels": {
+                    "app": "productcatalogservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 3550
+                    }
+                ],
+                "Envs": null,
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "productcatalogservice",
+                "selectors": [
+                    "app:productcatalogservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 3550,
+                        "target_port": 3550
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "labels": {
+                    "app": "frontend"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 8080
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ],
+                "UsedPorts": [
+                    3550
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "productcatalogservice",
+                "selectors": [
+                    "app:productcatalogservice"
+                ],
+                "labels": {
+                    "app": "productcatalogservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 3550
+                    }
+                ],
+                "Envs": null,
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "productcatalogservice",
+                "selectors": [
+                    "app:productcatalogservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 3550,
+                        "target_port": 3550
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "labels": {
+                    "app": "checkoutservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 5050
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ],
+                "UsedPorts": [
+                    7070
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "cartservice",
+                "selectors": [
+                    "app:cartservice"
+                ],
+                "labels": {
+                    "app": "cartservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/cartservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 7070
+                    }
+                ],
+                "Envs": [
+                    "redis-cart:6379"
+                ],
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "cartservice",
+                "selectors": [
+                    "app:cartservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 7070,
+                        "target_port": 7070
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "labels": {
+                    "app": "frontend"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 8080
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ],
+                "UsedPorts": [
+                    7070
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "cartservice",
+                "selectors": [
+                    "app:cartservice"
+                ],
+                "labels": {
+                    "app": "cartservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/cartservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 7070
+                    }
+                ],
+                "Envs": [
+                    "redis-cart:6379"
+                ],
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "cartservice",
+                "selectors": [
+                    "app:cartservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 7070,
+                        "target_port": 7070
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "labels": {
+                    "app": "checkoutservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 5050
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ],
+                "UsedPorts": [
+                    7000
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "currencyservice",
+                "selectors": [
+                    "app:currencyservice"
+                ],
+                "labels": {
+                    "app": "currencyservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/currencyservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 7000
+                    }
+                ],
+                "Envs": null,
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "currencyservice",
+                "selectors": [
+                    "app:currencyservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 7000,
+                        "target_port": 7000
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "labels": {
+                    "app": "frontend"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 8080
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ],
+                "UsedPorts": [
+                    7000
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "currencyservice",
+                "selectors": [
+                    "app:currencyservice"
+                ],
+                "labels": {
+                    "app": "currencyservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/currencyservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 7000
+                    }
+                ],
+                "Envs": null,
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "currencyservice",
+                "selectors": [
+                    "app:currencyservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 7000,
+                        "target_port": 7000
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "labels": {
+                    "app": "checkoutservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 5050
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ],
+                "UsedPorts": [
+                    50051
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "shippingservice",
+                "selectors": [
+                    "app:shippingservice"
+                ],
+                "labels": {
+                    "app": "shippingservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/shippingservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 50051
+                    }
+                ],
+                "Envs": null,
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "shippingservice",
+                "selectors": [
+                    "app:shippingservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 50051,
+                        "target_port": 50051
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "labels": {
+                    "app": "frontend"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 8080
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ],
+                "UsedPorts": [
+                    50051
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "shippingservice",
+                "selectors": [
+                    "app:shippingservice"
+                ],
+                "labels": {
+                    "app": "shippingservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/shippingservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 50051
+                    }
+                ],
+                "Envs": null,
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "shippingservice",
+                "selectors": [
+                    "app:shippingservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 50051,
+                        "target_port": 50051
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "cartservice",
+                "selectors": [
+                    "app:cartservice"
+                ],
+                "labels": {
+                    "app": "cartservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/cartservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 7070
+                    }
+                ],
+                "Envs": [
+                    "redis-cart:6379"
+                ],
+                "UsedPorts": [
+                    6379
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "redis-cart",
+                "selectors": [
+                    "app:redis-cart"
+                ],
+                "labels": {
+                    "app": "redis-cart"
+                },
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "redis:alpine"
+                },
+                "network": [
+                    {
+                        "container_url": 6379
+                    }
+                ],
+                "Envs": null,
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "redis-cart",
+                "selectors": [
+                    "app:redis-cart"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 6379,
+                        "target_port": 6379
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "frontend",
+                "selectors": [
+                    "app:frontend"
+                ],
+                "labels": {
+                    "app": "frontend"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 8080
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "currencyservice:7000",
+                    "cartservice:7070",
+                    "recommendationservice:8080",
+                    "shippingservice:50051",
+                    "checkoutservice:5050",
+                    "adservice:9555"
+                ],
+                "UsedPorts": [
+                    9555
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "adservice",
+                "selectors": [
+                    "app:adservice"
+                ],
+                "labels": {
+                    "app": "adservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/adservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 9555
+                    }
+                ],
+                "Envs": null,
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "adservice",
+                "selectors": [
+                    "app:adservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 9555,
+                        "target_port": 9555
+                    }
+                ]
+            }
+        }
+    }
+]

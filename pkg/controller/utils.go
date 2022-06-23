@@ -76,7 +76,10 @@ func getK8sDeploymentResources(repoDir *string) []parsedK8sObjects {
 	for _, mfp := range manifestFiles {
 		if filebuf, err := ioutil.ReadFile(mfp); err == nil {
 			p := parsedK8sObjects{}
-			p.ManifestFilepath = strings.Split(mfp, *repoDir)[1]
+			p.ManifestFilepath = mfp
+			if pathSplit := strings.Split(mfp, *repoDir); len(pathSplit) > 1 {
+				p.ManifestFilepath = pathSplit[1]
+			}
 			p.ManifestFilehash = fmt.Sprintf("%x", md5.Sum(filebuf))
 			p.DeployObjects = parseK8sYaml(filebuf)
 			parsedObjs = append(parsedObjs, p)

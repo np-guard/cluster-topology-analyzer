@@ -35,6 +35,27 @@ func TestConnectionsOutput(t *testing.T) {
 	os.Remove(outFile)
 }
 
+func TestDirScan(t *testing.T) {
+	currentDir, _ := os.Getwd()
+	dirPath := filepath.Join(currentDir, "../../", "tests", "onlineboutique")
+	outFile := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "output.json")
+	expectedOutput := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "expected_dirscan_output.json")
+	args := getTestArgs(dirPath, outFile, false)
+
+	Start(args)
+
+	res, err := compareFiles(expectedOutput, outFile)
+
+	if err != nil {
+		t.Fatalf("expected err to be nil, but got %v", err)
+	}
+	if !res {
+		t.Fatalf("expected res to be true, but got false")
+	}
+
+	os.Remove(outFile)
+}
+
 func TestNetpolsJsonOutput(t *testing.T) {
 	currentDir, _ := os.Getwd()
 	dirPath := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "kubernetes-manifests.yaml")
