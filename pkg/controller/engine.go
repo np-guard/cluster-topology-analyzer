@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cluster-topology-analyzer/pkg/analyzer"
-	"github.com/cluster-topology-analyzer/pkg/common"
+	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
+	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 	networking "k8s.io/api/networking/v1"
 
 	"go.uber.org/zap"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cluster-topology-analyzer/pkg/common"
+	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 	"go.uber.org/zap"
 )
 

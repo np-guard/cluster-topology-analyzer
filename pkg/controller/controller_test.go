@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cluster-topology-analyzer/pkg/common"
+	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
 // TestOutput calls controller.Start() with an example repo dir tests/onlineboutique/ ,
