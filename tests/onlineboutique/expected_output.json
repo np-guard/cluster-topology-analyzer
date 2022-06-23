@@ -5,6 +5,88 @@
             "git_branch": "",
             "commitid": "",
             "resource": {
+                "name": "checkoutservice",
+                "selectors": [
+                    "app:checkoutservice"
+                ],
+                "labels": {
+                    "app": "checkoutservice"
+                },
+                "serviceaccountname": "default",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 5050
+                    }
+                ],
+                "Envs": [
+                    "productcatalogservice:3550",
+                    "shippingservice:50051",
+                    "paymentservice:50051",
+                    "emailservice:5000",
+                    "currencyservice:7000",
+                    "cartservice:7070"
+                ],
+                "UsedPorts": [
+                    5000
+                ]
+            }
+        },
+        "target": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "emailservice",
+                "selectors": [
+                    "app:emailservice"
+                ],
+                "labels": {
+                    "app": "emailservice"
+                },
+                "serviceaccountname": "default",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/emailservice:v0.2.3"
+                },
+                "network": [
+                    {
+                        "container_url": 8080
+                    }
+                ],
+                "Envs": null,
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
+                "name": "emailservice",
+                "selectors": [
+                    "app:emailservice"
+                ],
+                "type": "ClusterIP",
+                "kind": "Service",
+                "network": [
+                    {
+                        "port": 5000,
+                        "target_port": 8080
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "source": {
+            "git_url": "",
+            "git_branch": "",
+            "commitid": "",
+            "resource": {
                 "name": "frontend",
                 "selectors": [
                     "app:frontend"

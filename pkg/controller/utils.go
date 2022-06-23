@@ -90,7 +90,7 @@ func parseK8sYaml(fileR []byte) []deployObject {
 	acceptedK8sTypes := regexp.MustCompile(fmt.Sprintf("(%s|%s|%s|%s|%s|%s|%s|%s|%s|%s)",
 		pod, replicaSet, replicationController, deployment, daemonset, statefulset, job, cronJob, service, configmap))
 	fileAsString := string(fileR[:])
-	sepYamlfiles := strings.Split(fileAsString, "---")
+	sepYamlfiles := regexp.MustCompile("---\\s").Split(fileAsString, -1)
 	for _, f := range sepYamlfiles {
 		if f == "\n" || f == "" {
 			// ignore empty cases

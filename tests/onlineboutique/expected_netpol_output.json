@@ -158,6 +158,23 @@
                     "ports": [
                         {
                             "protocol": "TCP",
+                            "port": 8080
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "emailservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
                             "port": 50051
                         }
                     ],
@@ -298,6 +315,45 @@
                             "podSelector": {
                                 "matchLabels": {
                                     "app": "frontend"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "emailservice-netpol",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "emailservice"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 8080
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "checkoutservice"
                                 }
                             }
                         }
