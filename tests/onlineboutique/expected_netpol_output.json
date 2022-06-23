@@ -1,0 +1,866 @@
+[
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "adservice-netpol",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "adservice"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 9555
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "frontend"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "cartservice-netpol",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "cartservice"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 7070
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "checkoutservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 7070
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "frontend"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "egress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 6379
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "redis-cart"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "UDP",
+                            "port": 53
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "checkoutservice-netpol",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "checkoutservice"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 5050
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "frontend"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "egress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 8080
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "emailservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 50051
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "paymentservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 3550
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "productcatalogservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 7070
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "cartservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 7000
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "currencyservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 50051
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "shippingservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "UDP",
+                            "port": 53
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "currencyservice-netpol",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "currencyservice"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 7000
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "checkoutservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 7000
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "frontend"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "emailservice-netpol",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "emailservice"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 8080
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "checkoutservice"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "frontend-netpol",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "frontend"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 8080
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "loadgenerator"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 8080
+                        }
+                    ]
+                }
+            ],
+            "egress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 5050
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "checkoutservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 8080
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "recommendationservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 3550
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "productcatalogservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 7070
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "cartservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 7000
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "currencyservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 50051
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "shippingservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 9555
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "adservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "UDP",
+                            "port": 53
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "loadgenerator-netpol",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "loadgenerator"
+                }
+            },
+            "egress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 8080
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "frontend"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "UDP",
+                            "port": 53
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "paymentservice-netpol",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "paymentservice"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 50051
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "checkoutservice"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "productcatalogservice-netpol",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "productcatalogservice"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 3550
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "checkoutservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 3550
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "recommendationservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 3550
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "frontend"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "recommendationservice-netpol",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "recommendationservice"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 8080
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "frontend"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "egress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 3550
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "productcatalogservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "UDP",
+                            "port": 53
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "redis-cart-netpol",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "redis-cart"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 6379
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "cartservice"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "shippingservice-netpol",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "shippingservice"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 50051
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "checkoutservice"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 50051
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "frontend"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    }
+]

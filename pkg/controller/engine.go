@@ -2,28 +2,85 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
-	"github.ibm.com/gitsecure-net-top/pkg/analyzer"
-	"github.ibm.com/gitsecure-net-top/pkg/common"
+	"github.com/cluster-topology-analyzer/pkg/analyzer"
+	"github.com/cluster-topology-analyzer/pkg/common"
+	networking "k8s.io/api/networking/v1"
+
 	"go.uber.org/zap"
 )
 
 //Start :
 func Start(args common.InArgs) error {
+	// 1. Discover all connections between resources
+	connections, err := extractConnections(args)
+	if err != nil {
+		return err
+	}
 
-	//1. Get the deployment objects from the repo
+	// 2. Write the output to a file or to stdout
+	var buf []byte
+	if args.SynthNetpols != nil && *args.SynthNetpols {
+		buf, err = json.MarshalIndent(synthNetpols(connections), "", "    ")
+	} else {
+		buf, err = json.MarshalIndent(connections, "", "    ")
+	}
+	if err != nil {
+		return err
+	}
+	if *args.OutputFile != "" {
+		fp, err := os.Create(*args.OutputFile)
+		if err != nil {
+			msg := fmt.Sprintf("error creating file: %s: %v", *args.OutputFile, err)
+			zap.S().Errorf(msg)
+			return errors.New(msg)
+		}
+		fp.Write(buf)
+		fp.Close()
+	} else {
+		fmt.Printf("connection topology reports: \n ---\n%s\n---", string(buf))
+	}
+	return nil
+}
+
+func PoliciesFromFolderPath(fullTargetPath string) ([]*networking.NetworkPolicy, error) {
+	emptyStr := ""
+	args := common.InArgs{}
+	args.DirPath = &fullTargetPath
+	args.CommitID = &emptyStr
+	args.GitBranch = &emptyStr
+	args.GitURL = &emptyStr
+
+	connections, err := extractConnections(args)
+	if err != nil {
+		return []*networking.NetworkPolicy{}, err
+	}
+	return synthNetpols(connections), nil
+}
+
+func extractConnections(args common.InArgs) ([]common.Connections, error) {
+	//1. Get all relevant resources from the repo and parse them
 	dObjs := getK8sDeploymentResources(args.DirPath)
 	if len(dObjs) == 0 {
-		zap.S().Info("no deployment objects discovered in the repository")
-		return nil
+		msg := "no deployment objects discovered in the repository"
+		zap.S().Errorf(msg)
+		return []common.Connections{}, errors.New(msg)
 	}
+	resources, links := parseResources(dObjs, args)
+
+	// 2. Discover all connections between resources
+	return discoverConnections(resources, links)
+}
+
+func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resource, []common.Service) {
 	resources := []common.Resource{}
 	links := []common.Service{}
 	configmaps := make(map[string][]string, 0) // map for each configmap full-name to its list of data values
-	for _, o := range dObjs {
-		r, l, c := parseResouce(o)
+	for _, o := range objs {
+		r, l, c := parseResource(o)
 		if len(r) != 0 {
 			resources = append(resources, r...)
 		}
@@ -59,26 +116,10 @@ func Start(args common.InArgs) error {
 		links[idx].GitBranch = *args.GitBranch
 		links[idx].GitURL = *args.GitURL
 	}
-	connections, _ := discoverConnections(resources, links)
-	printToStdOut := true
-	buf, _ := json.MarshalIndent(connections, "", "    ")
-	if *args.OutputFile != "" {
-		fp, err := os.Create(*args.OutputFile)
-		if err != nil {
-			zap.S().Debugf("error creating file: %s: %v", *args.OutputFile, err)
-		} else {
-			printToStdOut = false
-			fp.Write(buf)
-			fp.Close()
-		}
-	}
-	if printToStdOut {
-		fmt.Printf("connection topology reports: \n ---\n%s\n---", string(buf))
-	}
-	return nil
+	return resources, links
 }
 
-func parseResouce(obj parsedK8sObjects) ([]common.Resource, []common.Service, []common.CfgMapData) {
+func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, []common.CfgMapData) {
 	links := []common.Service{}
 	deployments := []common.Resource{}
 	configMaps := []common.CfgMapData{}

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.ibm.com/gitsecure-net-top/pkg/common"
+	"github.com/cluster-topology-analyzer/pkg/common"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
 )

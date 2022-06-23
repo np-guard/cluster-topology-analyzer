@@ -76,7 +76,10 @@ func getK8sDeploymentResources(repoDir *string) []parsedK8sObjects {
 	for _, mfp := range manifestFiles {
 		if filebuf, err := ioutil.ReadFile(mfp); err == nil {
 			p := parsedK8sObjects{}
-			p.ManifestFilepath = strings.Split(mfp, *repoDir)[1]
+			p.ManifestFilepath = mfp
+			if pathSplit := strings.Split(mfp, *repoDir); len(pathSplit) > 1 {
+				p.ManifestFilepath = pathSplit[1]
+			}
 			p.ManifestFilehash = fmt.Sprintf("%x", md5.Sum(filebuf))
 			p.DeployObjects = parseK8sYaml(filebuf)
 			parsedObjs = append(parsedObjs, p)
@@ -90,7 +93,7 @@ func parseK8sYaml(fileR []byte) []deployObject {
 	acceptedK8sTypes := regexp.MustCompile(fmt.Sprintf("(%s|%s|%s|%s|%s|%s|%s|%s|%s|%s)",
 		pod, replicaSet, replicationController, deployment, daemonset, statefulset, job, cronJob, service, configmap))
 	fileAsString := string(fileR[:])
-	sepYamlfiles := strings.Split(fileAsString, "---")
+	sepYamlfiles := regexp.MustCompile("---\\s").Split(fileAsString, -1)
 	for _, f := range sepYamlfiles {
 		if f == "\n" || f == "" {
 			// ignore empty cases

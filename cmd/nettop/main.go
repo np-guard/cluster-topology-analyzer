@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.ibm.com/gitsecure-net-top/pkg/common"
-	"github.ibm.com/gitsecure-net-top/pkg/controller"
+	"github.com/cluster-topology-analyzer/pkg/common"
+	"github.com/cluster-topology-analyzer/pkg/controller"
 	"go.uber.org/zap"
 )
 

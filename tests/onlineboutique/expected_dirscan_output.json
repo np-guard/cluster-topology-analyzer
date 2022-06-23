@@ -13,6 +13,7 @@
                     "app": "checkoutservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
@@ -48,6 +49,7 @@
                     "app": "emailservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/emailservice:v0.2.3"
@@ -71,6 +73,7 @@
                     "app:emailservice"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -95,6 +98,7 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
@@ -131,6 +135,7 @@
                     "app": "checkoutservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
@@ -161,6 +166,7 @@
                     "app:checkoutservice"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -185,6 +191,7 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
@@ -221,6 +228,7 @@
                     "app": "recommendationservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/recommendationservice:v0.2.3"
@@ -246,6 +254,7 @@
                     "app:recommendationservice"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -270,6 +279,7 @@
                     "app": "loadgenerator"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/loadgenerator:v0.2.3"
@@ -296,6 +306,7 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
@@ -327,6 +338,7 @@
                     "app:frontend"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -351,6 +363,7 @@
                     "app": "loadgenerator"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/loadgenerator:v0.2.3"
@@ -377,6 +390,7 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
@@ -408,6 +422,7 @@
                     "app:frontend"
                 ],
                 "type": "LoadBalancer",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -432,6 +447,7 @@
                     "app": "checkoutservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
@@ -467,6 +483,7 @@
                     "app": "paymentservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/paymentservice:v0.2.3"
@@ -490,6 +507,7 @@
                     "app:paymentservice"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -514,6 +532,7 @@
                     "app": "checkoutservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
@@ -549,6 +568,7 @@
                     "app": "productcatalogservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3"
@@ -572,6 +592,7 @@
                     "app:productcatalogservice"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -596,6 +617,7 @@
                     "app": "recommendationservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/recommendationservice:v0.2.3"
@@ -626,6 +648,7 @@
                     "app": "productcatalogservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3"
@@ -649,6 +672,7 @@
                     "app:productcatalogservice"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -673,6 +697,7 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
@@ -709,6 +734,7 @@
                     "app": "productcatalogservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3"
@@ -732,6 +758,7 @@
                     "app:productcatalogservice"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -756,6 +783,7 @@
                     "app": "checkoutservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
@@ -791,6 +819,7 @@
                     "app": "cartservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/cartservice:v0.2.3"
@@ -816,6 +845,7 @@
                     "app:cartservice"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -840,6 +870,7 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
@@ -876,6 +907,7 @@
                     "app": "cartservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/cartservice:v0.2.3"
@@ -901,6 +933,7 @@
                     "app:cartservice"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -925,6 +958,7 @@
                     "app": "checkoutservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
@@ -960,6 +994,7 @@
                     "app": "currencyservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/currencyservice:v0.2.3"
@@ -983,6 +1018,7 @@
                     "app:currencyservice"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -1007,6 +1043,7 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
@@ -1043,6 +1080,7 @@
                     "app": "currencyservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/currencyservice:v0.2.3"
@@ -1066,6 +1104,7 @@
                     "app:currencyservice"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -1090,6 +1129,7 @@
                     "app": "checkoutservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
@@ -1125,6 +1165,7 @@
                     "app": "shippingservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/shippingservice:v0.2.3"
@@ -1148,6 +1189,7 @@
                     "app:shippingservice"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -1172,6 +1214,7 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
@@ -1208,6 +1251,7 @@
                     "app": "shippingservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/shippingservice:v0.2.3"
@@ -1231,6 +1275,7 @@
                     "app:shippingservice"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -1255,6 +1300,7 @@
                     "app": "cartservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/cartservice:v0.2.3"
@@ -1284,6 +1330,7 @@
                 "labels": {
                     "app": "redis-cart"
                 },
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "redis:alpine"
@@ -1307,6 +1354,7 @@
                     "app:redis-cart"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -1331,6 +1379,7 @@
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
@@ -1367,6 +1416,7 @@
                     "app": "adservice"
                 },
                 "serviceaccountname": "default",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/adservice:v0.2.3"
@@ -1390,6 +1440,7 @@
                     "app:adservice"
                 ],
                 "type": "ClusterIP",
+                "filepath": "\\kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
