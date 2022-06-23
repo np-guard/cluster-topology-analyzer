@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/cluster-topology-analyzer/pkg/common"
+	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 	core "k8s.io/api/core/v1"
 	network "k8s.io/api/networking/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"

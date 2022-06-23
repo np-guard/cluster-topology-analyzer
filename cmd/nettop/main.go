@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/cluster-topology-analyzer/pkg/common"
-	"github.com/cluster-topology-analyzer/pkg/controller"
+	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
+	"github.com/np-guard/cluster-topology-analyzer/pkg/controller"
 	"go.uber.org/zap"
 )
 

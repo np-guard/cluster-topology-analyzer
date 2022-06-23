@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cluster-topology-analyzer/pkg/common"
+	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
 )
