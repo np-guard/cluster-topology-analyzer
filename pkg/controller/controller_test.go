@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/cluster-topology-analyzer/pkg/common"
@@ -150,7 +151,7 @@ func compareFiles(expectedFile, actualFile string) (bool, error) {
 	for i := 0; i < len(expected_lines); i++ {
 		line_expected := expected_lines[i]
 		line_actual := actual_lines[i]
-		if line_expected != line_actual {
+		if line_expected != line_actual && strings.Index(line_expected, "\"filepath\"") == -1 {
 			fmt.Printf("Gap in line %d: expected: %s, actual: %s", i, line_expected, line_actual)
 			return false, nil
 		}
