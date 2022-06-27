@@ -34,6 +34,7 @@ jobs:
           git config user.name ${{ github.actor }}
           git tag -a v${{ github.event.inputs.version }} -m "Version ${{ github.event.inputs.version }}"
           git push origin v${{ github.event.inputs.version }}
+
       - name: Create a github release
         uses: actions/create-release@v1
         env:
@@ -45,3 +46,11 @@ jobs:
             Changes in this Release:
           draft: false
           prerelease: false
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.17
+
+      - name: Publish on pkg.go.dev
+        run: GOPROXY=proxy.golang.org go list -m github.com/np-guard/cluster-topology-analyzer@v${{ github.event.inputs.version }}
