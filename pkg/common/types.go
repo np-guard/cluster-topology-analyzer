@@ -1,5 +1,9 @@
 package common
 
+import (
+	"k8s.io/apimachinery/pkg/util/intstr"
+)
+
 //InArgs :
 type InArgs struct {
 	DirPath      *string
@@ -46,9 +50,9 @@ type NetworkAttr struct {
 
 //SvcNetworkAttr :
 type SvcNetworkAttr struct {
-	Port       int    `json:"port,omitempty"`
-	TargetPort int    `json:"target_port,omitempty"`
-	Protocol   string `json:"protocol,omitempty"`
+	Port       int                `json:"port,omitempty"`
+	TargetPort intstr.IntOrString `json:"target_port,omitempty"`
+	Protocol   string             `json:"protocol,omitempty"`
 }
 
 //Service :

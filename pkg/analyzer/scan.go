@@ -188,7 +188,7 @@ func parseServiceResource(svcSpec v1.ServiceSpec, serviceCtx *common.Service) er
 	for _, p := range svcSpec.Ports {
 		n := common.SvcNetworkAttr{}
 		n.Port = int(p.Port)
-		n.TargetPort = int(p.TargetPort.IntVal)
+		n.TargetPort = p.TargetPort
 		n.Protocol = string(p.Protocol)
 		serviceCtx.Resource.Network = append(serviceCtx.Resource.Network, n)
 	}
