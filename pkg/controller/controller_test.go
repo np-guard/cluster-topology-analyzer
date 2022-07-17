@@ -89,15 +89,6 @@ func TestNetpolsJsonOutput(t *testing.T) {
 
 }
 
-func TestNetpolsJsonOutputNew(t *testing.T) {
-	currentDir, _ := os.Getwd()
-	dirPath := filepath.Join(currentDir, "../../", "tests", "sockshop", "manifests")
-	outFile := filepath.Join(currentDir, "../../", "tests", "sockshop", "output.json")
-	args := getTestArgs(dirPath, outFile, true)
-	Start(args)
-
-}
-
 func TestNetpolsInterface(t *testing.T) {
 	currentDir, _ := os.Getwd()
 	dirPath := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "kubernetes-manifests.yaml")
