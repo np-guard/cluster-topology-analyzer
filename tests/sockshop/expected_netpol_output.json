@@ -13,19 +13,6 @@
                     "name": "carts"
                 }
             },
-            "ingress": [
-                {
-                    "ports": [
-                        {
-                            "protocol": "TCP",
-                            "port": 80
-                        }
-                    ],
-                    "from": [
-                        {}
-                    ]
-                }
-            ],
             "policyTypes": [
                 "Ingress",
                 "Egress"
@@ -47,19 +34,6 @@
                     "name": "carts-db"
                 }
             },
-            "ingress": [
-                {
-                    "ports": [
-                        {
-                            "protocol": "TCP",
-                            "port": 27017
-                        }
-                    ],
-                    "from": [
-                        {}
-                    ]
-                }
-            ],
             "policyTypes": [
                 "Ingress",
                 "Egress"
@@ -81,19 +55,6 @@
                     "name": "catalogue"
                 }
             },
-            "ingress": [
-                {
-                    "ports": [
-                        {
-                            "protocol": "TCP",
-                            "port": 80
-                        }
-                    ],
-                    "from": [
-                        {}
-                    ]
-                }
-            ],
             "policyTypes": [
                 "Ingress",
                 "Egress"
@@ -115,19 +76,6 @@
                     "name": "catalogue-db"
                 }
             },
-            "ingress": [
-                {
-                    "ports": [
-                        {
-                            "protocol": "TCP",
-                            "port": 3306
-                        }
-                    ],
-                    "from": [
-                        {}
-                    ]
-                }
-            ],
             "policyTypes": [
                 "Ingress",
                 "Egress"
@@ -156,9 +104,6 @@
                             "protocol": "TCP",
                             "port": 8079
                         }
-                    ],
-                    "from": [
-                        {}
                     ]
                 }
             ],
@@ -183,19 +128,6 @@
                     "name": "orders"
                 }
             },
-            "ingress": [
-                {
-                    "ports": [
-                        {
-                            "protocol": "TCP",
-                            "port": 80
-                        }
-                    ],
-                    "from": [
-                        {}
-                    ]
-                }
-            ],
             "policyTypes": [
                 "Ingress",
                 "Egress"
@@ -217,19 +149,6 @@
                     "name": "orders-db"
                 }
             },
-            "ingress": [
-                {
-                    "ports": [
-                        {
-                            "protocol": "TCP",
-                            "port": 27017
-                        }
-                    ],
-                    "from": [
-                        {}
-                    ]
-                }
-            ],
             "policyTypes": [
                 "Ingress",
                 "Egress"
@@ -251,19 +170,6 @@
                     "name": "payment"
                 }
             },
-            "ingress": [
-                {
-                    "ports": [
-                        {
-                            "protocol": "TCP",
-                            "port": 80
-                        }
-                    ],
-                    "from": [
-                        {}
-                    ]
-                }
-            ],
             "policyTypes": [
                 "Ingress",
                 "Egress"
@@ -285,19 +191,6 @@
                     "name": "queue-master"
                 }
             },
-            "ingress": [
-                {
-                    "ports": [
-                        {
-                            "protocol": "TCP",
-                            "port": 80
-                        }
-                    ],
-                    "from": [
-                        {}
-                    ]
-                }
-            ],
             "policyTypes": [
                 "Ingress",
                 "Egress"
@@ -319,23 +212,6 @@
                     "name": "rabbitmq"
                 }
             },
-            "ingress": [
-                {
-                    "ports": [
-                        {
-                            "protocol": "TCP",
-                            "port": 5672
-                        },
-                        {
-                            "protocol": "TCP",
-                            "port": "exporter"
-                        }
-                    ],
-                    "from": [
-                        {}
-                    ]
-                }
-            ],
             "policyTypes": [
                 "Ingress",
                 "Egress"
@@ -357,19 +233,6 @@
                     "name": "session-db"
                 }
             },
-            "ingress": [
-                {
-                    "ports": [
-                        {
-                            "protocol": "TCP",
-                            "port": 6379
-                        }
-                    ],
-                    "from": [
-                        {}
-                    ]
-                }
-            ],
             "policyTypes": [
                 "Ingress",
                 "Egress"
@@ -391,19 +254,6 @@
                     "name": "shipping"
                 }
             },
-            "ingress": [
-                {
-                    "ports": [
-                        {
-                            "protocol": "TCP",
-                            "port": 80
-                        }
-                    ],
-                    "from": [
-                        {}
-                    ]
-                }
-            ],
             "policyTypes": [
                 "Ingress",
                 "Egress"
@@ -425,19 +275,6 @@
                     "name": "user"
                 }
             },
-            "ingress": [
-                {
-                    "ports": [
-                        {
-                            "protocol": "TCP",
-                            "port": 80
-                        }
-                    ],
-                    "from": [
-                        {}
-                    ]
-                }
-            ],
             "egress": [
                 {
                     "ports": [
