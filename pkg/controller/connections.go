@@ -64,6 +64,7 @@ func findServices(selectors []string, links []common.Service) []common.Service {
 	return matchedSvc
 }
 
+// findSource returns a list of resources that are likely trying to connect to the given service
 func findSource(resources []common.Resource, service common.Service) ([]common.Resource, bool) {
 	tRes := []common.Resource{}
 	found := false

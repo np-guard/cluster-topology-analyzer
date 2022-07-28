@@ -60,15 +60,9 @@ func determineConnectivityPerDeployment(connections []common.Connections) []*Dep
 
 		if conn.Link.Resource.Type == "LoadBalancer" || conn.Link.Resource.Type == "NodePort" {
 			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{}, target_ports) // in these cases we want to allow traffic from all sources
-		} else {
-			var ingressNetpolPeer []network.NetworkPolicyPeer
-			if len(conn.Source.Resource.Name) == 0 {
-				ingressNetpolPeer = append(ingressNetpolPeer, network.NetworkPolicyPeer{PodSelector: nil}) // blocks all traffic
-			} else {
-				netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(srcDeploy)}
-				ingressNetpolPeer = append(ingressNetpolPeer, netpolPeer)
-			}
-			dstDeploy.addIngressRule(ingressNetpolPeer, target_ports)
+		} else if len(conn.Source.Resource.Name) > 0 {
+			netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(srcDeploy)}
+			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{netpolPeer}, target_ports) // allow traffic only from this specific source
 		}
 	}
 
