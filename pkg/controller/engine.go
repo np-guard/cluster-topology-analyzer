@@ -78,7 +78,7 @@ func extractConnections(args common.InArgs) ([]common.Connections, error) {
 func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resource, []common.Service) {
 	resources := []common.Resource{}
 	links := []common.Service{}
-	configmaps := make(map[string][]string, 0) // map for each configmap full-name to its list of data values
+	configmaps := map[string]common.CfgMap{} // map from a configmap's full-name to its data
 	for _, o := range objs {
 		r, l, c := parseResource(o)
 		if len(r) != 0 {
@@ -88,11 +88,8 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 			links = append(links, l...)
 		}
 		for _, cfgObj := range c {
-			for k, v := range cfgObj {
-				configmaps[k] = v
-			}
+			configmaps[cfgObj.FullName] = cfgObj
 		}
-		// zap.S().Debugf("resources: %v \n\n links: %v", resources, links)
 	}
 	for idx := range resources {
 		resources[idx].CommitID = *args.CommitID
@@ -100,17 +97,28 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 		resources[idx].GitURL = *args.GitURL
 
 		//handle config maps data to be associated into relevant deployments resource objects
-		if resources[idx].Resource.ConfigMapRef != "" {
-			configmapFullName := resources[idx].Resource.Namespace + "/" + resources[idx].Resource.ConfigMapRef
-			if data, ok := configmaps[configmapFullName]; ok {
+		for _, cfgMapRef := range resources[idx].Resource.ConfigMapRefs {
+			configmapFullName := resources[idx].Resource.Namespace + "/" + cfgMapRef
+			if cfgMap, ok := configmaps[configmapFullName]; ok {
 				//add to d Envs the values from data
 				//TODO: keep only data values with addresses of known services names
 				//pattern for relevant data value: http://[svc name]:[port] or [svc-name]:[port] or [svc-name] or  http://[svc name] (implied port 80)
 				//The port is optional when it is the default port for a given protocol (e.g., HTTP=80).
-				resources[idx].Resource.Envs = append(resources[idx].Resource.Envs, data...)
+				for _, v := range cfgMap.Data {
+					resources[idx].Resource.Envs = append(resources[idx].Resource.Envs, v)
+				}
+			}
+		}
+		for _, cfgMapKeyRef := range resources[idx].Resource.ConfigMapKeyRefs {
+			configmapFullName := resources[idx].Resource.Namespace + "/" + cfgMapKeyRef.Name
+			if cfgMap, ok := configmaps[configmapFullName]; ok {
+				if val, ok := cfgMap.Data[cfgMapKeyRef.Key]; ok {
+					resources[idx].Resource.Envs = append(resources[idx].Resource.Envs, val)
+				}
 			}
 		}
 	}
+
 	for idx := range links {
 		links[idx].CommitID = *args.CommitID
 		links[idx].GitBranch = *args.GitBranch
@@ -119,10 +127,10 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 	return resources, links
 }
 
-func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, []common.CfgMapData) {
+func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, []common.CfgMap) {
 	links := []common.Service{}
 	deployments := []common.Resource{}
-	configMaps := []common.CfgMapData{}
+	configMaps := []common.CfgMap{}
 
 	for _, p := range obj.DeployObjects {
 		switch p.GroupKind {
