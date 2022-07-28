@@ -14,7 +14,15 @@ type InArgs struct {
 	SynthNetpols *bool
 }
 
-type CfgMapData map[string][]string
+type CfgMap struct {
+	FullName string
+	Data     map[string]string
+}
+
+type CfgMapKeyRef struct {
+	Name string
+	Key  string
+}
 
 //Resource :
 type Resource struct {
@@ -34,10 +42,11 @@ type Resource struct {
 		Image              struct {
 			ID string `json:"id,omitempty"`
 		} `json:"image"`
-		Network      []NetworkAttr `json:"network"`
-		Envs         []string
-		ConfigMapRef string `json:"-"`
-		UsedPorts    []int
+		Network          []NetworkAttr `json:"network"`
+		Envs             []string
+		ConfigMapRefs    []string       `json:"-"`
+		ConfigMapKeyRefs []CfgMapKeyRef `json:"-"`
+		UsedPorts        []int
 	} `json:"resource,omitempty"`
 }
 
