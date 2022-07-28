@@ -57,14 +57,19 @@ func determineConnectivityPerDeployment(connections []common.Connections) []*Dep
 		if srcDeploy != nil {
 			srcDeploy.addEgressRule(egressNetpolPeer, target_ports)
 		}
-		var ingressNetpolPeer []network.NetworkPolicyPeer
-		if len(conn.Source.Resource.Name) == 0 {
-			ingressNetpolPeer = append(ingressNetpolPeer, network.NetworkPolicyPeer{})
-		} else if conn.Link.Resource.Type != "LoadBalancer" && conn.Link.Resource.Type != "NodePort" {
-			netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(srcDeploy)}
-			ingressNetpolPeer = append(ingressNetpolPeer, netpolPeer)
+
+		if conn.Link.Resource.Type == "LoadBalancer" || conn.Link.Resource.Type == "NodePort" {
+			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{}, target_ports) // in these cases we want to allow traffic from all sources
+		} else {
+			var ingressNetpolPeer []network.NetworkPolicyPeer
+			if len(conn.Source.Resource.Name) == 0 {
+				ingressNetpolPeer = append(ingressNetpolPeer, network.NetworkPolicyPeer{PodSelector: nil}) // blocks all traffic
+			} else {
+				netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(srcDeploy)}
+				ingressNetpolPeer = append(ingressNetpolPeer, netpolPeer)
+			}
+			dstDeploy.addIngressRule(ingressNetpolPeer, target_ports)
 		}
-		dstDeploy.addIngressRule(ingressNetpolPeer, target_ports)
 	}
 
 	retSlice := []*DeploymentConnectivity{}
