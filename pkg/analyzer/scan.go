@@ -98,21 +98,18 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 	return resourceCtx, nil
 }
 
-func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMapData, error) {
-	var cfgmapCtx common.CfgMapData = make(map[string][]string, 0)
+func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMap, error) {
 	obj := ParseConfigMap(bytes.NewReader(objDataBuf))
 
-	//parsed object is a map from ConfigMap's full name (namespace/name) to its data values of interest (list of strings)
 	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
-	data := []string{}
-	for _, v := range obj.Data {
+	data := map[string]string{}
+	for k, v := range obj.Data {
 		value, isPotentialAddress := identifyAddressValue(v)
 		if isPotentialAddress {
-			data = append(data, value)
+			data[k] = value
 		}
 	}
-	cfgmapCtx[fullName] = data
-	return cfgmapCtx, nil
+	return common.CfgMap{FullName: fullName, Data: data}, nil
 }
 
 //ScanK8sServiceObject :
@@ -150,15 +147,21 @@ func parseDeployResource(podSpec v1.PodTemplateSpec, resourceCtx *common.Resourc
 			resourceCtx.Resource.Network = append(resourceCtx.Resource.Network, n)
 		}
 		for _, e := range container.Env {
-			value, isPotentialAddress := identifyAddressValue(e.Value)
-			if isPotentialAddress {
-				resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, value)
+			if e.Value != "" {
+				value, isPotentialAddress := identifyAddressValue(e.Value)
+				if isPotentialAddress {
+					resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, value)
+				}
+			} else if e.ValueFrom != nil && e.ValueFrom.ConfigMapKeyRef != nil {
+				keyRef := e.ValueFrom.ConfigMapKeyRef
+				if keyRef.Name != "" && keyRef.Key != "" { // just store ref for now - check later if it's a network address
+					resourceCtx.Resource.ConfigMapKeyRefs = append(resourceCtx.Resource.ConfigMapKeyRefs, common.CfgMapKeyRef{Name: keyRef.Name, Key: keyRef.Key})
+				}
 			}
 		}
 		for _, envFrom := range container.EnvFrom {
-			//TODO: add support for configMapKeyRef (https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
-			if envFrom.ConfigMapRef != nil {
-				resourceCtx.Resource.ConfigMapRef = envFrom.ConfigMapRef.Name
+			if envFrom.ConfigMapRef != nil { // just store ref for now - check later if the config map values contain a network address
+				resourceCtx.Resource.ConfigMapRefs = append(resourceCtx.Resource.ConfigMapRefs, envFrom.ConfigMapRef.Name)
 			}
 		}
 	}

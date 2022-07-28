@@ -25,11 +25,11 @@
                 ],
                 "Envs": [
                     "productcatalogservice:3550",
-                    "shippingservice:50051",
                     "paymentservice:50051",
                     "emailservice:5000",
                     "currencyservice:7000",
-                    "cartservice:7070"
+                    "cartservice:7070",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": [
                     5000
@@ -113,9 +113,9 @@
                     "currencyservice:7000",
                     "cartservice:7070",
                     "recommendationservice:8080",
-                    "shippingservice:50051",
                     "checkoutservice:5050",
-                    "adservice:9555"
+                    "adservice:9555",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": [
                     5050
@@ -147,11 +147,11 @@
                 ],
                 "Envs": [
                     "productcatalogservice:3550",
-                    "shippingservice:50051",
                     "paymentservice:50051",
                     "emailservice:5000",
                     "currencyservice:7000",
-                    "cartservice:7070"
+                    "cartservice:7070",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": null
             }
@@ -206,9 +206,9 @@
                     "currencyservice:7000",
                     "cartservice:7070",
                     "recommendationservice:8080",
-                    "shippingservice:50051",
                     "checkoutservice:5050",
-                    "adservice:9555"
+                    "adservice:9555",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": [
                     8080
@@ -321,9 +321,9 @@
                     "currencyservice:7000",
                     "cartservice:7070",
                     "recommendationservice:8080",
-                    "shippingservice:50051",
                     "checkoutservice:5050",
-                    "adservice:9555"
+                    "adservice:9555",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": null
             }
@@ -405,9 +405,9 @@
                     "currencyservice:7000",
                     "cartservice:7070",
                     "recommendationservice:8080",
-                    "shippingservice:50051",
                     "checkoutservice:5050",
-                    "adservice:9555"
+                    "adservice:9555",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": null
             }
@@ -459,11 +459,11 @@
                 ],
                 "Envs": [
                     "productcatalogservice:3550",
-                    "shippingservice:50051",
                     "paymentservice:50051",
                     "emailservice:5000",
                     "currencyservice:7000",
-                    "cartservice:7070"
+                    "cartservice:7070",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": [
                     50051
@@ -544,11 +544,11 @@
                 ],
                 "Envs": [
                     "productcatalogservice:3550",
-                    "shippingservice:50051",
                     "paymentservice:50051",
                     "emailservice:5000",
                     "currencyservice:7000",
-                    "cartservice:7070"
+                    "cartservice:7070",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": [
                     3550
@@ -712,9 +712,9 @@
                     "currencyservice:7000",
                     "cartservice:7070",
                     "recommendationservice:8080",
-                    "shippingservice:50051",
                     "checkoutservice:5050",
-                    "adservice:9555"
+                    "adservice:9555",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": [
                     3550
@@ -795,11 +795,11 @@
                 ],
                 "Envs": [
                     "productcatalogservice:3550",
-                    "shippingservice:50051",
                     "paymentservice:50051",
                     "emailservice:5000",
                     "currencyservice:7000",
-                    "cartservice:7070"
+                    "cartservice:7070",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": [
                     7070
@@ -885,9 +885,9 @@
                     "currencyservice:7000",
                     "cartservice:7070",
                     "recommendationservice:8080",
-                    "shippingservice:50051",
                     "checkoutservice:5050",
-                    "adservice:9555"
+                    "adservice:9555",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": [
                     7070
@@ -970,11 +970,11 @@
                 ],
                 "Envs": [
                     "productcatalogservice:3550",
-                    "shippingservice:50051",
                     "paymentservice:50051",
                     "emailservice:5000",
                     "currencyservice:7000",
-                    "cartservice:7070"
+                    "cartservice:7070",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": [
                     7000
@@ -1058,9 +1058,9 @@
                     "currencyservice:7000",
                     "cartservice:7070",
                     "recommendationservice:8080",
-                    "shippingservice:50051",
                     "checkoutservice:5050",
-                    "adservice:9555"
+                    "adservice:9555",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": [
                     7000
@@ -1141,11 +1141,11 @@
                 ],
                 "Envs": [
                     "productcatalogservice:3550",
-                    "shippingservice:50051",
                     "paymentservice:50051",
                     "emailservice:5000",
                     "currencyservice:7000",
-                    "cartservice:7070"
+                    "cartservice:7070",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": [
                     50051
@@ -1229,9 +1229,9 @@
                     "currencyservice:7000",
                     "cartservice:7070",
                     "recommendationservice:8080",
-                    "shippingservice:50051",
                     "checkoutservice:5050",
-                    "adservice:9555"
+                    "adservice:9555",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": [
                     50051
@@ -1394,9 +1394,9 @@
                     "currencyservice:7000",
                     "cartservice:7070",
                     "recommendationservice:8080",
-                    "shippingservice:50051",
                     "checkoutservice:5050",
-                    "adservice:9555"
+                    "adservice:9555",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": [
                     9555
