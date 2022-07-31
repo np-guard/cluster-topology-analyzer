@@ -343,25 +343,10 @@
             "git_branch": "",
             "commitid": "",
             "resource": {
-                "name": "loadgenerator",
-                "selectors": [
-                    "app:loadgenerator"
-                ],
-                "labels": {
-                    "app": "loadgenerator"
-                },
-                "serviceaccountname": "default",
-                "kind": "Deployment",
-                "image": {
-                    "id": "gcr.io/google-samples/microservices-demo/loadgenerator:v0.2.3"
-                },
+                "image": {},
                 "network": null,
-                "Envs": [
-                    "frontend:80"
-                ],
-                "UsedPorts": [
-                    80
-                ]
+                "Envs": null,
+                "UsedPorts": null
             }
         },
         "target": {
