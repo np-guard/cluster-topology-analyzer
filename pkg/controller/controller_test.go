@@ -72,6 +72,9 @@ func TestNetpolsJsonOutput(t *testing.T) {
 	tests["sockshop"] = TestDetails{dirPath: filepath.Join(currentDir, "../../", "tests", "sockshop", "manifests"),
 		outFile:        filepath.Join(currentDir, "../../", "tests", "sockshop", "output.json"),
 		expectedOutput: filepath.Join(currentDir, "../../", "tests", "sockshop", "expected_netpol_output.json")}
+	tests["wordpress"] = TestDetails{dirPath: filepath.Join(currentDir, "../../", "tests", "k8s_wordpress_example"),
+		outFile:        filepath.Join(currentDir, "../../", "tests", "k8s_wordpress_example", "output.json"),
+		expectedOutput: filepath.Join(currentDir, "../../", "tests", "k8s_wordpress_example", "expected_netpol_output.json")}
 
 	for testName, testDetails := range tests {
 		args := getTestArgs(testDetails.dirPath, testDetails.outFile, true)
