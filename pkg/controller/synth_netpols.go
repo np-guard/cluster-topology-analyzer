@@ -105,6 +105,9 @@ func toNetpolPorts(ports []common.SvcNetworkAttr) []network.NetworkPolicyPort {
 	for _, port := range ports {
 		protocol := toCoreProtocol(port.Protocol)
 		portNum := port.TargetPort
+		if portNum.Type == intstr.Int && portNum.IntVal == 0 {
+			portNum = intstr.FromInt(port.Port)
+		}
 		netpolPort := network.NetworkPolicyPort{
 			Protocol: &protocol,
 			Port:     &portNum,

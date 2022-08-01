@@ -17,14 +17,14 @@ func discoverConnections(resources []common.Resource, links []common.Service) ([
 	for _, destRes := range resources {
 		deploymentServices := findServices(destRes.Resource.Selectors, links)
 		for _, s := range deploymentServices {
-			srcRes, srcFound := findSource(resources, s)
-			if srcFound {
+			srcRes := findSource(resources, s)
+			if len(srcRes) > 0 {
 				for _, r := range srcRes {
 					zap.S().Debugf("source: %s target: %s link: %s", s.Resource.Name, r.Resource.Name, s.Resource.Name)
 					connections = append(connections, common.Connections{Source: r, Target: destRes, Link: s})
 				}
 			} else {
-				connections = append(connections, common.Connections{Target: destRes, Link: s})
+				connections = append(connections, common.Connections{Target: destRes, Link: s}) // indicates a source-less service
 			}
 		}
 	}
@@ -65,31 +65,29 @@ func findServices(selectors []string, links []common.Service) []common.Service {
 }
 
 // findSource returns a list of resources that are likely trying to connect to the given service
-func findSource(resources []common.Resource, service common.Service) ([]common.Resource, bool) {
+func findSource(resources []common.Resource, service common.Service) []common.Resource {
 	tRes := []common.Resource{}
-	found := false
-	for _, p := range service.Resource.Network {
-		ep := fmt.Sprintf("%s:%d", service.Resource.Name, p.Port)
-		for _, r := range resources {
-			if debug {
-				zap.S().Debugf("resource: %s", r.Resource.Name)
+	for _, r := range resources {
+		if debug {
+			zap.S().Debugf("resource: %s", r.Resource.Name)
+		}
+		for _, envVal := range r.Resource.Envs {
+			if strings.HasPrefix(envVal, "http://") {
+				envVal = strings.TrimLeft(envVal, "http://")
 			}
-			for _, e := range r.Resource.Envs {
-				if strings.HasPrefix(e, "http://") {
-					e = strings.TrimLeft(e, "http://")
-				}
-				if debug {
-					zap.S().Debugf("deployment env: %s", e)
-				}
-				if strings.Compare(ep, e) == 0 {
+			if service.Resource.Name == envVal { // A match without port name
+				tRes = append(tRes, r)
+			}
+			for _, p := range service.Resource.Network {
+				serviceWithPort := fmt.Sprintf("%s:%d", service.Resource.Name, p.Port)
+				if serviceWithPort == envVal {
 					foundSrc := r
 					//specify the used ports for target by the found src
 					foundSrc.Resource.UsedPorts = []int{p.Port}
 					tRes = append(tRes, foundSrc)
-					found = true
 				}
 			}
 		}
 	}
-	return tRes, found
+	return tRes
 }

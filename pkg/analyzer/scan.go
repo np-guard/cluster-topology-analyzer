@@ -3,7 +3,8 @@ package analyzer
 import (
 	"bytes"
 	"fmt"
-	"strings"
+	"net/url"
+	"strconv"
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 	"go.uber.org/zap"
@@ -104,9 +105,9 @@ func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMap, erro
 	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
 	data := map[string]string{}
 	for k, v := range obj.Data {
-		value, isPotentialAddress := identifyAddressValue(v)
+		isPotentialAddress := identifyAddressValue(v)
 		if isPotentialAddress {
-			data[k] = value
+			data[k] = v
 		}
 	}
 	return common.CfgMap{FullName: fullName, Data: data}, nil
@@ -148,9 +149,9 @@ func parseDeployResource(podSpec v1.PodTemplateSpec, resourceCtx *common.Resourc
 		}
 		for _, e := range container.Env {
 			if e.Value != "" {
-				value, isPotentialAddress := identifyAddressValue(e.Value)
+				isPotentialAddress := identifyAddressValue(e.Value)
 				if isPotentialAddress {
-					resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, value)
+					resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, e.Value)
 				}
 			} else if e.ValueFrom != nil && e.ValueFrom.ConfigMapKeyRef != nil {
 				keyRef := e.ValueFrom.ConfigMapKeyRef
@@ -168,23 +169,14 @@ func parseDeployResource(podSpec v1.PodTemplateSpec, resourceCtx *common.Resourc
 	return nil
 }
 
-//identifyAddressValue checks if value is a potential service address (value is originated from deployment's env or configmap values)
-//It returns a string value (if it's a potential address it may be added with default port) and a bool inidcating
-//if this is indeed a data value of interest as a potential address
-//service addresses considered are of the form "[http://]<service name>:<port number>"
-func identifyAddressValue(value string) (string, bool) {
-	if strings.HasPrefix(value, "http://") && strings.Count(value, ":") == 1 {
-		//consider also cases such as "http://<service name>" with default http port
-		//TODO: could also be a case where value is address as a service name without port, since default port may be used
-		return value + ":80", true //add default port for http
+//identifyAddressValue checks if a given string is a potential network address
+func identifyAddressValue(value string) bool {
+	_, err := url.Parse(value)
+	if err != nil {
+		return false
 	}
-	if strings.Contains(value, ":") {
-		return value, true
-	}
-	//TODO: could be a service name as address without default port and without prefix of http://
-	//TODO: what about other protocols prefixes? (https?)
-	//TODO: consider only string values containing services names
-	return value, false
+	_, err = strconv.Atoi(value)
+	return err != nil // we do not accept integers as network addresses
 }
 
 func parseServiceResource(svcSpec v1.ServiceSpec, serviceCtx *common.Service) error {
