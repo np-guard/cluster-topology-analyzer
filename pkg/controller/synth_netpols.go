@@ -14,30 +14,30 @@ import (
 
 type DeploymentConnectivity struct {
 	common.Resource
-	ingress_conns []network.NetworkPolicyIngressRule
-	egress_conns  []network.NetworkPolicyEgressRule
+	ingressConns []network.NetworkPolicyIngressRule
+	egressConns  []network.NetworkPolicyEgressRule
 }
 
 func (deployConn *DeploymentConnectivity) addIngressRule(
 	peers []network.NetworkPolicyPeer, ports []network.NetworkPolicyPort) {
 	rule := network.NetworkPolicyIngressRule{From: peers, Ports: ports}
-	for _, existingRule := range deployConn.ingress_conns {
+	for _, existingRule := range deployConn.ingressConns {
 		if reflect.DeepEqual(existingRule, rule) {
 			return
 		}
 	}
-	deployConn.ingress_conns = append(deployConn.ingress_conns, rule)
+	deployConn.ingressConns = append(deployConn.ingressConns, rule)
 }
 
 func (deployConn *DeploymentConnectivity) addEgressRule(
 	peers []network.NetworkPolicyPeer, ports []network.NetworkPolicyPort) {
 	rule := network.NetworkPolicyEgressRule{To: peers, Ports: ports}
-	for _, existingRule := range deployConn.egress_conns {
+	for _, existingRule := range deployConn.egressConns {
 		if reflect.DeepEqual(existingRule, rule) {
 			return
 		}
 	}
-	deployConn.egress_conns = append(deployConn.egress_conns, rule)
+	deployConn.egressConns = append(deployConn.egressConns, rule)
 }
 
 func synthNetpols(connections []common.Connections) []*network.NetworkPolicy {
@@ -51,18 +51,18 @@ func determineConnectivityPerDeployment(connections []common.Connections) []*Dep
 	for _, conn := range connections {
 		srcDeploy := findOrAddDeploymentConn(conn.Source, deploysConnectivity)
 		dstDeploy := findOrAddDeploymentConn(conn.Target, deploysConnectivity)
-		target_ports := toNetpolPorts(conn.Link.Resource.Network) // TODO: filter by src ports
+		targetPorts := toNetpolPorts(conn.Link.Resource.Network) // TODO: filter by src ports
 
 		egressNetpolPeer := []network.NetworkPolicyPeer{{PodSelector: getDeployConnSelector(dstDeploy)}}
 		if srcDeploy != nil {
-			srcDeploy.addEgressRule(egressNetpolPeer, target_ports)
+			srcDeploy.addEgressRule(egressNetpolPeer, targetPorts)
 		}
 
 		if conn.Link.Resource.Type == "LoadBalancer" || conn.Link.Resource.Type == "NodePort" {
-			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{}, target_ports) // in these cases we want to allow traffic from all sources
+			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{}, targetPorts) // in these cases we want to allow traffic from all sources
 		} else if len(conn.Source.Resource.Name) > 0 {
 			netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(srcDeploy)}
-			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{netpolPeer}, target_ports) // allow traffic only from this specific source
+			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{netpolPeer}, targetPorts) // allow traffic only from this specific source
 		}
 	}
 
@@ -133,8 +133,8 @@ func toCoreProtocol(protocol string) core.Protocol {
 func buildNetpolPerDeployment(deployConnectivity []*DeploymentConnectivity) []*network.NetworkPolicy {
 	var netpols []*network.NetworkPolicy
 	for _, deployConn := range deployConnectivity {
-		if len(deployConn.egress_conns) > 0 {
-			deployConn.addEgressRule(nil, []network.NetworkPolicyPort{getDnsPort()})
+		if len(deployConn.egressConns) > 0 {
+			deployConn.addEgressRule(nil, []network.NetworkPolicyPort{getDNSPort()})
 		}
 		netpol := network.NetworkPolicy{
 			TypeMeta: metaV1.TypeMeta{
@@ -147,8 +147,8 @@ func buildNetpolPerDeployment(deployConnectivity []*DeploymentConnectivity) []*n
 			},
 			Spec: network.NetworkPolicySpec{
 				PodSelector: *getDeployConnSelector(deployConn),
-				Ingress:     deployConn.ingress_conns,
-				Egress:      deployConn.egress_conns,
+				Ingress:     deployConn.ingressConns,
+				Egress:      deployConn.egressConns,
 				PolicyTypes: []network.PolicyType{network.PolicyTypeIngress, network.PolicyTypeEgress},
 			},
 		}
@@ -157,7 +157,7 @@ func buildNetpolPerDeployment(deployConnectivity []*DeploymentConnectivity) []*n
 	return netpols
 }
 
-func getDnsPort() network.NetworkPolicyPort {
+func getDNSPort() network.NetworkPolicyPort {
 	udp := core.ProtocolUDP
 	port53 := intstr.FromInt(53)
 	return network.NetworkPolicyPort{

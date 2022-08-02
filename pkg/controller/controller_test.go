@@ -87,9 +87,7 @@ func TestNetpolsJsonOutput(t *testing.T) {
 			t.Fatalf("Test %v: expected res to be true, but got false", testName)
 		}
 		os.Remove(testDetails.outFile)
-
 	}
-
 }
 
 func TestNetpolsInterface(t *testing.T) {
@@ -152,21 +150,21 @@ func getTestArgs(dirPath, outFile string, netpols bool) common.InArgs {
 }
 
 func compareFiles(expectedFile, actualFile string) (bool, error) {
-	expected_lines, err1 := readLines(expectedFile)
-	actual_lines, err2 := readLines(actualFile)
+	expectedLines, err1 := readLines(expectedFile)
+	actualLines, err2 := readLines(actualFile)
 	if err1 != nil || err2 != nil {
 		return false, errors.New("error reading lines from file")
 	}
-	if len(expected_lines) != len(actual_lines) {
-		fmt.Printf("Files line count is different: expected: %d, actual: %d", len(expected_lines), len(actual_lines))
+	if len(expectedLines) != len(actualLines) {
+		fmt.Printf("Files line count is different: expected: %d, actual: %d", len(expectedLines), len(actualLines))
 		return false, nil
 	}
 
-	for i := 0; i < len(expected_lines); i++ {
-		line_expected := expected_lines[i]
-		line_actual := actual_lines[i]
-		if line_expected != line_actual && strings.Index(line_expected, "\"filepath\"") == -1 {
-			fmt.Printf("Gap in line %d: expected: %s, actual: %s", i, line_expected, line_actual)
+	for i := 0; i < len(expectedLines); i++ {
+		lineExpected := expectedLines[i]
+		lineActual := actualLines[i]
+		if lineExpected != lineActual && strings.Index(lineExpected, "\"filepath\"") == -1 {
+			fmt.Printf("Gap in line %d: expected: %s, actual: %s", i, lineExpected, lineActual)
 			return false, nil
 		}
 	}
