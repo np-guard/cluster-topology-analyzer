@@ -57,25 +57,39 @@ func TestDirScan(t *testing.T) {
 	os.Remove(outFile)
 }
 
+type TestDetails struct {
+	dirPath        string
+	outFile        string
+	expectedOutput string
+}
+
 func TestNetpolsJsonOutput(t *testing.T) {
 	currentDir, _ := os.Getwd()
-	dirPath := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "kubernetes-manifests.yaml")
-	outFile := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "output.json")
-	expectedOutput := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "expected_netpol_output.json")
-	args := getTestArgs(dirPath, outFile, true)
+	tests := map[string]TestDetails{} //map from test name to test details
+	tests["onlineboutique"] = TestDetails{dirPath: filepath.Join(currentDir, "../../", "tests", "onlineboutique", "kubernetes-manifests.yaml"),
+		outFile:        filepath.Join(currentDir, "../../", "tests", "onlineboutique", "output.json"),
+		expectedOutput: filepath.Join(currentDir, "../../", "tests", "onlineboutique", "expected_netpol_output.json")}
+	tests["sockshop"] = TestDetails{dirPath: filepath.Join(currentDir, "../../", "tests", "sockshop", "manifests"),
+		outFile:        filepath.Join(currentDir, "../../", "tests", "sockshop", "output.json"),
+		expectedOutput: filepath.Join(currentDir, "../../", "tests", "sockshop", "expected_netpol_output.json")}
+	tests["wordpress"] = TestDetails{dirPath: filepath.Join(currentDir, "../../", "tests", "k8s_wordpress_example"),
+		outFile:        filepath.Join(currentDir, "../../", "tests", "k8s_wordpress_example", "output.json"),
+		expectedOutput: filepath.Join(currentDir, "../../", "tests", "k8s_wordpress_example", "expected_netpol_output.json")}
 
-	Start(args)
+	for testName, testDetails := range tests {
+		args := getTestArgs(testDetails.dirPath, testDetails.outFile, true)
+		Start(args)
+		res, err := compareFiles(testDetails.expectedOutput, testDetails.outFile)
+		if err != nil {
+			t.Fatalf("Test %v: expected err to be nil, but got %v", testName, err)
+		}
+		if !res {
+			t.Fatalf("Test %v: expected res to be true, but got false", testName)
+		}
+		os.Remove(testDetails.outFile)
 
-	res, err := compareFiles(expectedOutput, outFile)
-
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
 	}
-	if !res {
-		t.Fatalf("expected res to be true, but got false")
-	}
 
-	os.Remove(outFile)
 }
 
 func TestNetpolsInterface(t *testing.T) {

@@ -1,0 +1,352 @@
+[
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "carts-netpol",
+            "namespace": "sock-shop",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "name": "carts"
+                }
+            },
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "carts-db-netpol",
+            "namespace": "sock-shop",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "name": "carts-db"
+                }
+            },
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "catalogue-netpol",
+            "namespace": "sock-shop",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "name": "catalogue"
+                }
+            },
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "catalogue-db-netpol",
+            "namespace": "sock-shop",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "name": "catalogue-db"
+                }
+            },
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "front-end-netpol",
+            "namespace": "sock-shop",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "name": "front-end"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 8079
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "orders-netpol",
+            "namespace": "sock-shop",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "name": "orders"
+                }
+            },
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "orders-db-netpol",
+            "namespace": "sock-shop",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "name": "orders-db"
+                }
+            },
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "payment-netpol",
+            "namespace": "sock-shop",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "name": "payment"
+                }
+            },
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "queue-master-netpol",
+            "namespace": "sock-shop",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "name": "queue-master"
+                }
+            },
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "rabbitmq-netpol",
+            "namespace": "sock-shop",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "name": "rabbitmq"
+                }
+            },
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "session-db-netpol",
+            "namespace": "sock-shop",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "name": "session-db"
+                }
+            },
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "shipping-netpol",
+            "namespace": "sock-shop",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "name": "shipping"
+                }
+            },
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "user-netpol",
+            "namespace": "sock-shop",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "name": "user"
+                }
+            },
+            "egress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 27017
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "name": "user-db"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "UDP",
+                            "port": 53
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "user-db-netpol",
+            "namespace": "sock-shop",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "name": "user-db"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 27017
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "name": "user"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        },
+        "status": {}
+    }
+]

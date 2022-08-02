@@ -103,7 +103,10 @@ spec:
           - name: PRODUCT_CATALOG_SERVICE_ADDR
             value: "productcatalogservice:3550"
           - name: SHIPPING_SERVICE_ADDR
-            value: "shippingservice:50051"
+            valueFrom:
+              configMapKeyRef:
+                name: shipping-service-config 
+                key: SHIPPING_SERVICE_ADDR
           - name: PAYMENT_SERVICE_ADDR
             value: "paymentservice:50051"
           - name: EMAIL_SERVICE_ADDR
@@ -249,8 +252,6 @@ spec:
             value: "cartservice:7070"
           - name: RECOMMENDATION_SERVICE_ADDR
             value: "recommendationservice:8080"
-          - name: SHIPPING_SERVICE_ADDR
-            value: "shippingservice:50051"
           - name: CHECKOUT_SERVICE_ADDR
             value: "checkoutservice:5050"
           - name: AD_SERVICE_ADDR
@@ -265,6 +266,9 @@ spec:
           #   value: "1"
           # - name: JAEGER_SERVICE_ADDR
           #   value: "jaeger-collector:14268"
+          envFrom:
+          - configMapRef:
+              name: shipping-service-config
           resources:
             requests:
               cpu: 100m
@@ -723,3 +727,9 @@ spec:
     port: 9555
     targetPort: 9555
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shipping-service-config
+data:
+  SHIPPING_SERVICE_ADDR: shippingservice:50051

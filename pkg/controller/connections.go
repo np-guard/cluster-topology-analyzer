@@ -10,32 +10,21 @@ import (
 
 var debug = false
 
+// This function is at the core of the topology analysis
+// For each resource, it finds other resources that may use it and compiles a list of connections holding these dependencies
 func discoverConnections(resources []common.Resource, links []common.Service) ([]common.Connections, error) {
 	connections := []common.Connections{}
 	for _, destRes := range resources {
-		c := common.Connections{}
-		svc, svcFound := findService(destRes.Resource.Selectors, links)
-		// if debug {
-		for _, s := range svc {
-			zap.S().Debugf("[]source: %s service: %s", destRes.Resource.Name, s.Resource.Name)
-		}
-		// }``
-		if svcFound {
-			for _, s := range svc {
-				srcRes, srcFound := findSource(resources, s)
-				if srcFound {
-					for _, r := range srcRes {
-						zap.S().Debugf("source: %s target: %s link: %s", s.Resource.Name, r.Resource.Name, s.Resource.Name)
-						c.Source = r
-						c.Target = destRes
-						c.Link = s
-						connections = append(connections, c)
-					}
-				} else {
-					c.Target = destRes
-					c.Link = s
-					connections = append(connections, c)
+		deploymentServices := findServices(destRes.Resource.Selectors, links)
+		for _, s := range deploymentServices {
+			srcRes := findSource(resources, s)
+			if len(srcRes) > 0 {
+				for _, r := range srcRes {
+					zap.S().Debugf("source: %s target: %s link: %s", s.Resource.Name, r.Resource.Name, s.Resource.Name)
+					connections = append(connections, common.Connections{Source: r, Target: destRes, Link: s})
 				}
+			} else {
+				connections = append(connections, common.Connections{Target: destRes, Link: s}) // indicates a source-less service
 			}
 		}
 	}
@@ -57,52 +46,48 @@ func areSelectorsContained(selectors1 []string, selectors2 []string) bool {
 	return true
 }
 
-//findService returns a list of services from input links matching the input selectors, and a bool
-//flag indicating if matching services were found
-func findService(selectors []string, links []common.Service) ([]common.Service, bool) {
+// findServices returns a list of services that may be in front of a given deployment (represented by its selectors)
+func findServices(selectors []string, links []common.Service) []common.Service {
 	var matchedSvc []common.Service
-	var found bool
 	//TODO: refer to namespaces - the matching services and input deployment should be in the same namespace
 	for _, l := range links {
 		//all service selector values should be contained in the input selectors of the deployment
 		res := areSelectorsContained(selectors, l.Resource.Selectors)
 		if res {
 			matchedSvc = append(matchedSvc, l)
-			found = true
 		}
 	}
 
 	if debug {
 		zap.S().Debugf("matched service: %v", matchedSvc)
 	}
-	return matchedSvc, found
+	return matchedSvc
 }
 
-func findSource(resources []common.Resource, service common.Service) ([]common.Resource, bool) {
+// findSource returns a list of resources that are likely trying to connect to the given service
+func findSource(resources []common.Resource, service common.Service) []common.Resource {
 	tRes := []common.Resource{}
-	found := false
-	for _, p := range service.Resource.Network {
-		ep := fmt.Sprintf("%s:%d", service.Resource.Name, p.Port)
-		for _, r := range resources {
-			if debug {
-				zap.S().Debugf("resource: %s", r.Resource.Name)
+	for _, r := range resources {
+		if debug {
+			zap.S().Debugf("resource: %s", r.Resource.Name)
+		}
+		for _, envVal := range r.Resource.Envs {
+			if strings.HasPrefix(envVal, "http://") {
+				envVal = strings.TrimLeft(envVal, "http://")
 			}
-			for _, e := range r.Resource.Envs {
-				if strings.HasPrefix(e, "http://") {
-					e = strings.TrimLeft(e, "http://")
-				}
-				if debug {
-					zap.S().Debugf("deployment env: %s", e)
-				}
-				if strings.Compare(ep, e) == 0 {
+			if service.Resource.Name == envVal { // A match without port name
+				tRes = append(tRes, r)
+			}
+			for _, p := range service.Resource.Network {
+				serviceWithPort := fmt.Sprintf("%s:%d", service.Resource.Name, p.Port)
+				if serviceWithPort == envVal {
 					foundSrc := r
 					//specify the used ports for target by the found src
 					foundSrc.Resource.UsedPorts = []int{p.Port}
 					tRes = append(tRes, foundSrc)
-					found = true
 				}
 			}
 		}
 	}
-	return tRes, found
+	return tRes
 }

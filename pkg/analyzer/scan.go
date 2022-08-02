@@ -3,7 +3,8 @@ package analyzer
 import (
 	"bytes"
 	"fmt"
-	"strings"
+	"net/url"
+	"strconv"
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 	"go.uber.org/zap"
@@ -98,21 +99,18 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 	return resourceCtx, nil
 }
 
-func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMapData, error) {
-	var cfgmapCtx common.CfgMapData = make(map[string][]string, 0)
+func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMap, error) {
 	obj := ParseConfigMap(bytes.NewReader(objDataBuf))
 
-	//parsed object is a map from ConfigMap's full name (namespace/name) to its data values of interest (list of strings)
 	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
-	data := []string{}
-	for _, v := range obj.Data {
-		value, isPotentialAddress := identifyAddressValue(v)
+	data := map[string]string{}
+	for k, v := range obj.Data {
+		isPotentialAddress := identifyAddressValue(v)
 		if isPotentialAddress {
-			data = append(data, value)
+			data[k] = v
 		}
 	}
-	cfgmapCtx[fullName] = data
-	return cfgmapCtx, nil
+	return common.CfgMap{FullName: fullName, Data: data}, nil
 }
 
 //ScanK8sServiceObject :
@@ -150,45 +148,42 @@ func parseDeployResource(podSpec v1.PodTemplateSpec, resourceCtx *common.Resourc
 			resourceCtx.Resource.Network = append(resourceCtx.Resource.Network, n)
 		}
 		for _, e := range container.Env {
-			value, isPotentialAddress := identifyAddressValue(e.Value)
-			if isPotentialAddress {
-				resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, value)
+			if e.Value != "" {
+				isPotentialAddress := identifyAddressValue(e.Value)
+				if isPotentialAddress {
+					resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, e.Value)
+				}
+			} else if e.ValueFrom != nil && e.ValueFrom.ConfigMapKeyRef != nil {
+				keyRef := e.ValueFrom.ConfigMapKeyRef
+				if keyRef.Name != "" && keyRef.Key != "" { // just store ref for now - check later if it's a network address
+					resourceCtx.Resource.ConfigMapKeyRefs = append(resourceCtx.Resource.ConfigMapKeyRefs, common.CfgMapKeyRef{Name: keyRef.Name, Key: keyRef.Key})
+				}
 			}
 		}
 		for _, envFrom := range container.EnvFrom {
-			//TODO: add support for configMapKeyRef (https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
-			if envFrom.ConfigMapRef != nil {
-				resourceCtx.Resource.ConfigMapRef = envFrom.ConfigMapRef.Name
+			if envFrom.ConfigMapRef != nil { // just store ref for now - check later if the config map values contain a network address
+				resourceCtx.Resource.ConfigMapRefs = append(resourceCtx.Resource.ConfigMapRefs, envFrom.ConfigMapRef.Name)
 			}
 		}
 	}
 	return nil
 }
 
-//identifyAddressValue checks if value is a potential service address (value is originated from deployment's env or configmap values)
-//It returns a string value (if it's a potential address it may be added with default port) and a bool inidcating
-//if this is indeed a data value of interest as a potential address
-//service addresses considered are of the form "[http://]<service name>:<port number>"
-func identifyAddressValue(value string) (string, bool) {
-	if strings.HasPrefix(value, "http://") && strings.Count(value, ":") == 1 {
-		//consider also cases such as "http://<service name>" with default http port
-		//TODO: could also be a case where value is address as a service name without port, since default port may be used
-		return value + ":80", true //add default port for http
+//identifyAddressValue checks if a given string is a potential network address
+func identifyAddressValue(value string) bool {
+	_, err := url.Parse(value)
+	if err != nil {
+		return false
 	}
-	if strings.Contains(value, ":") {
-		return value, true
-	}
-	//TODO: could be a service name as address without default port and without prefix of http://
-	//TODO: what about other protocols prefixes? (https?)
-	//TODO: consider only string values containing services names
-	return value, false
+	_, err = strconv.Atoi(value)
+	return err != nil // we do not accept integers as network addresses
 }
 
 func parseServiceResource(svcSpec v1.ServiceSpec, serviceCtx *common.Service) error {
 	for _, p := range svcSpec.Ports {
 		n := common.SvcNetworkAttr{}
 		n.Port = int(p.Port)
-		n.TargetPort = int(p.TargetPort.IntVal)
+		n.TargetPort = p.TargetPort
 		n.Protocol = string(p.Protocol)
 		serviceCtx.Resource.Network = append(serviceCtx.Resource.Network, n)
 	}

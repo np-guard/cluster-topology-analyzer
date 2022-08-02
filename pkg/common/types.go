@@ -1,5 +1,9 @@
 package common
 
+import (
+	"k8s.io/apimachinery/pkg/util/intstr"
+)
+
 //InArgs :
 type InArgs struct {
 	DirPath      *string
@@ -10,7 +14,15 @@ type InArgs struct {
 	SynthNetpols *bool
 }
 
-type CfgMapData map[string][]string
+type CfgMap struct {
+	FullName string
+	Data     map[string]string
+}
+
+type CfgMapKeyRef struct {
+	Name string
+	Key  string
+}
 
 //Resource :
 type Resource struct {
@@ -30,10 +42,11 @@ type Resource struct {
 		Image              struct {
 			ID string `json:"id,omitempty"`
 		} `json:"image"`
-		Network      []NetworkAttr `json:"network"`
-		Envs         []string
-		ConfigMapRef string `json:"-"`
-		UsedPorts    []int
+		Network          []NetworkAttr `json:"network"`
+		Envs             []string
+		ConfigMapRefs    []string       `json:"-"`
+		ConfigMapKeyRefs []CfgMapKeyRef `json:"-"`
+		UsedPorts        []int
 	} `json:"resource,omitempty"`
 }
 
@@ -46,9 +59,9 @@ type NetworkAttr struct {
 
 //SvcNetworkAttr :
 type SvcNetworkAttr struct {
-	Port       int    `json:"port,omitempty"`
-	TargetPort int    `json:"target_port,omitempty"`
-	Protocol   string `json:"protocol,omitempty"`
+	Port       int                `json:"port,omitempty"`
+	TargetPort intstr.IntOrString `json:"target_port,omitempty"`
+	Protocol   string             `json:"protocol,omitempty"`
 }
 
 //Service :

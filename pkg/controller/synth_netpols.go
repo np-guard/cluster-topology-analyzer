@@ -54,15 +54,16 @@ func determineConnectivityPerDeployment(connections []common.Connections) []*Dep
 		target_ports := toNetpolPorts(conn.Link.Resource.Network) // TODO: filter by src ports
 
 		egressNetpolPeer := []network.NetworkPolicyPeer{{PodSelector: getDeployConnSelector(dstDeploy)}}
-		srcDeploy.addEgressRule(egressNetpolPeer, target_ports)
-		var ingressNetpolPeer []network.NetworkPolicyPeer
-		if len(conn.Source.Resource.Name) == 0 {
-			ingressNetpolPeer = append(ingressNetpolPeer, network.NetworkPolicyPeer{})
-		} else if conn.Link.Resource.Type != "LoadBalancer" {
-			netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(srcDeploy)}
-			ingressNetpolPeer = append(ingressNetpolPeer, netpolPeer)
+		if srcDeploy != nil {
+			srcDeploy.addEgressRule(egressNetpolPeer, target_ports)
 		}
-		dstDeploy.addIngressRule(ingressNetpolPeer, target_ports)
+
+		if conn.Link.Resource.Type == "LoadBalancer" || conn.Link.Resource.Type == "NodePort" {
+			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{}, target_ports) // in these cases we want to allow traffic from all sources
+		} else if len(conn.Source.Resource.Name) > 0 {
+			netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(srcDeploy)}
+			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{netpolPeer}, target_ports) // allow traffic only from this specific source
+		}
 	}
 
 	retSlice := []*DeploymentConnectivity{}
@@ -77,6 +78,9 @@ func determineConnectivityPerDeployment(connections []common.Connections) []*Dep
 }
 
 func findOrAddDeploymentConn(resource common.Resource, deployConns map[string]*DeploymentConnectivity) *DeploymentConnectivity {
+	if len(resource.Resource.Name) == 0 {
+		return nil
+	}
 	if deployConn, found := deployConns[resource.Resource.Name]; found {
 		return deployConn
 	}
@@ -100,7 +104,10 @@ func toNetpolPorts(ports []common.SvcNetworkAttr) []network.NetworkPolicyPort {
 	var netpolPorts []network.NetworkPolicyPort
 	for _, port := range ports {
 		protocol := toCoreProtocol(port.Protocol)
-		portNum := intstr.FromInt(port.TargetPort)
+		portNum := port.TargetPort
+		if portNum.Type == intstr.Int && portNum.IntVal == 0 {
+			portNum = intstr.FromInt(port.Port)
+		}
 		netpolPort := network.NetworkPolicyPort{
 			Protocol: &protocol,
 			Port:     &portNum,
