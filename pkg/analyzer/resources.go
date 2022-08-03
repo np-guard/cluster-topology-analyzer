@@ -10,13 +10,15 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+const yamlParseBufferSize = 200
+
 // ParsePod parses replicationController
 func ParsePod(r io.Reader) *v1.Pod {
 	if r == nil {
 		return nil
 	}
 	rc := v1.Pod{}
-	err := yaml.NewYAMLOrJSONDecoder(r, 200).Decode(&rc)
+	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
 	if err != nil {
 		return nil
 	}
@@ -29,7 +31,7 @@ func ParseDeployment(r io.Reader) *appsv1.Deployment {
 		return nil
 	}
 	rc := appsv1.Deployment{}
-	err := yaml.NewYAMLOrJSONDecoder(r, 100).Decode(&rc)
+	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
 	if err != nil {
 		return nil
 	}
@@ -42,7 +44,7 @@ func ParseReplicaSet(r io.Reader) *appsv1.ReplicaSet {
 		return nil
 	}
 	rc := appsv1.ReplicaSet{}
-	err := yaml.NewYAMLOrJSONDecoder(r, 200).Decode(&rc)
+	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
 	if err != nil {
 		return nil
 	}
@@ -55,7 +57,7 @@ func ParseReplicationController(r io.Reader) *v1.ReplicationController {
 		return nil
 	}
 	rc := v1.ReplicationController{}
-	err := yaml.NewYAMLOrJSONDecoder(r, 200).Decode(&rc)
+	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
 	if err != nil {
 		return nil
 	}
@@ -69,7 +71,7 @@ func ParseDaemonSet(r io.Reader) *appsv1.DaemonSet {
 		return nil
 	}
 	rc := appsv1.DaemonSet{}
-	err := yaml.NewYAMLOrJSONDecoder(r, 200).Decode(&rc)
+	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
 	if err != nil {
 		return nil
 	}
@@ -83,7 +85,7 @@ func ParseStatefulSet(r io.Reader) *appsv1.StatefulSet {
 		return nil
 	}
 	rc := appsv1.StatefulSet{}
-	err := yaml.NewYAMLOrJSONDecoder(r, 200).Decode(&rc)
+	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
 	if err != nil {
 		return nil
 	}
@@ -97,7 +99,7 @@ func ParseJob(r io.Reader) *batchv1.Job {
 		return nil
 	}
 	rc := batchv1.Job{}
-	err := yaml.NewYAMLOrJSONDecoder(r, 200).Decode(&rc)
+	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
 	if err != nil {
 		return nil
 	}
@@ -111,7 +113,7 @@ func ParseService(r io.Reader) *v1.Service {
 		return nil
 	}
 	rc := v1.Service{}
-	err := yaml.NewYAMLOrJSONDecoder(r, 200).Decode(&rc)
+	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
 	if err != nil {
 		return nil
 	}
@@ -124,7 +126,7 @@ func ParseServiceAccount(r io.Reader) *v1.ServiceAccount {
 		return nil
 	}
 	rc := v1.ServiceAccount{}
-	err := yaml.NewYAMLOrJSONDecoder(r, 200).Decode(&rc)
+	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
 	if err != nil {
 		return nil
 	}
@@ -137,7 +139,7 @@ func ParseConfigMap(r io.Reader) *v1.ConfigMap {
 		return nil
 	}
 	rc := v1.ConfigMap{}
-	err := yaml.NewYAMLOrJSONDecoder(r, 200).Decode(&rc)
+	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
 	if err != nil {
 		return nil
 	}

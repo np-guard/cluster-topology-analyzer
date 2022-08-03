@@ -17,12 +17,15 @@ import (
 // checking for the json output to match expected output at tests/expected_output.json
 func TestConnectionsOutput(t *testing.T) {
 	currentDir, _ := os.Getwd()
-	dirPath := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "kubernetes-manifests.yaml")
-	outFile := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "output.json")
-	expectedOutput := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "expected_output.json")
+	dirPath := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "kubernetes-manifests.yaml")
+	outFile := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "output.json")
+	expectedOutput := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "expected_output.json")
 	args := getTestArgs(dirPath, outFile, false)
 
-	Start(args)
+	err := Start(args)
+	if err != nil {
+		t.Fatalf("expected err to be nil, but got %v", err)
+	}
 
 	res, err := compareFiles(expectedOutput, outFile)
 
@@ -38,12 +41,15 @@ func TestConnectionsOutput(t *testing.T) {
 
 func TestDirScan(t *testing.T) {
 	currentDir, _ := os.Getwd()
-	dirPath := filepath.Join(currentDir, "../../", "tests", "onlineboutique")
-	outFile := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "output.json")
-	expectedOutput := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "expected_dirscan_output.json")
+	dirPath := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique")
+	outFile := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "output.json")
+	expectedOutput := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "expected_dirscan_output.json")
 	args := getTestArgs(dirPath, outFile, false)
 
-	Start(args)
+	err := Start(args)
+	if err != nil {
+		t.Fatalf("expected err to be nil, but got %v", err)
+	}
 
 	res, err := compareFiles(expectedOutput, outFile)
 
@@ -65,20 +71,24 @@ type TestDetails struct {
 
 func TestNetpolsJsonOutput(t *testing.T) {
 	currentDir, _ := os.Getwd()
-	tests := map[string]TestDetails{} //map from test name to test details
-	tests["onlineboutique"] = TestDetails{dirPath: filepath.Join(currentDir, "../../", "tests", "onlineboutique", "kubernetes-manifests.yaml"),
-		outFile:        filepath.Join(currentDir, "../../", "tests", "onlineboutique", "output.json"),
-		expectedOutput: filepath.Join(currentDir, "../../", "tests", "onlineboutique", "expected_netpol_output.json")}
-	tests["sockshop"] = TestDetails{dirPath: filepath.Join(currentDir, "../../", "tests", "sockshop", "manifests"),
-		outFile:        filepath.Join(currentDir, "../../", "tests", "sockshop", "output.json"),
-		expectedOutput: filepath.Join(currentDir, "../../", "tests", "sockshop", "expected_netpol_output.json")}
-	tests["wordpress"] = TestDetails{dirPath: filepath.Join(currentDir, "../../", "tests", "k8s_wordpress_example"),
-		outFile:        filepath.Join(currentDir, "../../", "tests", "k8s_wordpress_example", "output.json"),
-		expectedOutput: filepath.Join(currentDir, "../../", "tests", "k8s_wordpress_example", "expected_netpol_output.json")}
+	testsDir := filepath.Join(currentDir, "..", "..", "tests")
+	tests := map[string]TestDetails{} // map from test name to test details
+	tests["onlineboutique"] = TestDetails{dirPath: filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml"),
+		outFile:        filepath.Join(testsDir, "onlineboutique", "output.json"),
+		expectedOutput: filepath.Join(testsDir, "onlineboutique", "expected_netpol_output.json")}
+	tests["sockshop"] = TestDetails{dirPath: filepath.Join(testsDir, "sockshop", "manifests"),
+		outFile:        filepath.Join(testsDir, "sockshop", "output.json"),
+		expectedOutput: filepath.Join(testsDir, "sockshop", "expected_netpol_output.json")}
+	tests["wordpress"] = TestDetails{dirPath: filepath.Join(testsDir, "k8s_wordpress_example"),
+		outFile:        filepath.Join(testsDir, "k8s_wordpress_example", "output.json"),
+		expectedOutput: filepath.Join(testsDir, "k8s_wordpress_example", "expected_netpol_output.json")}
 
 	for testName, testDetails := range tests {
 		args := getTestArgs(testDetails.dirPath, testDetails.outFile, true)
-		Start(args)
+		err := Start(args)
+		if err != nil {
+			t.Fatalf("Test %v: expected Start to return no error, but got %v", testName, err)
+		}
 		res, err := compareFiles(testDetails.expectedOutput, testDetails.outFile)
 		if err != nil {
 			t.Fatalf("Test %v: expected err to be nil, but got %v", testName, err)
@@ -87,16 +97,15 @@ func TestNetpolsJsonOutput(t *testing.T) {
 			t.Fatalf("Test %v: expected res to be true, but got false", testName)
 		}
 		os.Remove(testDetails.outFile)
-
 	}
-
 }
 
 func TestNetpolsInterface(t *testing.T) {
 	currentDir, _ := os.Getwd()
-	dirPath := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "kubernetes-manifests.yaml")
-	outFile := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "output.json")
-	expectedOutput := filepath.Join(currentDir, "../../", "tests", "onlineboutique", "expected_netpol_output.json")
+	testsDir := filepath.Join(currentDir, "..", "..", "tests")
+	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
+	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
+	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_netpol_output.json")
 
 	netpols, err := PoliciesFromFolderPath(dirPath)
 	if err != nil {
@@ -111,7 +120,10 @@ func TestNetpolsInterface(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed opening output file: %v", err)
 	}
-	fp.Write(buf)
+	_, err = fp.Write(buf)
+	if err != nil {
+		t.Fatalf("failed writing to output file: %v", err)
+	}
 	fp.Close()
 	res, err := compareFiles(expectedOutput, outFile)
 	if err != nil {
@@ -152,21 +164,21 @@ func getTestArgs(dirPath, outFile string, netpols bool) common.InArgs {
 }
 
 func compareFiles(expectedFile, actualFile string) (bool, error) {
-	expected_lines, err1 := readLines(expectedFile)
-	actual_lines, err2 := readLines(actualFile)
+	expectedLines, err1 := readLines(expectedFile)
+	actualLines, err2 := readLines(actualFile)
 	if err1 != nil || err2 != nil {
 		return false, errors.New("error reading lines from file")
 	}
-	if len(expected_lines) != len(actual_lines) {
-		fmt.Printf("Files line count is different: expected: %d, actual: %d", len(expected_lines), len(actual_lines))
+	if len(expectedLines) != len(actualLines) {
+		fmt.Printf("Files line count is different: expected: %d, actual: %d", len(expectedLines), len(actualLines))
 		return false, nil
 	}
 
-	for i := 0; i < len(expected_lines); i++ {
-		line_expected := expected_lines[i]
-		line_actual := actual_lines[i]
-		if line_expected != line_actual && strings.Index(line_expected, "\"filepath\"") == -1 {
-			fmt.Printf("Gap in line %d: expected: %s, actual: %s", i, line_expected, line_actual)
+	for i := 0; i < len(expectedLines); i++ {
+		lineExpected := expectedLines[i]
+		lineActual := actualLines[i]
+		if lineExpected != lineActual && !strings.Contains(lineExpected, "\"filepath\"") {
+			fmt.Printf("Gap in line %d: expected: %s, actual: %s", i, lineExpected, lineActual)
 			return false, nil
 		}
 	}

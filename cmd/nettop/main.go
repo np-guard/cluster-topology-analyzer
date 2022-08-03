@@ -3,28 +3,36 @@ package main
 import (
 	"os"
 
+	"go.uber.org/zap"
+
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 	"github.com/np-guard/cluster-topology-analyzer/pkg/controller"
-	"go.uber.org/zap"
 )
 
-func main() {
+func runAnalysis() int {
 	logger := common.SetupLogger()
-	defer logger.Sync()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	var inArgs common.InArgs
-	if err := common.ParseInArgs(&inArgs); err != nil {
+	err := common.ParseInArgs(&inArgs)
+	if err != nil {
 		zap.S().Debug("error parsing arguments, exiting...")
-		os.Exit(1)
+		return 1
 	}
 
-	// c := []common.Connections{}
-	// c1 := common.Connections{}
-	// c1.Link = common.Service{}
-	// c1.Source = common.Resource{}
-	// c1.Target = common.Resource{}
-	// c = append(c, c1)
-	// b, _ := json.MarshalIndent(c, "", "    ")
-	// zap.S().Debugf("\n%s", string(b))
-	controller.Start(inArgs)
+	err = controller.Start(inArgs)
+	if err != nil {
+		zap.S().Debug("error running topology analysis exiting...")
+		return 1
+	}
+	return 0
+}
+
+func main() {
+	os.Exit(runAnalysis())
 }

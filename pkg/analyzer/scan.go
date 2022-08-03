@@ -6,97 +6,72 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
-//ScanK8sDeployObject :
+// Create a common.Resource object from a k8s Workload object
 func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error) {
-	var podSpecv1 v1.PodTemplateSpec
+	var podSpecV1 v1.PodTemplateSpec
 	var resourceCtx common.Resource
-	// var replicaCount int32
+	var metaObj metaV1.Object
+	resourceCtx.Resource.Kind = kind
 	switch kind {
 	case "Pod":
 		zap.S().Info("evaluating pod")
-		// obj := parser.ParsePod(bytes.NewReader(dataBuf))
-		// podSpecv1 = obj.Spec
 	case "ReplicaSet":
 		obj := ParseReplicaSet(bytes.NewReader(objDataBuf))
-		resourceCtx.Resource.Name = obj.GetName()
-		resourceCtx.Resource.Namespace = obj.GetNamespace()
 		resourceCtx.Resource.Labels = obj.GetLabels()
-		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
-		resourceCtx.Resource.Kind = kind
-		for k, v := range obj.Spec.Selector.MatchLabels {
-			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
-		}
-		// resourceCtx.Namespace = obj.GetNamespace()
-		podSpecv1 = obj.Spec.Template
-		// resourceCtx.Resource.ReplicaCount = int(*obj.Spec.Replicas)
+		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
+		podSpecV1 = obj.Spec.Template
+		metaObj = obj
 	case "ReplicationController":
 		obj := ParseReplicationController(bytes.NewReader(objDataBuf))
-		resourceCtx.Resource.Name = obj.GetName()
-		resourceCtx.Resource.Namespace = obj.GetNamespace()
-		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
-		// for k, v := range obj.Spec.Selector.MatchLabels {
-		// 	resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
-		// }
-		podSpecv1 = *obj.Spec.Template
-		// resourceCtx.Resource.ReplicaCount = int(*obj.Spec.Replicas)
+		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector)
+		podSpecV1 = *obj.Spec.Template
+		metaObj = obj
 	case "Deployment":
 		obj := ParseDeployment(bytes.NewReader(objDataBuf))
-		resourceCtx.Resource.Name = obj.GetName()
-		resourceCtx.Resource.Namespace = obj.GetNamespace()
-		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
-		for k, v := range obj.Spec.Selector.MatchLabels {
-			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
-		}
-		podSpecv1 = obj.Spec.Template
-		// resourceCtx.Resource.ReplicaCount = int(*obj.Spec.Replicas)
+		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
+		podSpecV1 = obj.Spec.Template
+		metaObj = obj
 	case "DaemonSet":
 		obj := ParseDaemonSet(bytes.NewReader(objDataBuf))
-		resourceCtx.Resource.Name = obj.GetName()
-		resourceCtx.Resource.Namespace = obj.GetNamespace()
-		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
-		for k, v := range obj.Spec.Selector.MatchLabels {
-			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
-		}
-		podSpecv1 = obj.Spec.Template
+		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
+		podSpecV1 = obj.Spec.Template
+		metaObj = obj
 	case "StatefulSet":
 		obj := ParseStatefulSet(bytes.NewReader(objDataBuf))
-		resourceCtx.Resource.Name = obj.GetName()
-		resourceCtx.Resource.Namespace = obj.GetNamespace()
-		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
-		for k, v := range obj.Spec.Selector.MatchLabels {
-			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
-		}
-		podSpecv1 = obj.Spec.Template
+		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
+		podSpecV1 = obj.Spec.Template
+		metaObj = obj
 	case "Job":
 		obj := ParseJob(bytes.NewReader(objDataBuf))
-		resourceCtx.Resource.Name = obj.GetName()
-		resourceCtx.Resource.Namespace = obj.GetNamespace()
-		resourceCtx.Resource.Kind = kind
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		resourceCtx.Resource.ServiceAccountName = obj.Spec.Template.Spec.ServiceAccountName
-		for k, v := range obj.Spec.Selector.MatchLabels {
-			resourceCtx.Resource.Selectors = append(resourceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
-		}
-		podSpecv1 = obj.Spec.Template
+		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
+		podSpecV1 = obj.Spec.Template
+		metaObj = obj
 	default:
 		return resourceCtx, fmt.Errorf("unsupported object type: `%s`", kind)
 	}
 
-	parseDeployResource(podSpecv1, &resourceCtx)
+	parseDeployResource(&podSpecV1, metaObj, &resourceCtx)
 	return resourceCtx, nil
+}
+
+func matchLabelSelectorToStrLabels(labels map[string]string) []string {
+	res := []string{}
+	for k, v := range labels {
+		res = append(res, fmt.Sprintf("%s:%s", k, v))
+	}
+	return res
 }
 
 func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMap, error) {
@@ -113,32 +88,37 @@ func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMap, erro
 	return common.CfgMap{FullName: fullName, Data: data}, nil
 }
 
-//ScanK8sServiceObject :
+// Create a common.Service object from a k8s Service object
 func ScanK8sServiceObject(kind string, objDataBuf []byte) (common.Service, error) {
-	var svcSpecv1 v1.ServiceSpec
-	var serviceCtx common.Service
-	switch kind {
-	case "Service":
-		svcObj := ParseService(bytes.NewReader(objDataBuf))
-		serviceCtx.Resource.Name = svcObj.GetName()
-		serviceCtx.Resource.Namespace = svcObj.Namespace
-		serviceCtx.Resource.Kind = kind
-		serviceCtx.Resource.Type = string(svcObj.Spec.Type)
-		for k, v := range svcObj.Spec.Selector {
-			serviceCtx.Resource.Selectors = append(serviceCtx.Resource.Selectors, fmt.Sprintf("%s:%s", k, v))
-		}
-		// serviceCtx.Resource.Selectors = svcObj.GetLabels()
-		svcSpecv1 = svcObj.Spec
-	default:
-		return serviceCtx, fmt.Errorf("unsupported object type: `%s`", kind)
+	if kind != "Service" {
+		return common.Service{}, fmt.Errorf("expected parsing a Service resource, but got `%s`", kind)
 	}
-	parseServiceResource(svcSpecv1, &serviceCtx)
+
+	var serviceCtx common.Service
+	svcObj := ParseService(bytes.NewReader(objDataBuf))
+	serviceCtx.Resource.Name = svcObj.GetName()
+	serviceCtx.Resource.Namespace = svcObj.Namespace
+	serviceCtx.Resource.Kind = kind
+	serviceCtx.Resource.Type = string(svcObj.Spec.Type)
+	serviceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(svcObj.Spec.Selector)
+
+	for _, p := range svcObj.Spec.Ports {
+		n := common.SvcNetworkAttr{}
+		n.Port = int(p.Port)
+		n.TargetPort = p.TargetPort
+		n.Protocol = string(p.Protocol)
+		serviceCtx.Resource.Network = append(serviceCtx.Resource.Network, n)
+	}
 
 	return serviceCtx, nil
 }
 
-func parseDeployResource(podSpec v1.PodTemplateSpec, resourceCtx *common.Resource) error {
-	for _, container := range podSpec.Spec.Containers {
+func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourceCtx *common.Resource) {
+	resourceCtx.Resource.Name = obj.GetName()
+	resourceCtx.Resource.Namespace = obj.GetNamespace()
+	resourceCtx.Resource.ServiceAccountName = podSpec.Spec.ServiceAccountName
+	for containerIdx := range podSpec.Spec.Containers {
+		container := &podSpec.Spec.Containers[containerIdx]
 		resourceCtx.Resource.Image.ID = container.Image
 		for _, p := range container.Ports {
 			n := common.NetworkAttr{}
@@ -156,7 +136,8 @@ func parseDeployResource(podSpec v1.PodTemplateSpec, resourceCtx *common.Resourc
 			} else if e.ValueFrom != nil && e.ValueFrom.ConfigMapKeyRef != nil {
 				keyRef := e.ValueFrom.ConfigMapKeyRef
 				if keyRef.Name != "" && keyRef.Key != "" { // just store ref for now - check later if it's a network address
-					resourceCtx.Resource.ConfigMapKeyRefs = append(resourceCtx.Resource.ConfigMapKeyRefs, common.CfgMapKeyRef{Name: keyRef.Name, Key: keyRef.Key})
+					cfgMapKeyRef := common.CfgMapKeyRef{Name: keyRef.Name, Key: keyRef.Key}
+					resourceCtx.Resource.ConfigMapKeyRefs = append(resourceCtx.Resource.ConfigMapKeyRefs, cfgMapKeyRef)
 				}
 			}
 		}
@@ -166,10 +147,9 @@ func parseDeployResource(podSpec v1.PodTemplateSpec, resourceCtx *common.Resourc
 			}
 		}
 	}
-	return nil
 }
 
-//identifyAddressValue checks if a given string is a potential network address
+// identifyAddressValue checks if a given string is a potential network address
 func identifyAddressValue(value string) bool {
 	_, err := url.Parse(value)
 	if err != nil {
@@ -177,15 +157,4 @@ func identifyAddressValue(value string) bool {
 	}
 	_, err = strconv.Atoi(value)
 	return err != nil // we do not accept integers as network addresses
-}
-
-func parseServiceResource(svcSpec v1.ServiceSpec, serviceCtx *common.Service) error {
-	for _, p := range svcSpec.Ports {
-		n := common.SvcNetworkAttr{}
-		n.Port = int(p.Port)
-		n.TargetPort = p.TargetPort
-		n.Protocol = string(p.Protocol)
-		serviceCtx.Resource.Network = append(serviceCtx.Resource.Network, n)
-	}
-	return nil
 }
