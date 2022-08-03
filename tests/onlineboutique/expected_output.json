@@ -338,17 +338,6 @@
         }
     },
     {
-        "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
-            "resource": {
-                "image": {},
-                "network": null,
-                "Envs": null,
-                "UsedPorts": null
-            }
-        },
         "target": {
             "git_url": "",
             "git_branch": "",

@@ -6,14 +6,18 @@ import (
 	"fmt"
 	"os"
 
+	networking "k8s.io/api/networking/v1"
+
 	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
-	networking "k8s.io/api/networking/v1"
 
 	"go.uber.org/zap"
 )
 
-//Start :
+// Start : This is the entry point for the topology analysis engine.
+// Based on the arguments it is given, the engine scans all YAML files,
+// detects all required connection between resources and outputs a json connectivity report
+// (or NetworkPolicies to allow only this connectivity)
 func Start(args common.InArgs) error {
 	// 1. Discover all connections between resources
 	connections, err := extractConnections(args)
@@ -22,11 +26,12 @@ func Start(args common.InArgs) error {
 	}
 
 	// 2. Write the output to a file or to stdout
+	const indent = "    "
 	var buf []byte
 	if args.SynthNetpols != nil && *args.SynthNetpols {
-		buf, err = json.MarshalIndent(synthNetpols(connections), "", "    ")
+		buf, err = json.MarshalIndent(synthNetpols(connections), "", indent)
 	} else {
-		buf, err = json.MarshalIndent(connections, "", "    ")
+		buf, err = json.MarshalIndent(connections, "", indent)
 	}
 	if err != nil {
 		return err
@@ -38,7 +43,12 @@ func Start(args common.InArgs) error {
 			zap.S().Errorf(msg)
 			return errors.New(msg)
 		}
-		fp.Write(buf)
+		_, err = fp.Write(buf)
+		if err != nil {
+			msg := fmt.Sprintf("error writing to file: %s: %v", *args.OutputFile, err)
+			zap.S().Errorf(msg)
+			return errors.New(msg)
+		}
 		fp.Close()
 	} else {
 		fmt.Printf("connection topology reports: \n ---\n%s\n---", string(buf))
@@ -62,7 +72,7 @@ func PoliciesFromFolderPath(fullTargetPath string) ([]*networking.NetworkPolicy,
 }
 
 func extractConnections(args common.InArgs) ([]common.Connections, error) {
-	//1. Get all relevant resources from the repo and parse them
+	// 1. Get all relevant resources from the repo and parse them
 	dObjs := getK8sDeploymentResources(args.DirPath)
 	if len(dObjs) == 0 {
 		msg := "no deployment objects discovered in the repository"
@@ -96,14 +106,14 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 		resources[idx].GitBranch = *args.GitBranch
 		resources[idx].GitURL = *args.GitURL
 
-		//handle config maps data to be associated into relevant deployments resource objects
+		// handle config maps data to be associated into relevant deployments resource objects
 		for _, cfgMapRef := range resources[idx].Resource.ConfigMapRefs {
 			configmapFullName := resources[idx].Resource.Namespace + "/" + cfgMapRef
 			if cfgMap, ok := configmaps[configmapFullName]; ok {
-				//add to d Envs the values from data
-				//TODO: keep only data values with addresses of known services names
-				//pattern for relevant data value: http://[svc name]:[port] or [svc-name]:[port] or [svc-name] or  http://[svc name] (implied port 80)
-				//The port is optional when it is the default port for a given protocol (e.g., HTTP=80).
+				// add to d Envs the values from data
+				// TODO: keep only data values with addresses of known services names
+				// pattern for relevant data value: http://[svc name]:[port] or [svc-name]:[port] or [svc-name] or  http://[svc name] (implied port 80)
+				// The port is optional when it is the default port for a given protocol (e.g., HTTP=80).
 				for _, v := range cfgMap.Data {
 					resources[idx].Resource.Envs = append(resources[idx].Resource.Envs, v)
 				}
@@ -160,6 +170,5 @@ func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, [
 		}
 	}
 
-	// zap.S().Debugf("[1]resources: %d links: %d", len(deployments), len(links))
 	return deployments, links, configMaps
 }

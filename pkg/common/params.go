@@ -7,7 +7,6 @@ import (
 	"go.uber.org/zap"
 )
 
-//ParseInArgs :
 func ParseInArgs(args *InArgs) error {
 	args.DirPath = flag.String("dirpath", "", "input directory path")
 	args.GitURL = flag.String("giturl", "", "git repository url")

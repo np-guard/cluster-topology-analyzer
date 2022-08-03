@@ -5,12 +5,15 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 	core "k8s.io/api/core/v1"
 	network "k8s.io/api/networking/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
+
+const dnsPort = 53
 
 type DeploymentConnectivity struct {
 	common.Resource
@@ -48,7 +51,8 @@ func synthNetpols(connections []common.Connections) []*network.NetworkPolicy {
 
 func determineConnectivityPerDeployment(connections []common.Connections) []*DeploymentConnectivity {
 	deploysConnectivity := map[string]*DeploymentConnectivity{}
-	for _, conn := range connections {
+	for idx := range connections {
+		conn := &connections[idx]
 		srcDeploy := findOrAddDeploymentConn(conn.Source, deploysConnectivity)
 		dstDeploy := findOrAddDeploymentConn(conn.Target, deploysConnectivity)
 		targetPorts := toNetpolPorts(conn.Link.Resource.Network) // TODO: filter by src ports
@@ -60,7 +64,7 @@ func determineConnectivityPerDeployment(connections []common.Connections) []*Dep
 
 		if conn.Link.Resource.Type == "LoadBalancer" || conn.Link.Resource.Type == "NodePort" {
 			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{}, targetPorts) // in these cases we want to allow traffic from all sources
-		} else if len(conn.Source.Resource.Name) > 0 {
+		} else if conn.Source != nil {
 			netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(srcDeploy)}
 			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{netpolPeer}, targetPorts) // allow traffic only from this specific source
 		}
@@ -77,15 +81,15 @@ func determineConnectivityPerDeployment(connections []common.Connections) []*Dep
 	return retSlice
 }
 
-func findOrAddDeploymentConn(resource common.Resource, deployConns map[string]*DeploymentConnectivity) *DeploymentConnectivity {
-	if len(resource.Resource.Name) == 0 {
+func findOrAddDeploymentConn(resource *common.Resource, deployConns map[string]*DeploymentConnectivity) *DeploymentConnectivity {
+	if resource == nil || resource.Resource.Name == "" {
 		return nil
 	}
 	if deployConn, found := deployConns[resource.Resource.Name]; found {
 		return deployConn
 	}
 
-	deploy := DeploymentConnectivity{Resource: resource}
+	deploy := DeploymentConnectivity{Resource: *resource}
 	deployConns[resource.Resource.Name] = &deploy
 	return &deploy
 }
@@ -93,8 +97,12 @@ func findOrAddDeploymentConn(resource common.Resource, deployConns map[string]*D
 func getDeployConnSelector(deployConn *DeploymentConnectivity) *metaV1.LabelSelector {
 	selectorsMap := map[string]string{}
 	for _, selector := range deployConn.Resource.Resource.Selectors {
-		key := selector[:strings.Index(selector, ":")]
-		value := selector[strings.Index(selector, ":")+1:]
+		colonPos := strings.Index(selector, ":")
+		if colonPos == -1 {
+			continue
+		}
+		key := selector[:colonPos]
+		value := selector[colonPos+1:]
 		selectorsMap[key] = value
 	}
 	return &metaV1.LabelSelector{MatchLabels: selectorsMap}
@@ -159,7 +167,7 @@ func buildNetpolPerDeployment(deployConnectivity []*DeploymentConnectivity) []*n
 
 func getDNSPort() network.NetworkPolicyPort {
 	udp := core.ProtocolUDP
-	port53 := intstr.FromInt(53)
+	port53 := intstr.FromInt(dnsPort)
 	return network.NetworkPolicyPort{
 		Protocol: &udp,
 		Port:     &port53,

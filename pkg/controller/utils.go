@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"crypto/md5"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -28,7 +26,6 @@ const (
 
 type parsedK8sObjects struct {
 	ManifestFilepath string
-	ManifestFilehash string
 	DeployObjects    []deployObject
 }
 
@@ -37,35 +34,26 @@ type deployObject struct {
 	RuntimeObject []byte
 }
 
-//searchDeploymentManifests :
 func searchDeploymentManifests(repoDir *string) []string {
 	yamls := []string{}
-	filepath.Walk(*repoDir, func(path string, f os.FileInfo, _ error) error {
-		if f != nil {
-			if !f.IsDir() {
-				r, err := regexp.MatchString(".yaml", f.Name())
-				if err == nil && r {
-					yamls = append(yamls, path)
-				}
+	err := filepath.WalkDir(*repoDir, func(path string, f os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if f != nil && !f.IsDir() {
+			r, err := regexp.MatchString(`^.*\.y(a)?ml$`, f.Name())
+			if err == nil && r {
+				yamls = append(yamls, path)
 			}
 		}
 		return nil
 	})
-	filepath.Walk(*repoDir, func(path string, f os.FileInfo, _ error) error {
-		if f != nil {
-			if !f.IsDir() {
-				r, err := regexp.MatchString(".yml", f.Name())
-				if err == nil && r {
-					yamls = append(yamls, path)
-				}
-			}
-		}
-		return nil
-	})
+	if err != nil {
+		zap.S().Errorf("Error is searching for manifests: %v", err)
+	}
 	return yamls
 }
 
-//getK8sDeploymentResources :
 func getK8sDeploymentResources(repoDir *string) []parsedK8sObjects {
 	manifestFiles := searchDeploymentManifests(repoDir)
 	if len(manifestFiles) == 0 {
@@ -74,16 +62,17 @@ func getK8sDeploymentResources(repoDir *string) []parsedK8sObjects {
 	}
 	parsedObjs := []parsedK8sObjects{}
 	for _, mfp := range manifestFiles {
-		if filebuf, err := ioutil.ReadFile(mfp); err == nil {
-			p := parsedK8sObjects{}
-			p.ManifestFilepath = mfp
-			if pathSplit := strings.Split(mfp, *repoDir); len(pathSplit) > 1 {
-				p.ManifestFilepath = pathSplit[1]
-			}
-			p.ManifestFilehash = fmt.Sprintf("%x", md5.Sum(filebuf))
-			p.DeployObjects = parseK8sYaml(filebuf)
-			parsedObjs = append(parsedObjs, p)
+		filebuf, err := os.ReadFile(mfp)
+		if err != nil {
+			continue
 		}
+		p := parsedK8sObjects{}
+		p.ManifestFilepath = mfp
+		if pathSplit := strings.Split(mfp, *repoDir); len(pathSplit) > 1 {
+			p.ManifestFilepath = pathSplit[1]
+		}
+		p.DeployObjects = parseK8sYaml(filebuf)
+		parsedObjs = append(parsedObjs, p)
 	}
 	return parsedObjs
 }
@@ -92,9 +81,9 @@ func parseK8sYaml(fileR []byte) []deployObject {
 	dObjs := []deployObject{}
 	acceptedK8sTypes := regexp.MustCompile(fmt.Sprintf("(%s|%s|%s|%s|%s|%s|%s|%s|%s|%s)",
 		pod, replicaSet, replicationController, deployment, daemonset, statefulset, job, cronJob, service, configmap))
-	fileAsString := string(fileR[:])
-	sepYamlfiles := regexp.MustCompile("---\\s").Split(fileAsString, -1)
-	for _, f := range sepYamlfiles {
+	fileAsString := string(fileR)
+	sepYamlFiles := regexp.MustCompile(`---\s`).Split(fileAsString, -1)
+	for _, f := range sepYamlFiles {
 		if f == "\n" || f == "" {
 			// ignore empty cases
 			continue
