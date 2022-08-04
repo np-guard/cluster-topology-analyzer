@@ -7,23 +7,29 @@ on:
         description: 'Release version number'
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   push_to_registry:
     name: Publish a new Docker image and create a GitHub release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2.0.0
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@1cb9d22b932e4832bb29793b7777ec860fc1cde0
         with:
           context: .
           push: true
@@ -36,7 +42,7 @@ jobs:
           git push origin v${{ github.event.inputs.version }}
 
       - name: Create a github release
-        uses: actions/create-release@v1
+        uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -48,7 +54,7 @@ jobs:
           prerelease: false
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a
         with:
           go-version: 1.17
 
