@@ -17,7 +17,7 @@ func discoverConnections(resources []common.Resource, links []common.Service) ([
 	connections := []common.Connections{}
 	for destResIdx := range resources {
 		destRes := &resources[destResIdx]
-		deploymentServices := findServices(destRes.Resource.Selectors, links)
+		deploymentServices := findServices(destRes.Resource.Labels, links)
 		for svcIdx := range deploymentServices {
 			svc := &deploymentServices[svcIdx]
 			srcRes := findSource(resources, svc)
@@ -35,9 +35,10 @@ func discoverConnections(resources []common.Resource, links []common.Service) ([
 }
 
 // areSelectorsContained returns true if selectors2 is contained in selectors1
-func areSelectorsContained(selectors1, selectors2 []string) bool {
+func areSelectorsContained(selectors1 map[string]string, selectors2 []string) bool {
 	elementMap := make(map[string]string)
-	for _, s := range selectors1 {
+	for k, v := range selectors1 {
+		s := fmt.Sprintf("%s:%s", k, v)
 		elementMap[s] = ""
 	}
 	for _, val := range selectors2 {
@@ -50,9 +51,8 @@ func areSelectorsContained(selectors1, selectors2 []string) bool {
 }
 
 // findServices returns a list of services that may be in front of a given deployment (represented by its selectors)
-func findServices(selectors []string, links []common.Service) []common.Service {
+func findServices(selectors map[string]string, links []common.Service) []common.Service {
 	var matchedSvc []common.Service
-	//TODO: refer to namespaces - the matching services and input deployment should be in the same namespace
 	for linkIdx := range links {
 		link := &links[linkIdx]
 		// all service selector values should be contained in the input selectors of the deployment
@@ -72,22 +72,58 @@ func findServices(selectors []string, links []common.Service) []common.Service {
 func findSource(resources []common.Resource, service *common.Service) []*common.Resource {
 	tRes := []*common.Resource{}
 	for resIdx := range resources {
-		res := &resources[resIdx]
-		for _, envVal := range res.Resource.Envs {
-			envVal = strings.TrimPrefix(envVal, "http://")
-			if service.Resource.Name == envVal { // A match without port name
-				tRes = append(tRes, res)
-			}
-			for _, p := range service.Resource.Network {
-				serviceWithPort := fmt.Sprintf("%s:%d", service.Resource.Name, p.Port)
-				if serviceWithPort == envVal {
-					foundSrc := *res
-					// specify the used ports for target by the found src
-					foundSrc.Resource.UsedPorts = []int{p.Port}
-					tRes = append(tRes, &foundSrc)
+		resource := &resources[resIdx]
+		serviceAddresses := getPossibleServiceAddresses(service, resource)
+		foundSrc := *resource // We copy the resource so we can specify the ports used by the source found
+		matched := false
+		for _, envVal := range resource.Resource.Envs {
+			match, port := envValueMatchesService(envVal, service, serviceAddresses)
+			if match {
+				matched = true
+				if port.Port > 0 {
+					foundSrc.Resource.UsedPorts = append(foundSrc.Resource.UsedPorts, port)
 				}
 			}
 		}
+		if matched {
+			tRes = append(tRes, &foundSrc)
+		}
 	}
 	return tRes
+}
+
+func getPossibleServiceAddresses(service *common.Service, resource *common.Resource) []string {
+	svcAddresses := []string{}
+	if service.Resource.Namespace != "" {
+		serviceDotNamespace := fmt.Sprintf("%s.%s", service.Resource.Name, service.Resource.Namespace)
+		svcAddresses = append(svcAddresses, serviceDotNamespace, serviceDotNamespace+".svc.cluster.local")
+	}
+	if service.Resource.Namespace == resource.Resource.Namespace { // both service and resource live in the same namespace
+		svcAddresses = append(svcAddresses, service.Resource.Name)
+	}
+
+	return svcAddresses
+}
+
+func envValueMatchesService(envVal string, service *common.Service, serviceAddresses []string) (bool, common.SvcNetworkAttr) {
+	envVal = strings.TrimPrefix(envVal, "http://")
+	envVal = strings.TrimPrefix(envVal, "https://")
+
+	// first look for matches without specified port
+	for _, svcAddress := range serviceAddresses {
+		if svcAddress == envVal {
+			return true, common.SvcNetworkAttr{} // this means no specified port
+		}
+	}
+
+	// Now look for matches that have port specified
+	for _, p := range service.Resource.Network {
+		for _, svcAddress := range serviceAddresses {
+			serviceWithPort := fmt.Sprintf("%s:%d", svcAddress, p.Port)
+			if envVal == serviceWithPort {
+				return true, p
+			}
+		}
+	}
+	return false, common.SvcNetworkAttr{}
 }

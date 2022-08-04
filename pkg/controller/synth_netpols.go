@@ -3,7 +3,6 @@ package controller
 import (
 	"reflect"
 	"sort"
-	"strings"
 
 	core "k8s.io/api/core/v1"
 	network "k8s.io/api/networking/v1"
@@ -55,7 +54,10 @@ func determineConnectivityPerDeployment(connections []common.Connections) []*Dep
 		conn := &connections[idx]
 		srcDeploy := findOrAddDeploymentConn(conn.Source, deploysConnectivity)
 		dstDeploy := findOrAddDeploymentConn(conn.Target, deploysConnectivity)
-		targetPorts := toNetpolPorts(conn.Link.Resource.Network) // TODO: filter by src ports
+		targetPorts := toNetpolPorts(conn.Link.Resource.Network)
+		if conn.Source != nil && len(conn.Source.Resource.UsedPorts) > 0 {
+			targetPorts = toNetpolPorts(conn.Source.Resource.UsedPorts)
+		}
 
 		egressNetpolPeer := []network.NetworkPolicyPeer{{PodSelector: getDeployConnSelector(dstDeploy)}}
 		if srcDeploy != nil {
@@ -95,17 +97,7 @@ func findOrAddDeploymentConn(resource *common.Resource, deployConns map[string]*
 }
 
 func getDeployConnSelector(deployConn *DeploymentConnectivity) *metaV1.LabelSelector {
-	selectorsMap := map[string]string{}
-	for _, selector := range deployConn.Resource.Resource.Selectors {
-		colonPos := strings.Index(selector, ":")
-		if colonPos == -1 {
-			continue
-		}
-		key := selector[:colonPos]
-		value := selector[colonPos+1:]
-		selectorsMap[key] = value
-	}
-	return &metaV1.LabelSelector{MatchLabels: selectorsMap}
+	return &metaV1.LabelSelector{MatchLabels: deployConn.Resource.Resource.Labels}
 }
 
 func toNetpolPorts(ports []common.SvcNetworkAttr) []network.NetworkPolicyPort {
