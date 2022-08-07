@@ -17,7 +17,7 @@ func discoverConnections(resources []common.Resource, links []common.Service) ([
 	connections := []common.Connections{}
 	for destResIdx := range resources {
 		destRes := &resources[destResIdx]
-		deploymentServices := findServices(destRes.Resource.Labels, links)
+		deploymentServices := findServices(destRes, links)
 		for svcIdx := range deploymentServices {
 			svc := &deploymentServices[svcIdx]
 			srcRes := findSource(resources, svc)
@@ -50,13 +50,16 @@ func areSelectorsContained(selectors1 map[string]string, selectors2 []string) bo
 	return true
 }
 
-// findServices returns a list of services that may be in front of a given deployment (represented by its selectors)
-func findServices(selectors map[string]string, links []common.Service) []common.Service {
+// findServices returns a list of services that may be in front of a given workload resource
+func findServices(resource *common.Resource, links []common.Service) []common.Service {
 	var matchedSvc []common.Service
 	for linkIdx := range links {
 		link := &links[linkIdx]
+		if link.Resource.Namespace != resource.Resource.Namespace {
+			continue
+		}
 		// all service selector values should be contained in the input selectors of the deployment
-		res := areSelectorsContained(selectors, link.Resource.Selectors)
+		res := areSelectorsContained(resource.Resource.Labels, link.Resource.Selectors)
 		if res {
 			matchedSvc = append(matchedSvc, *link)
 		}
