@@ -3,7 +3,6 @@ package controller
 import (
 	"reflect"
 	"sort"
-	"strings"
 
 	core "k8s.io/api/core/v1"
 	network "k8s.io/api/networking/v1"
@@ -55,17 +54,20 @@ func determineConnectivityPerDeployment(connections []common.Connections) []*Dep
 		conn := &connections[idx]
 		srcDeploy := findOrAddDeploymentConn(conn.Source, deploysConnectivity)
 		dstDeploy := findOrAddDeploymentConn(conn.Target, deploysConnectivity)
-		targetPorts := toNetpolPorts(conn.Link.Resource.Network) // TODO: filter by src ports
+		targetPorts := toNetpolPorts(conn.Link.Resource.Network)
+		if conn.Source != nil && len(conn.Source.Resource.UsedPorts) > 0 {
+			targetPorts = toNetpolPorts(conn.Source.Resource.UsedPorts)
+		}
 
-		egressNetpolPeer := []network.NetworkPolicyPeer{{PodSelector: getDeployConnSelector(dstDeploy)}}
 		if srcDeploy != nil {
-			srcDeploy.addEgressRule(egressNetpolPeer, targetPorts)
+			netpolPeer := getNetpolPeer(srcDeploy, dstDeploy)
+			srcDeploy.addEgressRule([]network.NetworkPolicyPeer{netpolPeer}, targetPorts)
 		}
 
 		if conn.Link.Resource.Type == "LoadBalancer" || conn.Link.Resource.Type == "NodePort" {
 			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{}, targetPorts) // in these cases we want to allow traffic from all sources
 		} else if conn.Source != nil {
-			netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(srcDeploy)}
+			netpolPeer := getNetpolPeer(dstDeploy, srcDeploy)
 			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{netpolPeer}, targetPorts) // allow traffic only from this specific source
 		}
 	}
@@ -94,18 +96,20 @@ func findOrAddDeploymentConn(resource *common.Resource, deployConns map[string]*
 	return &deploy
 }
 
-func getDeployConnSelector(deployConn *DeploymentConnectivity) *metaV1.LabelSelector {
-	selectorsMap := map[string]string{}
-	for _, selector := range deployConn.Resource.Resource.Selectors {
-		colonPos := strings.Index(selector, ":")
-		if colonPos == -1 {
-			continue
-		}
-		key := selector[:colonPos]
-		value := selector[colonPos+1:]
-		selectorsMap[key] = value
+func getNetpolPeer(netpolDeploy, otherDeploy *DeploymentConnectivity) network.NetworkPolicyPeer {
+	netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(otherDeploy)}
+	if netpolDeploy.Resource.Resource.Namespace != otherDeploy.Resource.Resource.Namespace {
+		if otherDeploy.Resource.Resource.Namespace != "" {
+			netpolPeer.NamespaceSelector = &metaV1.LabelSelector{
+				MatchLabels: map[string]string{"kubernetes.io/metadata.name": otherDeploy.Resource.Resource.Namespace},
+			}
+		} // if otherDeploy has no namespace specified, we assume it is in the same namespace as the netpolDeploy
 	}
-	return &metaV1.LabelSelector{MatchLabels: selectorsMap}
+	return netpolPeer
+}
+
+func getDeployConnSelector(deployConn *DeploymentConnectivity) *metaV1.LabelSelector {
+	return &metaV1.LabelSelector{MatchLabels: deployConn.Resource.Resource.Labels}
 }
 
 func toNetpolPorts(ports []common.SvcNetworkAttr) []network.NetworkPolicyPort {

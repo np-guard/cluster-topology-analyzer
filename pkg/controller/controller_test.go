@@ -82,6 +82,9 @@ func TestNetpolsJsonOutput(t *testing.T) {
 	tests["wordpress"] = TestDetails{dirPath: filepath.Join(testsDir, "k8s_wordpress_example"),
 		outFile:        filepath.Join(testsDir, "k8s_wordpress_example", "output.json"),
 		expectedOutput: filepath.Join(testsDir, "k8s_wordpress_example", "expected_netpol_output.json")}
+	tests["guestbook"] = TestDetails{dirPath: filepath.Join(testsDir, "k8s_guestbook"),
+		outFile:        filepath.Join(testsDir, "k8s_guestbook", "output.json"),
+		expectedOutput: filepath.Join(testsDir, "k8s_guestbook", "expected_netpol_output.json")}
 
 	for testName, testDetails := range tests {
 		args := getTestArgs(testDetails.dirPath, testDetails.outFile, true)
@@ -170,7 +173,8 @@ func compareFiles(expectedFile, actualFile string) (bool, error) {
 		return false, errors.New("error reading lines from file")
 	}
 	if len(expectedLines) != len(actualLines) {
-		fmt.Printf("Files line count is different: expected: %d, actual: %d", len(expectedLines), len(actualLines))
+		fmt.Printf("Files line count is different: expected(%s): %d, actual(%s): %d",
+			expectedFile, len(expectedLines), actualFile, len(actualLines))
 		return false, nil
 	}
 
@@ -178,7 +182,7 @@ func compareFiles(expectedFile, actualFile string) (bool, error) {
 		lineExpected := expectedLines[i]
 		lineActual := actualLines[i]
 		if lineExpected != lineActual && !strings.Contains(lineExpected, "\"filepath\"") {
-			fmt.Printf("Gap in line %d: expected: %s, actual: %s", i, lineExpected, lineActual)
+			fmt.Printf("Gap in line %d: expected(%s): %s, actual(%s): %s", i, expectedFile, lineExpected, actualFile, lineActual)
 			return false, nil
 		}
 	}

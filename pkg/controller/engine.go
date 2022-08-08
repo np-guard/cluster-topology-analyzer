@@ -102,28 +102,27 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 		}
 	}
 	for idx := range resources {
-		resources[idx].CommitID = *args.CommitID
-		resources[idx].GitBranch = *args.GitBranch
-		resources[idx].GitURL = *args.GitURL
+		res := &resources[idx]
+		res.CommitID = *args.CommitID
+		res.GitBranch = *args.GitBranch
+		res.GitURL = *args.GitURL
 
 		// handle config maps data to be associated into relevant deployments resource objects
-		for _, cfgMapRef := range resources[idx].Resource.ConfigMapRefs {
-			configmapFullName := resources[idx].Resource.Namespace + "/" + cfgMapRef
+		for _, cfgMapRef := range res.Resource.ConfigMapRefs {
+			configmapFullName := res.Resource.Namespace + "/" + cfgMapRef
 			if cfgMap, ok := configmaps[configmapFullName]; ok {
-				// add to d Envs the values from data
-				// TODO: keep only data values with addresses of known services names
-				// pattern for relevant data value: http://[svc name]:[port] or [svc-name]:[port] or [svc-name] or  http://[svc name] (implied port 80)
-				// The port is optional when it is the default port for a given protocol (e.g., HTTP=80).
 				for _, v := range cfgMap.Data {
-					resources[idx].Resource.Envs = append(resources[idx].Resource.Envs, v)
+					res.Resource.Envs = append(res.Resource.Envs, v)
 				}
 			}
 		}
-		for _, cfgMapKeyRef := range resources[idx].Resource.ConfigMapKeyRefs {
-			configmapFullName := resources[idx].Resource.Namespace + "/" + cfgMapKeyRef.Name
+		for _, cfgMapKeyRef := range res.Resource.ConfigMapKeyRefs {
+			configmapFullName := res.Resource.Namespace + "/" + cfgMapKeyRef.Name
 			if cfgMap, ok := configmaps[configmapFullName]; ok {
 				if val, ok := cfgMap.Data[cfgMapKeyRef.Key]; ok {
-					resources[idx].Resource.Envs = append(resources[idx].Resource.Envs, val)
+					if analyzer.IsNetworkAddressValue(val) {
+						res.Resource.Envs = append(res.Resource.Envs, val)
+					}
 				}
 			}
 		}

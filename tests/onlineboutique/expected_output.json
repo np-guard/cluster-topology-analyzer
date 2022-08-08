@@ -31,7 +31,10 @@
                     "shippingservice:50051"
                 ],
                 "UsedPorts": [
-                    5000
+                    {
+                        "port": 5000,
+                        "target_port": 8080
+                    }
                 ]
             }
         },
@@ -114,7 +117,10 @@
                     "shippingservice:50051"
                 ],
                 "UsedPorts": [
-                    5050
+                    {
+                        "port": 5050,
+                        "target_port": 5050
+                    }
                 ]
             }
         },
@@ -204,7 +210,10 @@
                     "shippingservice:50051"
                 ],
                 "UsedPorts": [
-                    8080
+                    {
+                        "port": 8080,
+                        "target_port": 8080
+                    }
                 ]
             }
         },
@@ -279,7 +288,10 @@
                     "frontend:80"
                 ],
                 "UsedPorts": [
-                    80
+                    {
+                        "port": 80,
+                        "target_port": 8080
+                    }
                 ]
             }
         },
@@ -424,7 +436,10 @@
                     "shippingservice:50051"
                 ],
                 "UsedPorts": [
-                    50051
+                    {
+                        "port": 50051,
+                        "target_port": 50051
+                    }
                 ]
             }
         },
@@ -506,7 +521,10 @@
                     "shippingservice:50051"
                 ],
                 "UsedPorts": [
-                    3550
+                    {
+                        "port": 3550,
+                        "target_port": 3550
+                    }
                 ]
             }
         },
@@ -583,7 +601,10 @@
                     "productcatalogservice:3550"
                 ],
                 "UsedPorts": [
-                    3550
+                    {
+                        "port": 3550,
+                        "target_port": 3550
+                    }
                 ]
             }
         },
@@ -666,7 +687,10 @@
                     "shippingservice:50051"
                 ],
                 "UsedPorts": [
-                    3550
+                    {
+                        "port": 3550,
+                        "target_port": 3550
+                    }
                 ]
             }
         },
@@ -748,7 +772,10 @@
                     "shippingservice:50051"
                 ],
                 "UsedPorts": [
-                    7070
+                    {
+                        "port": 7070,
+                        "target_port": 7070
+                    }
                 ]
             }
         },
@@ -833,7 +860,10 @@
                     "shippingservice:50051"
                 ],
                 "UsedPorts": [
-                    7070
+                    {
+                        "port": 7070,
+                        "target_port": 7070
+                    }
                 ]
             }
         },
@@ -917,7 +947,10 @@
                     "shippingservice:50051"
                 ],
                 "UsedPorts": [
-                    7000
+                    {
+                        "port": 7000,
+                        "target_port": 7000
+                    }
                 ]
             }
         },
@@ -1000,7 +1033,10 @@
                     "shippingservice:50051"
                 ],
                 "UsedPorts": [
-                    7000
+                    {
+                        "port": 7000,
+                        "target_port": 7000
+                    }
                 ]
             }
         },
@@ -1082,7 +1118,10 @@
                     "shippingservice:50051"
                 ],
                 "UsedPorts": [
-                    50051
+                    {
+                        "port": 50051,
+                        "target_port": 50051
+                    }
                 ]
             }
         },
@@ -1165,7 +1204,10 @@
                     "shippingservice:50051"
                 ],
                 "UsedPorts": [
-                    50051
+                    {
+                        "port": 50051,
+                        "target_port": 50051
+                    }
                 ]
             }
         },
@@ -1242,7 +1284,10 @@
                     "redis-cart:6379"
                 ],
                 "UsedPorts": [
-                    6379
+                    {
+                        "port": 6379,
+                        "target_port": 6379
+                    }
                 ]
             }
         },
@@ -1324,7 +1369,10 @@
                     "shippingservice:50051"
                 ],
                 "UsedPorts": [
-                    9555
+                    {
+                        "port": 9555,
+                        "target_port": 9555
+                    }
                 ]
             }
         },
