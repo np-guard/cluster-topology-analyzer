@@ -12,7 +12,10 @@ import (
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
-const dnsPort = 53
+const (
+	dnsPort           = 53
+	networkAPIVersion = "networking.k8s.io/v1"
+)
 
 type DeploymentConnectivity struct {
 	common.Resource
@@ -151,7 +154,7 @@ func buildNetpolPerDeployment(deployConnectivity []*DeploymentConnectivity) []*n
 		netpol := network.NetworkPolicy{
 			TypeMeta: metaV1.TypeMeta{
 				Kind:       "NetworkPolicy",
-				APIVersion: "networking.k8s.io/v1",
+				APIVersion: networkAPIVersion,
 			},
 			ObjectMeta: metaV1.ObjectMeta{
 				Name:      deployConn.Resource.Resource.Name + "-netpol",
@@ -187,7 +190,7 @@ func synthNetpolList(connections []common.Connections) network.NetworkPolicyList
 	netpolList := network.NetworkPolicyList{
 		TypeMeta: metaV1.TypeMeta{
 			Kind:       "NetworkPolicyList",
-			APIVersion: "networking.k8s.io/v1",
+			APIVersion: networkAPIVersion,
 		},
 		Items: netpols2,
 	}
