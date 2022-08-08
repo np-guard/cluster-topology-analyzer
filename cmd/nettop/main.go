@@ -18,16 +18,16 @@ func runAnalysis() int {
 		}
 	}()
 
-	var inArgs common.InArgs
-	err := common.ParseInArgs(&inArgs)
+	var inArgs controller.InArgs
+	err := controller.ParseInArgs(&inArgs)
 	if err != nil {
 		zap.S().Debug("error parsing arguments, exiting...")
 		return 1
 	}
 
-	err = controller.Start(inArgs)
+	err = controller.Start(inArgs, controller.SilentIgnore) // for backwards compatibility
 	if err != nil {
-		zap.S().Debug("error running topology analysis exiting...")
+		zap.S().Debug("error running topology analysis. Exiting...")
 		return 1
 	}
 	return 0

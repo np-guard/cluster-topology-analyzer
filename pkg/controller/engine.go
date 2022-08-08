@@ -2,33 +2,60 @@ package controller
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"os"
 
 	networking "k8s.io/api/networking/v1"
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
-
 	"go.uber.org/zap"
 )
+
+type ErrMode string
+
+const (
+	Warn         ErrMode = "warning"
+	Strict       ErrMode = "strict"
+	SilentIgnore ErrMode = "ignore"
+)
+
+type InArgs struct {
+	DirPath              *string
+	ManifestFiles        []string
+	GitURL               *string
+	GitBranch            *string
+	CommitID             *string
+	OutputFile           *string
+	SynthNetpols         *bool
+	UseStrict            bool
+	SilentlyIgnoreErrors bool
+}
 
 // Start : This is the entry point for the topology analysis engine.
 // Based on the arguments it is given, the engine scans all YAML files,
 // detects all required connection between resources and outputs a json connectivity report
 // (or NetworkPolicies to allow only this connectivity)
-func Start(args common.InArgs) error {
+func Start(args InArgs, errMode ErrMode) error {
 	// 1. Discover all connections between resources
-	connections, err := extractConnections(args)
+	discoveredManifests, err := findManifests(*args.DirPath)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "extracting manifests failed")
 	}
+	connections, err := connectionsFromFiles(discoveredManifests, errMode)
+	if err != nil {
+		return errors.Wrap(err, "extracting connections failed")
+	}
+	return writeOut(connections, *args.OutputFile, *args.SynthNetpols)
+}
 
+func writeOut(connections []common.Connections, outFile string, synth bool) error {
 	// 2. Write the output to a file or to stdout
 	const indent = "    "
+	var err error
 	var buf []byte
-	if args.SynthNetpols != nil && *args.SynthNetpols {
+	if synth {
 		buf, err = json.MarshalIndent(synthNetpolList(connections), "", indent)
 	} else {
 		buf, err = json.MarshalIndent(connections, "", indent)
@@ -36,58 +63,108 @@ func Start(args common.InArgs) error {
 	if err != nil {
 		return err
 	}
-	if *args.OutputFile != "" {
-		fp, err := os.Create(*args.OutputFile)
+	if outFile != "" {
+		fp, err := os.Create(outFile)
 		if err != nil {
-			msg := fmt.Sprintf("error creating file: %s: %v", *args.OutputFile, err)
+			msg := fmt.Sprintf("error creating file: %s: %v", outFile, err)
 			zap.S().Errorf(msg)
 			return errors.New(msg)
 		}
 		_, err = fp.Write(buf)
 		if err != nil {
-			msg := fmt.Sprintf("error writing to file: %s: %v", *args.OutputFile, err)
+			msg := fmt.Sprintf("error writing to file: %s: %v", outFile, err)
 			zap.S().Errorf(msg)
 			return errors.New(msg)
 		}
-		fp.Close()
+		if err := fp.Close(); err != nil {
+			return err
+		}
 	} else {
 		fmt.Printf("connection topology reports: \n ---\n%s\n---", string(buf))
 	}
 	return nil
 }
 
-func PoliciesFromFolderPath(fullTargetPath string) ([]*networking.NetworkPolicy, error) {
-	emptyStr := ""
-	args := common.InArgs{}
-	args.DirPath = &fullTargetPath
-	args.CommitID = &emptyStr
-	args.GitBranch = &emptyStr
-	args.GitURL = &emptyStr
-
-	connections, err := extractConnections(args)
+// PoliciesFromFolderPath calculates network policies from manifest files discovered while walking the folder tree
+func PoliciesFromFolderPath(fullTargetPath string, mode ErrMode) ([]*networking.NetworkPolicy, error) {
+	discoveredManifests, err := findManifests(fullTargetPath)
 	if err != nil {
 		return []*networking.NetworkPolicy{}, err
+	}
+	return PoliciesFromFiles(discoveredManifests, mode)
+}
+
+// PoliciesFromFiles calculates network policies from manifest files provided explicitly.
+// Returns error on any issues with reading the files
+func PoliciesFromFiles(files []string, mode ErrMode) ([]*networking.NetworkPolicy, error) {
+	connections, err := connectionsFromFiles(files, mode)
+	if err != nil {
+		return []*networking.NetworkPolicy{}, errors.Wrap(err, "failed extracting connections from k8s objects")
 	}
 	return synthNetpols(connections), nil
 }
 
-func extractConnections(args common.InArgs) ([]common.Connections, error) {
-	// 1. Get all relevant resources from the repo and parse them
-	dObjs := getK8sDeploymentResources(args.DirPath)
+func connectionsFromFiles(files []string, mode ErrMode) ([]common.Connections, error) {
+	if len(files) == 0 {
+		return []common.Connections{}, fmt.Errorf("no input files provided")
+	}
+	k8sDeployments := getK8sDeploymentResources(files, mode)
+	for _, m := range k8sDeployments {
+		if m.fileReadingError != nil {
+			err := errors.Wrapf(m.fileReadingError, "unable to read file '%s'", m.ManifestFilepath)
+			if mode == Warn {
+				zap.S().Warn(err)
+			}
+			if mode == Strict {
+				zap.S().Error(err)
+				return []common.Connections{}, err
+			}
+		}
+		for _, obj := range m.DeployObjects {
+			if obj.yamlDocDecodeError != nil {
+				err := errors.Wrapf(m.fileReadingError, "unable to parse k8s object from file '%s'", m.ManifestFilepath)
+				if mode == Warn {
+					zap.S().Warn(err)
+				}
+				if mode == Strict {
+					zap.S().Error(err)
+					return []common.Connections{}, err
+				}
+			}
+		}
+	}
+	// INFO: Deployments extracted successfully
+	return extractConnections(k8sDeployments, "", "", "")
+}
+
+func findManifests(dirPath string) ([]string, error) {
+	if dirPath == "" {
+		return []string{}, fmt.Errorf("missing folder path for manifests discovery")
+	}
+	discoveredManifests, err := searchDeploymentManifests(dirPath)
+	if err != nil {
+		return []string{}, fmt.Errorf("error walking directory tree while searching for manifests")
+	} else if len(discoveredManifests) == 0 {
+		return []string{}, fmt.Errorf("found 0 manifests")
+	}
+	return discoveredManifests, nil
+}
+
+func extractConnections(dObjs []yamlK8sObjects, commitID, gitBranch, gitURL string) ([]common.Connections, error) {
 	if len(dObjs) == 0 {
-		msg := "no deployment objects discovered in the repository"
+		msg := "no deployment found in the repository"
 		zap.S().Errorf(msg)
 		return []common.Connections{}, errors.New(msg)
 	}
-	resources, links := parseResources(dObjs, args)
+	resources, links := parseResources(dObjs, commitID, gitBranch, gitURL)
 
 	// 2. Discover all connections between resources
 	return discoverConnections(resources, links)
 }
 
-func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resource, []common.Service) {
-	resources := []common.Resource{}
-	links := []common.Service{}
+func parseResources(objs []yamlK8sObjects, commitID, gitBranch, gitURL string) ([]common.Resource, []common.Service) {
+	resources := make([]common.Resource, 0)
+	links := make([]common.Service, 0)
 	configmaps := map[string]common.CfgMap{} // map from a configmap's full-name to its data
 	for _, o := range objs {
 		r, l, c := parseResource(o)
@@ -103,9 +180,9 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 	}
 	for idx := range resources {
 		res := &resources[idx]
-		res.CommitID = *args.CommitID
-		res.GitBranch = *args.GitBranch
-		res.GitURL = *args.GitURL
+		res.CommitID = commitID
+		res.GitBranch = gitBranch
+		res.GitURL = gitURL
 
 		// handle config maps data to be associated into relevant deployments resource objects
 		for _, cfgMapRef := range res.Resource.ConfigMapRefs {
@@ -129,17 +206,17 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 	}
 
 	for idx := range links {
-		links[idx].CommitID = *args.CommitID
-		links[idx].GitBranch = *args.GitBranch
-		links[idx].GitURL = *args.GitURL
+		links[idx].CommitID = commitID
+		links[idx].GitBranch = gitBranch
+		links[idx].GitURL = gitURL
 	}
 	return resources, links
 }
 
-func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, []common.CfgMap) {
-	links := []common.Service{}
-	deployments := []common.Resource{}
-	configMaps := []common.CfgMap{}
+func parseResource(obj yamlK8sObjects) ([]common.Resource, []common.Service, []common.CfgMap) {
+	links := make([]common.Service, 0)
+	deployments := make([]common.Resource, 0)
+	configMaps := make([]common.CfgMap, 0)
 
 	for _, p := range obj.DeployObjects {
 		switch p.GroupKind {

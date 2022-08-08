@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
 // TestOutput calls controller.Start() with an example repo dir tests/onlineboutique/ ,
@@ -22,20 +21,39 @@ func TestConnectionsOutput(t *testing.T) {
 	expectedOutput := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "expected_output.json")
 	args := getTestArgs(dirPath, outFile, false)
 
-	err := Start(args)
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
+	err := Start(args, Warn)
+	assert.NoError(t, err)
 
-	res, err := compareFiles(expectedOutput, outFile)
+	assert.NoError(t, compareFiles(expectedOutput, outFile))
 
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
-	if !res {
-		t.Fatalf("expected res to be true, but got false")
-	}
+	os.Remove(outFile)
+}
 
+func TestStartDetailed(t *testing.T) {
+	currentDir, _ := os.Getwd()
+	filePath := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "kubernetes-manifests.yaml")
+	outFile := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "output.json")
+	expectedOutput := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "expected_netpol_output.json")
+
+	k8sDeploymentFiles := getK8sDeploymentResources([]string{filePath}, Strict)
+	assert.Equal(t, 1, len(k8sDeploymentFiles))
+	totalK8sObjects := 0
+	for _, o := range k8sDeploymentFiles {
+		assert.NoErrorf(t, o.fileReadingError, "file reading error: '%s'", o.ManifestFilepath)
+		assert.NoErrorf(t, o.yamlParseError, "yaml parse error: '%s'", o.ManifestFilepath)
+
+		for _, deploy := range o.DeployObjects {
+			totalK8sObjects++
+			assert.NoErrorf(t, deploy.yamlDocDecodeError, "yaml decoding error for file: '%s'", o.ManifestFilepath)
+		}
+	}
+	assert.Equal(t, 25, totalK8sObjects, "yaml file should contain 25 relevant k8s objects")
+
+	conns, err := extractConnections(k8sDeploymentFiles, "", "", "")
+	assert.NoErrorf(t, err, "extracting connections failed")
+	err = writeOut(conns, outFile, true)
+	assert.NoErrorf(t, err, "writing to output file")
+	assert.NoError(t, compareFiles(expectedOutput, outFile))
 	os.Remove(outFile)
 }
 
@@ -46,20 +64,9 @@ func TestDirScan(t *testing.T) {
 	expectedOutput := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "expected_dirscan_output.json")
 	args := getTestArgs(dirPath, outFile, false)
 
-	err := Start(args)
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
-
-	res, err := compareFiles(expectedOutput, outFile)
-
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
-	if !res {
-		t.Fatalf("expected res to be true, but got false")
-	}
-
+	err := Start(args, SilentIgnore)
+	assert.NoError(t, err)
+	assert.NoError(t, compareFiles(expectedOutput, outFile))
 	os.Remove(outFile)
 }
 
@@ -87,19 +94,14 @@ func TestNetpolsJsonOutput(t *testing.T) {
 		expectedOutput: filepath.Join(testsDir, "k8s_guestbook", "expected_netpol_output.json")}
 
 	for testName, testDetails := range tests {
-		args := getTestArgs(testDetails.dirPath, testDetails.outFile, true)
-		err := Start(args)
-		if err != nil {
-			t.Fatalf("Test %v: expected Start to return no error, but got %v", testName, err)
-		}
-		res, err := compareFiles(testDetails.expectedOutput, testDetails.outFile)
-		if err != nil {
-			t.Fatalf("Test %v: expected err to be nil, but got %v", testName, err)
-		}
-		if !res {
-			t.Fatalf("Test %v: expected res to be true, but got false", testName)
-		}
-		os.Remove(testDetails.outFile)
+		t.Run(testName, func(t *testing.T) {
+			args := getTestArgs(testDetails.dirPath, testDetails.outFile, true)
+			err := Start(args, SilentIgnore)
+			assert.NoError(t, err)
+			assert.NoError(t, compareFiles(testDetails.expectedOutput, testDetails.outFile))
+
+			os.Remove(testDetails.outFile)
+		})
 	}
 }
 
@@ -110,9 +112,9 @@ func TestNetpolsInterface(t *testing.T) {
 	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
 	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_netpol_interface_output.json")
 
-	netpols, err := PoliciesFromFolderPath(dirPath)
+	netpols, err := PoliciesFromFolderPath(dirPath, SilentIgnore)
 	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
+		t.Fatalf("expected fileReadingError to be nil, but got %v", err)
 	}
 	if len(netpols) == 0 {
 		t.Fatalf("expected policies to be non-empty, but got empty")
@@ -128,13 +130,7 @@ func TestNetpolsInterface(t *testing.T) {
 		t.Fatalf("failed writing to output file: %v", err)
 	}
 	fp.Close()
-	res, err := compareFiles(expectedOutput, outFile)
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
-	if !res {
-		t.Fatalf("expected res to be true, but got false")
-	}
+	assert.NoError(t, compareFiles(expectedOutput, outFile))
 
 	os.Remove(outFile)
 }
@@ -154,37 +150,34 @@ func readLines(path string) ([]string, error) {
 	return lines, scanner.Err()
 }
 
-func getTestArgs(dirPath, outFile string, netpols bool) common.InArgs {
-	args := common.InArgs{}
+func getTestArgs(dirPath, outFile string, netpols bool) InArgs {
 	emptyStr := ""
-	args.DirPath = &dirPath
-	args.CommitID = &emptyStr
-	args.GitBranch = &emptyStr
-	args.GitURL = &emptyStr
-	args.OutputFile = &outFile
-	args.SynthNetpols = &netpols
-	return args
+	return InArgs{
+		DirPath:      &dirPath,
+		CommitID:     &emptyStr,
+		GitURL:       &emptyStr,
+		OutputFile:   &outFile,
+		SynthNetpols: &netpols,
+	}
 }
 
-func compareFiles(expectedFile, actualFile string) (bool, error) {
+func compareFiles(expectedFile, actualFile string) error {
 	expectedLines, err1 := readLines(expectedFile)
 	actualLines, err2 := readLines(actualFile)
 	if err1 != nil || err2 != nil {
-		return false, errors.New("error reading lines from file")
+		return errors.New("error reading lines from either files")
 	}
 	if len(expectedLines) != len(actualLines) {
-		fmt.Printf("Files line count is different: expected(%s): %d, actual(%s): %d",
+		return fmt.Errorf("Files line count is different: expected(%s): %d, actual(%s): %d",
 			expectedFile, len(expectedLines), actualFile, len(actualLines))
-		return false, nil
 	}
 
 	for i := 0; i < len(expectedLines); i++ {
 		lineExpected := expectedLines[i]
 		lineActual := actualLines[i]
 		if lineExpected != lineActual && !strings.Contains(lineExpected, "\"filepath\"") {
-			fmt.Printf("Gap in line %d: expected(%s): %s, actual(%s): %s", i, expectedFile, lineExpected, actualFile, lineActual)
-			return false, nil
+			return fmt.Errorf("Gap in line %d: expected(%s): %s, actual(%s): %s", i, expectedFile, lineExpected, actualFile, lineActual)
 		}
 	}
-	return true, nil
+	return nil
 }
