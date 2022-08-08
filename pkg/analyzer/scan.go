@@ -80,7 +80,7 @@ func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMap, erro
 	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
 	data := map[string]string{}
 	for k, v := range obj.Data {
-		isPotentialAddress := identifyAddressValue(v)
+		isPotentialAddress := IsNetworkAddressValue(v)
 		if isPotentialAddress {
 			data[k] = v
 		}
@@ -129,7 +129,7 @@ func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourc
 		}
 		for _, e := range container.Env {
 			if e.Value != "" {
-				isPotentialAddress := identifyAddressValue(e.Value)
+				isPotentialAddress := IsNetworkAddressValue(e.Value)
 				if isPotentialAddress {
 					resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, e.Value)
 				}
@@ -149,8 +149,8 @@ func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourc
 	}
 }
 
-// identifyAddressValue checks if a given string is a potential network address
-func identifyAddressValue(value string) bool {
+// IsNetworkAddressValue checks if a given string is a potential network address
+func IsNetworkAddressValue(value string) bool {
 	_, err := url.Parse(value)
 	if err != nil {
 		return false

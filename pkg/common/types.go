@@ -43,7 +43,7 @@ type Resource struct {
 		Envs             []string
 		ConfigMapRefs    []string       `json:"-"`
 		ConfigMapKeyRefs []CfgMapKeyRef `json:"-"`
-		UsedPorts        []int
+		UsedPorts        []SvcNetworkAttr
 	} `json:"resource,omitempty"`
 }
 

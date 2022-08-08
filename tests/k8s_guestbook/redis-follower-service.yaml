@@ -1,0 +1,21 @@
+# SOURCE: https://cloud.google.com/kubernetes-engine/docs/tutorials/guestbook
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-follower
+  namespace: redis
+  labels:
+    app: redis
+    role: follower
+    tier: backend
+spec:
+  ports:
+    # the port that this service should serve on
+  - port: 6379
+    name: primary
+  - port: 5378
+    name: secondary
+  selector:
+    app: redis
+    role: follower
+    tier: backend

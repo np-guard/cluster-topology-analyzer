@@ -1,0 +1,36 @@
+# SOURCE: https://cloud.google.com/kubernetes-engine/docs/tutorials/guestbook
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+        app: guestbook
+        tier: frontend
+  template:
+    metadata:
+      labels:
+        app: guestbook
+        tier: frontend
+    spec:
+      containers:
+      - name: php-redis
+        image: gcr.io/google_samples/gb-frontend:v5
+        env:
+        - name: GET_HOSTS_FROM
+          value: "dns"
+        - name: REDIS_LEADER_ADDR
+          value: redis-leader.redis:6379
+        - name: REDIS_FOLLOWER_ADDR
+          value: redis-follower.redis.svc.cluster.local:6379
+        - name: REDIS_FOLLOWER_BAD_ADDR
+          value: redis-follower:5378  # This should not work because the redis-follower service lives in another namespace
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 80
