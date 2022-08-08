@@ -173,3 +173,20 @@ func getDNSPort() network.NetworkPolicyPort {
 		Port:     &port53,
 	}
 }
+
+func synthNetpolList(connections []common.Connections) network.NetworkPolicyList {
+	netpols := synthNetpols(connections)
+	netpols2 := []network.NetworkPolicy{}
+	for _, netpol := range netpols {
+		netpols2 = append(netpols2, *netpol)
+	}
+	netpolList := network.NetworkPolicyList{
+		TypeMeta: metaV1.TypeMeta{
+			Kind:       "NetworkPolicyList",
+			APIVersion: "networking.k8s.io/v1",
+		},
+		Items: netpols2,
+	}
+
+	return netpolList
+}

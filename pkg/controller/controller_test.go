@@ -105,7 +105,7 @@ func TestNetpolsInterface(t *testing.T) {
 	testsDir := filepath.Join(currentDir, "..", "..", "tests")
 	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
 	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
-	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_netpol_output.json")
+	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_netpol_interface_output.json")
 
 	netpols, err := PoliciesFromFolderPath(dirPath)
 	if err != nil {
