@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,15 +22,20 @@ func TestConnectionsOutput(t *testing.T) {
 	expectedOutput := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "expected_output.json")
 	args := getTestArgs(dirPath, outFile, false)
 
-	err := Start(args, Warn)
+	err := Start(args, SilentIgnore)
 	assert.NoError(t, err)
 
+	assert.FileExists(t, outFile)
 	assert.NoError(t, compareFiles(expectedOutput, outFile))
+	// compare file contents
+	f1, _ := ioutil.ReadFile(expectedOutput)
+	f2, _ := ioutil.ReadFile(outFile)
+	assert.Equal(t, string(f1), string(f2))
 
 	os.Remove(outFile)
 }
 
-func TestStartDetailed(t *testing.T) {
+func TestStartDetailedNetpolOutput(t *testing.T) {
 	currentDir, _ := os.Getwd()
 	filePath := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "kubernetes-manifests.yaml")
 	outFile := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "output.json")
@@ -54,6 +60,10 @@ func TestStartDetailed(t *testing.T) {
 	err = writeOut(conns, outFile, true)
 	assert.NoErrorf(t, err, "writing to output file")
 	assert.NoError(t, compareFiles(expectedOutput, outFile))
+	// compare file contents
+	f1, _ := ioutil.ReadFile(expectedOutput)
+	f2, _ := ioutil.ReadFile(outFile)
+	assert.Equal(t, string(f1), string(f2))
 	os.Remove(outFile)
 }
 
