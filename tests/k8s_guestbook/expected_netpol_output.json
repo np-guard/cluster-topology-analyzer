@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
     "kind": "NetworkPolicyList",
     "apiVersion": "networking.k8s.io/v1",
@@ -236,3 +237,238 @@
         }
     ]
 }
+=======
+[
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "frontend-netpol",
+            "namespace": "default",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "guestbook",
+                    "tier": "frontend"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 80
+                        }
+                    ]
+                }
+            ],
+            "egress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 6379
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "redis",
+                                    "role": "follower",
+                                    "tier": "backend"
+                                }
+                            },
+                            "namespaceSelector": {
+                                "matchLabels": {
+                                    "kubernetes.io/metadata.name": "redis"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 6379
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "redis",
+                                    "role": "leader",
+                                    "tier": "backend"
+                                }
+                            },
+                            "namespaceSelector": {
+                                "matchLabels": {
+                                    "kubernetes.io/metadata.name": "redis"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "UDP",
+                            "port": 53
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        }
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "redis-follower-netpol",
+            "namespace": "redis",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "redis",
+                    "role": "follower",
+                    "tier": "backend"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 6379
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "guestbook",
+                                    "tier": "frontend"
+                                }
+                            },
+                            "namespaceSelector": {
+                                "matchLabels": {
+                                    "kubernetes.io/metadata.name": "default"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "egress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 6379
+                        }
+                    ],
+                    "to": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "redis",
+                                    "role": "leader",
+                                    "tier": "backend"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "UDP",
+                            "port": 53
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        }
+    },
+    {
+        "kind": "NetworkPolicy",
+        "apiVersion": "networking.k8s.io/v1",
+        "metadata": {
+            "name": "redis-leader-netpol",
+            "namespace": "redis",
+            "creationTimestamp": null
+        },
+        "spec": {
+            "podSelector": {
+                "matchLabels": {
+                    "app": "redis",
+                    "role": "leader",
+                    "tier": "backend"
+                }
+            },
+            "ingress": [
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 6379
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "guestbook",
+                                    "tier": "frontend"
+                                }
+                            },
+                            "namespaceSelector": {
+                                "matchLabels": {
+                                    "kubernetes.io/metadata.name": "default"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 6379
+                        }
+                    ],
+                    "from": [
+                        {
+                            "podSelector": {
+                                "matchLabels": {
+                                    "app": "redis",
+                                    "role": "follower",
+                                    "tier": "backend"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "policyTypes": [
+                "Ingress",
+                "Egress"
+            ]
+        }
+    }
+]
+>>>>>>> 69dcdea (Rebase on top of recent main changes)
