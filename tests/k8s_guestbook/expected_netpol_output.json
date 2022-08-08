@@ -40,6 +40,11 @@
                                     "role": "follower",
                                     "tier": "backend"
                                 }
+                            },
+                            "namespaceSelector": {
+                                "matchLabels": {
+                                    "kubernetes.io/metadata.name": "redis"
+                                }
                             }
                         }
                     ]
@@ -58,6 +63,11 @@
                                     "app": "redis",
                                     "role": "leader",
                                     "tier": "backend"
+                                }
+                            },
+                            "namespaceSelector": {
+                                "matchLabels": {
+                                    "kubernetes.io/metadata.name": "redis"
                                 }
                             }
                         }
@@ -108,6 +118,11 @@
                                 "matchLabels": {
                                     "app": "guestbook",
                                     "tier": "frontend"
+                                }
+                            },
+                            "namespaceSelector": {
+                                "matchLabels": {
+                                    "kubernetes.io/metadata.name": "default"
                                 }
                             }
                         }
@@ -179,6 +194,11 @@
                                 "matchLabels": {
                                     "app": "guestbook",
                                     "tier": "frontend"
+                                }
+                            },
+                            "namespaceSelector": {
+                                "matchLabels": {
+                                    "kubernetes.io/metadata.name": "default"
                                 }
                             }
                         }

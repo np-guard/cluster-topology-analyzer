@@ -59,15 +59,15 @@ func determineConnectivityPerDeployment(connections []common.Connections) []*Dep
 			targetPorts = toNetpolPorts(conn.Source.Resource.UsedPorts)
 		}
 
-		egressNetpolPeer := []network.NetworkPolicyPeer{{PodSelector: getDeployConnSelector(dstDeploy)}}
 		if srcDeploy != nil {
-			srcDeploy.addEgressRule(egressNetpolPeer, targetPorts)
+			netpolPeer := getNetpolPeer(srcDeploy, dstDeploy)
+			srcDeploy.addEgressRule([]network.NetworkPolicyPeer{netpolPeer}, targetPorts)
 		}
 
 		if conn.Link.Resource.Type == "LoadBalancer" || conn.Link.Resource.Type == "NodePort" {
 			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{}, targetPorts) // in these cases we want to allow traffic from all sources
 		} else if conn.Source != nil {
-			netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(srcDeploy)}
+			netpolPeer := getNetpolPeer(dstDeploy, srcDeploy)
 			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{netpolPeer}, targetPorts) // allow traffic only from this specific source
 		}
 	}
@@ -94,6 +94,18 @@ func findOrAddDeploymentConn(resource *common.Resource, deployConns map[string]*
 	deploy := DeploymentConnectivity{Resource: *resource}
 	deployConns[resource.Resource.Name] = &deploy
 	return &deploy
+}
+
+func getNetpolPeer(netpolDeploy, otherDeploy *DeploymentConnectivity) network.NetworkPolicyPeer {
+	netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(otherDeploy)}
+	if netpolDeploy.Resource.Resource.Namespace != otherDeploy.Resource.Resource.Namespace {
+		if otherDeploy.Resource.Resource.Namespace != "" {
+			netpolPeer.NamespaceSelector = &metaV1.LabelSelector{
+				MatchLabels: map[string]string{"kubernetes.io/metadata.name": otherDeploy.Resource.Resource.Namespace},
+			}
+		} // if otherDeploy has no namespace specified, we assume it is in the same namespace as the netpolDeploy
+	}
+	return netpolPeer
 }
 
 func getDeployConnSelector(deployConn *DeploymentConnectivity) *metaV1.LabelSelector {
