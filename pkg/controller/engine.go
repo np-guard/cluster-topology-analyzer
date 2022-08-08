@@ -29,7 +29,7 @@ func Start(args common.InArgs) error {
 	const indent = "    "
 	var buf []byte
 	if args.SynthNetpols != nil && *args.SynthNetpols {
-		buf, err = json.MarshalIndent(synthNetpols(connections), "", indent)
+		buf, err = json.MarshalIndent(synthNetpolList(connections), "", indent)
 	} else {
 		buf, err = json.MarshalIndent(connections, "", indent)
 	}
