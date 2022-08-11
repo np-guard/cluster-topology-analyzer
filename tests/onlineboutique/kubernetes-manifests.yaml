@@ -280,7 +280,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend
+  name: frontend  # testing --- separator inside yaml comment
 spec:
   type: ClusterIP
   selector:

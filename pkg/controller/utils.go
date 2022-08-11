@@ -1,13 +1,16 @@
 package controller
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
 	"go.uber.org/zap"
+	"gopkg.in/yaml.v3"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
@@ -34,6 +37,7 @@ type deployObject struct {
 	RuntimeObject []byte
 }
 
+// return a list of yaml files under a given directory (recursively)
 func searchDeploymentManifests(repoDir *string) []string {
 	yamls := []string{}
 	err := filepath.WalkDir(*repoDir, func(path string, f os.DirEntry, err error) error {
@@ -49,7 +53,7 @@ func searchDeploymentManifests(repoDir *string) []string {
 		return nil
 	})
 	if err != nil {
-		zap.S().Errorf("Error is searching for manifests: %v", err)
+		zap.S().Errorf("Error in searching for manifests: %v", err)
 	}
 	return yamls
 }
@@ -77,20 +81,41 @@ func getK8sDeploymentResources(repoDir *string) []parsedK8sObjects {
 	return parsedObjs
 }
 
+func splitByYamlDocuments(data []byte) []string {
+	decoder := yaml.NewDecoder(bytes.NewBuffer(data))
+	documents := []string{}
+	for {
+		var doc map[interface{}]interface{}
+		if err := decoder.Decode(&doc); err != nil {
+			if err == io.EOF {
+				break
+			}
+			zap.S().Warn(err) // document decode failed
+		}
+		if len(doc) > 0 {
+			out, err := yaml.Marshal(doc)
+			if err != nil {
+				zap.S().Warn(err) // document marshal failed
+			}
+			documents = append(documents, string(out))
+		}
+	}
+	return documents
+}
+
 func parseK8sYaml(fileR []byte) []deployObject {
 	dObjs := []deployObject{}
 	acceptedK8sTypes := regexp.MustCompile(fmt.Sprintf("(%s|%s|%s|%s|%s|%s|%s|%s|%s|%s)",
 		pod, replicaSet, replicationController, deployment, daemonset, statefulset, job, cronJob, service, configmap))
-	fileAsString := string(fileR)
-	sepYamlFiles := regexp.MustCompile(`---\s`).Split(fileAsString, -1)
+	sepYamlFiles := splitByYamlDocuments(fileR)
 	for _, f := range sepYamlFiles {
 		if f == "\n" || f == "" {
-			// ignore empty cases
-			continue
+			continue // ignore empty yaml documents
 		}
 		decode := scheme.Codecs.UniversalDeserializer().Decode
 		_, groupVersionKind, err := decode([]byte(f), nil, nil)
 		if err != nil {
+			zap.S().Warn(err) // not a k8s resource
 			continue
 		}
 		if !acceptedK8sTypes.MatchString(groupVersionKind.Kind) {
@@ -103,14 +128,4 @@ func parseK8sYaml(fileR []byte) []deployObject {
 		}
 	}
 	return dObjs
-}
-
-// Exists Check whether a file with a given path exists
-func Exists(name string) bool {
-	if _, err := os.Stat(name); err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-	}
-	return true
 }
