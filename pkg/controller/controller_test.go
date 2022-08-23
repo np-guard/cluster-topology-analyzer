@@ -16,10 +16,10 @@ import (
 // TestOutput calls controller.Start() with an example repo dir tests/onlineboutique/ ,
 // checking for the json output to match expected output at tests/expected_output.json
 func TestConnectionsOutput(t *testing.T) {
-	currentDir, _ := os.Getwd()
-	dirPath := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "kubernetes-manifests.yaml")
-	outFile := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "output.json")
-	expectedOutput := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "expected_output.json")
+	testsDir := getTestsDir()
+	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
+	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
+	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_output.json")
 	args := getTestArgs(dirPath, outFile, false)
 
 	err := Start(args)
@@ -40,10 +40,10 @@ func TestConnectionsOutput(t *testing.T) {
 }
 
 func TestDirScan(t *testing.T) {
-	currentDir, _ := os.Getwd()
-	dirPath := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique")
-	outFile := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "output.json")
-	expectedOutput := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "expected_dirscan_output.json")
+	testsDir := getTestsDir()
+	dirPath := filepath.Join(testsDir, "onlineboutique")
+	outFile := filepath.Join(dirPath, "output.json")
+	expectedOutput := filepath.Join(dirPath, "expected_dirscan_output.json")
 	args := getTestArgs(dirPath, outFile, false)
 
 	err := Start(args)
@@ -70,8 +70,7 @@ type TestDetails struct {
 }
 
 func TestNetpolsJsonOutput(t *testing.T) {
-	currentDir, _ := os.Getwd()
-	testsDir := filepath.Join(currentDir, "..", "..", "tests")
+	testsDir := getTestsDir()
 	tests := map[string]TestDetails{} // map from test name to test details
 	tests["onlineboutique"] = TestDetails{dirPath: filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml"),
 		outFile:        filepath.Join(testsDir, "onlineboutique", "output.json"),
@@ -104,8 +103,7 @@ func TestNetpolsJsonOutput(t *testing.T) {
 }
 
 func TestNetpolsInterface(t *testing.T) {
-	currentDir, _ := os.Getwd()
-	testsDir := filepath.Join(currentDir, "..", "..", "tests")
+	testsDir := getTestsDir()
 	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
 	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
 	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_netpol_interface_output.json")
@@ -139,6 +137,32 @@ func TestNetpolsInterface(t *testing.T) {
 	os.Remove(outFile)
 }
 
+func TestExtractConnectionsNoK8sResources(t *testing.T) {
+	testsDir := getTestsDir()
+	dirPath := filepath.Join(testsDir, "bad_yamls", "irrelevant_k8s_resources.yaml")
+	args := getTestArgs(dirPath, "", false)
+	conns, errs := extractConnections(args)
+	if len(errs) != 1 {
+		t.Fatalf("expected one error but got %d", len(errs))
+	}
+	if len(conns) > 0 {
+		t.Fatalf("expected no conns but got %d", len(conns))
+	}
+}
+
+func TestExtractConnectionsBadConfigMapRefs(t *testing.T) {
+	testsDir := getTestsDir()
+	dirPath := filepath.Join(testsDir, "bad_yamls", "bad_configmap_refs.yaml")
+	args := getTestArgs(dirPath, "", false)
+	conns, errs := extractConnections(args)
+	if len(errs) != 3 {
+		t.Fatalf("expected 3 errors but got %d", len(errs))
+	}
+	if len(conns) > 0 {
+		t.Fatalf("expected no conns but got %d", len(conns))
+	}
+}
+
 func readLines(path string) ([]string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -152,6 +176,11 @@ func readLines(path string) ([]string, error) {
 		lines = append(lines, scanner.Text())
 	}
 	return lines, scanner.Err()
+}
+
+func getTestsDir() string {
+	currentDir, _ := os.Getwd()
+	return filepath.Join(currentDir, "..", "..", "tests")
 }
 
 func getTestArgs(dirPath, outFile string, netpols bool) common.InArgs {
