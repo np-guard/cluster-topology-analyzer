@@ -20,14 +20,15 @@ import (
 // (or NetworkPolicies to allow only this connectivity)
 func Start(args common.InArgs) error {
 	// 1. Discover all connections between resources
-	connections, err := extractConnections(args)
-	if err != nil {
-		return err
+	connections, fileScanErrors := extractConnections(args)
+	if len(fileScanErrors) > 0 {
+		return fileScanErrors
 	}
 
 	// 2. Write the output to a file or to stdout
 	const indent = "    "
 	var buf []byte
+	var err error
 	if args.SynthNetpols != nil && *args.SynthNetpols {
 		buf, err = json.MarshalIndent(synthNetpolList(connections), "", indent)
 	} else {
@@ -56,7 +57,7 @@ func Start(args common.InArgs) error {
 	return nil
 }
 
-func PoliciesFromFolderPath(fullTargetPath string) ([]*networking.NetworkPolicy, error) {
+func PoliciesFromFolderPath(fullTargetPath string) ([]*networking.NetworkPolicy, common.FileProcessingErrorList) {
 	emptyStr := ""
 	args := common.InArgs{}
 	args.DirPath = &fullTargetPath
@@ -64,39 +65,36 @@ func PoliciesFromFolderPath(fullTargetPath string) ([]*networking.NetworkPolicy,
 	args.GitBranch = &emptyStr
 	args.GitURL = &emptyStr
 
-	connections, err := extractConnections(args)
-	if err != nil {
-		return []*networking.NetworkPolicy{}, err
-	}
-	return synthNetpols(connections), nil
+	connections, fileProcessingErrors := extractConnections(args)
+	return synthNetpols(connections), fileProcessingErrors
 }
 
-func extractConnections(args common.InArgs) ([]common.Connections, error) {
+func extractConnections(args common.InArgs) ([]common.Connections, common.FileProcessingErrorList) {
 	// 1. Get all relevant resources from the repo and parse them
-	dObjs := getK8sDeploymentResources(args.DirPath)
+	dObjs, fileErrors := getK8sDeploymentResources(*args.DirPath)
 	if len(dObjs) == 0 {
 		msg := "no deployment objects discovered in the repository"
+		fileErrors = append(fileErrors, &common.FileProcessingError{Msg: msg})
 		zap.S().Errorf(msg)
-		return []common.Connections{}, errors.New(msg)
+		return []common.Connections{}, fileErrors
 	}
-	resources, links := parseResources(dObjs, args)
+	resources, links, parseErrors := parseResources(dObjs, args)
+	fileErrors = append(fileErrors, parseErrors...)
 
 	// 2. Discover all connections between resources
-	return discoverConnections(resources, links)
+	return discoverConnections(resources, links), fileErrors
 }
 
-func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resource, []common.Service) {
+func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resource, []common.Service, common.FileProcessingErrorList) {
 	resources := []common.Resource{}
 	links := []common.Service{}
 	configmaps := map[string]common.CfgMap{} // map from a configmap's full-name to its data
+	parseErrors := common.FileProcessingErrorList{}
 	for _, o := range objs {
-		r, l, c := parseResource(o)
-		if len(r) != 0 {
-			resources = append(resources, r...)
-		}
-		if len(l) != 0 {
-			links = append(links, l...)
-		}
+		r, l, c, e := parseResource(o)
+		resources = append(resources, r...)
+		links = append(links, l...)
+		parseErrors = append(parseErrors, e...)
 		for _, cfgObj := range c {
 			configmaps[cfgObj.FullName] = cfgObj
 		}
@@ -112,8 +110,12 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 			configmapFullName := res.Resource.Namespace + "/" + cfgMapRef
 			if cfgMap, ok := configmaps[configmapFullName]; ok {
 				for _, v := range cfgMap.Data {
-					res.Resource.Envs = append(res.Resource.Envs, v)
+					if analyzer.IsNetworkAddressValue(v) {
+						res.Resource.Envs = append(res.Resource.Envs, v)
+					}
 				}
+			} else {
+				parseErrors = append(parseErrors, getConfigMapNotFoundError(configmapFullName, res.Resource.Name))
 			}
 		}
 		for _, cfgMapKeyRef := range res.Resource.ConfigMapKeyRefs {
@@ -123,7 +125,12 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 					if analyzer.IsNetworkAddressValue(val) {
 						res.Resource.Envs = append(res.Resource.Envs, val)
 					}
+				} else {
+					msg := fmt.Sprintf("configmap %s does not have key %s (referenced by %s)", cfgMapKeyRef.Name, cfgMapKeyRef.Key, res.Resource.Name)
+					parseErrors = append(parseErrors, &common.FileProcessingError{Msg: msg})
 				}
+			} else {
+				parseErrors = append(parseErrors, getConfigMapNotFoundError(configmapFullName, res.Resource.Name))
 			}
 		}
 	}
@@ -133,13 +140,19 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 		links[idx].GitBranch = *args.GitBranch
 		links[idx].GitURL = *args.GitURL
 	}
-	return resources, links
+	return resources, links, parseErrors
 }
 
-func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, []common.CfgMap) {
+func getConfigMapNotFoundError(cfgMapName, resourceName string) *common.FileProcessingError {
+	msg := fmt.Sprintf("configmap %s not found (referenced by %s)", cfgMapName, resourceName)
+	return &common.FileProcessingError{Msg: msg}
+}
+
+func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, []common.CfgMap, common.FileProcessingErrorList) {
 	links := []common.Service{}
 	deployments := []common.Resource{}
 	configMaps := []common.CfgMap{}
+	parseErrors := common.FileProcessingErrorList{}
 
 	for _, p := range obj.DeployObjects {
 		switch p.GroupKind {
@@ -147,6 +160,7 @@ func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, [
 			res, err := analyzer.ScanK8sServiceObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
 				zap.S().Errorf("error scanning service object: %v", err)
+				parseErrors = append(parseErrors, &common.FileProcessingError{Msg: err.Error(), FilePath: obj.ManifestFilepath})
 				continue
 			}
 			res.Resource.FilePath = obj.ManifestFilepath
@@ -155,6 +169,7 @@ func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, [
 			res, err := analyzer.ScanK8sConfigmapObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
 				zap.S().Errorf("error scanning Configmap object: %v", err)
+				parseErrors = append(parseErrors, &common.FileProcessingError{Msg: err.Error(), FilePath: obj.ManifestFilepath})
 				continue
 			}
 			configMaps = append(configMaps, res)
@@ -162,6 +177,7 @@ func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, [
 			res, err := analyzer.ScanK8sDeployObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
 				zap.S().Debugf("Skipping object with type: %s", p.GroupKind)
+				parseErrors = append(parseErrors, &common.FileProcessingError{Msg: err.Error(), FilePath: obj.ManifestFilepath})
 				continue
 			}
 			res.Resource.FilePath = obj.ManifestFilepath
@@ -169,5 +185,5 @@ func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, [
 		}
 	}
 
-	return deployments, links, configMaps
+	return deployments, links, configMaps, parseErrors
 }

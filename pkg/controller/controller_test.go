@@ -110,9 +110,9 @@ func TestNetpolsInterface(t *testing.T) {
 	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
 	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_netpol_interface_output.json")
 
-	netpols, err := PoliciesFromFolderPath(dirPath)
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
+	netpols, fileScanningErrors := PoliciesFromFolderPath(dirPath)
+	if len(fileScanningErrors) > 0 {
+		t.Fatalf("expected no file-scanning errors, but got %v", fileScanningErrors)
 	}
 	if len(netpols) == 0 {
 		t.Fatalf("expected policies to be non-empty, but got empty")
