@@ -76,6 +76,9 @@ func matchLabelSelectorToStrLabels(labels map[string]string) []string {
 
 func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMap, error) {
 	obj := ParseConfigMap(bytes.NewReader(objDataBuf))
+	if obj == nil {
+		return common.CfgMap{}, fmt.Errorf("unable to parse configmap")
+	}
 
 	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
 	data := map[string]string{}
@@ -96,6 +99,9 @@ func ScanK8sServiceObject(kind string, objDataBuf []byte) (common.Service, error
 
 	var serviceCtx common.Service
 	svcObj := ParseService(bytes.NewReader(objDataBuf))
+	if svcObj == nil {
+		return common.Service{}, fmt.Errorf("failed to parse Service resource")
+	}
 	serviceCtx.Resource.Name = svcObj.GetName()
 	serviceCtx.Resource.Namespace = svcObj.Namespace
 	serviceCtx.Resource.Kind = kind
@@ -129,8 +135,7 @@ func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourc
 		}
 		for _, e := range container.Env {
 			if e.Value != "" {
-				isPotentialAddress := IsNetworkAddressValue(e.Value)
-				if isPotentialAddress {
+				if IsNetworkAddressValue(e.Value) {
 					resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, e.Value)
 				}
 			} else if e.ValueFrom != nil && e.ValueFrom.ConfigMapKeyRef != nil {
