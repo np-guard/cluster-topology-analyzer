@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"os"
+	"syscall"
 
 	"go.uber.org/zap"
 
@@ -13,7 +15,10 @@ func runAnalysis() int {
 	logger := common.SetupLogger()
 	defer func() {
 		err := logger.Sync()
-		if err != nil {
+		// If stderr is a TTY we might not be able to sync.
+		// See https://github.com/uber-go/zap/issues/991#issuecomment-962098428 for
+		// why we ignore ENOTTY.  On OSX, we must ignore EBADF.
+		if err != nil && !errors.Is(err, syscall.ENOTTY) && !errors.Is(err, syscall.EBADF) {
 			panic(err)
 		}
 	}()

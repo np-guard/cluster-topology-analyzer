@@ -37,7 +37,7 @@ $ git clone git@github.com:nadgowdas/microservices-demo.git
 
 2. Point topology analyzer to this sample repo
 ```
-$ ./bin/net-top -dirpath $HOME/microservices-demo -commitid 9133fdc043b20be15f958339e96564eac04bed6e -giturl https://github.com/nadgowdas/microservices-demo -gitbranch matser
+$ ./bin/net-top -dirpath $HOME/microservices-demo -commitid 9133fdc043b20be15f958339e96564eac04bed6e -giturl https://github.com/nadgowdas/microservices-demo -gitbranch master
 ```
 
 3. You can expect the result connection in following schema
