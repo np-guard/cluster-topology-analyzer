@@ -12,8 +12,6 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"k8s.io/client-go/kubernetes/scheme"
-
-	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
 const (
@@ -47,12 +45,12 @@ type deployObject struct {
 }
 
 // return a list of yaml files under a given directory (recursively)
-func searchDeploymentManifests(repoDir string) ([]string, common.FileProcessingErrorList) {
+func searchDeploymentManifests(repoDir string) ([]string, FileProcessingErrorList) {
 	yamls := []string{}
-	errors := common.FileProcessingErrorList{}
+	errors := FileProcessingErrorList{}
 	err := filepath.WalkDir(repoDir, func(path string, f os.DirEntry, err error) error {
 		if err != nil {
-			errors = append(errors, &common.FileProcessingError{Msg: fmt.Sprintf("error accessing dir: %v", err), FilePath: path})
+			errors = append(errors, &FileProcessingError{Msg: fmt.Sprintf("error accessing dir: %v", err), FilePath: path})
 			return filepath.SkipDir
 		}
 		if f != nil && !f.IsDir() && yamlSuffix.MatchString(f.Name()) {
@@ -61,17 +59,17 @@ func searchDeploymentManifests(repoDir string) ([]string, common.FileProcessingE
 		return nil
 	})
 	if err != nil {
-		walkError := common.FileProcessingError{Msg: fmt.Sprintf("error walking dir: %v", err), FilePath: repoDir}
+		walkError := FileProcessingError{Msg: fmt.Sprintf("error walking dir: %v", err), FilePath: repoDir}
 		errors = append(errors, &walkError)
 		zap.S().Error(walkError.Msg)
 	}
 	return yamls, errors
 }
 
-func getK8sDeploymentResources(repoDir string) ([]parsedK8sObjects, common.FileProcessingErrorList) {
+func getK8sDeploymentResources(repoDir string) ([]parsedK8sObjects, FileProcessingErrorList) {
 	manifestFiles, fileScanErrors := searchDeploymentManifests(repoDir)
 	if len(manifestFiles) == 0 {
-		noYamlsError := common.FileProcessingError{Msg: "no yaml files found"}
+		noYamlsError := FileProcessingError{Msg: "no yaml files found"}
 		fileScanErrors = append(fileScanErrors, &noYamlsError)
 		zap.S().Info(noYamlsError.Msg)
 		return nil, fileScanErrors
@@ -91,23 +89,23 @@ func getK8sDeploymentResources(repoDir string) ([]parsedK8sObjects, common.FileP
 	return parsedObjs, fileScanErrors
 }
 
-func splitByYamlDocuments(mfp string) ([]string, common.FileProcessingErrorList) {
+func splitByYamlDocuments(mfp string) ([]string, FileProcessingErrorList) {
 	fileBuf, err := os.ReadFile(mfp)
 	if err != nil {
-		readError := common.FileProcessingError{Msg: fmt.Sprintf("error reading file: %v", err), FilePath: mfp}
-		return []string{}, common.FileProcessingErrorList{&readError}
+		readError := FileProcessingError{Msg: fmt.Sprintf("error reading file: %v", err), FilePath: mfp}
+		return []string{}, FileProcessingErrorList{&readError}
 	}
 
 	decoder := yaml.NewDecoder(bytes.NewBuffer(fileBuf))
 	documents := []string{}
-	fileProcessingErrors := common.FileProcessingErrorList{}
+	fileProcessingErrors := FileProcessingErrorList{}
 	documentID := 0
 	for {
 		var doc map[interface{}]interface{}
 		if err := decoder.Decode(&doc); err != nil {
 			if err != io.EOF {
 				msg := fmt.Sprintf("YAML parsing error: %v", err)
-				parseError := common.FileProcessingError{Msg: msg, FilePath: mfp, DocID: documentID}
+				parseError := FileProcessingError{Msg: msg, FilePath: mfp, DocID: documentID}
 				fileProcessingErrors = append(fileProcessingErrors, &parseError)
 				zap.S().Warn(msg)
 			}
@@ -117,7 +115,7 @@ func splitByYamlDocuments(mfp string) ([]string, common.FileProcessingErrorList)
 			out, err := yaml.Marshal(doc)
 			if err != nil {
 				msg := fmt.Sprintf("failed marshaling YAML document: %v", err)
-				marshalError := common.FileProcessingError{Msg: msg, FilePath: mfp, DocID: documentID}
+				marshalError := FileProcessingError{Msg: msg, FilePath: mfp, DocID: documentID}
 				fileProcessingErrors = append(fileProcessingErrors, &marshalError)
 				zap.S().Warn(msg)
 			} else {
@@ -129,7 +127,7 @@ func splitByYamlDocuments(mfp string) ([]string, common.FileProcessingErrorList)
 	return documents, fileProcessingErrors
 }
 
-func parseK8sYaml(mfp string) ([]deployObject, common.FileProcessingErrorList) {
+func parseK8sYaml(mfp string) ([]deployObject, FileProcessingErrorList) {
 	dObjs := []deployObject{}
 	sepYamlFiles, fileProcessingErrors := splitByYamlDocuments(mfp)
 	for docID, doc := range sepYamlFiles {
@@ -140,7 +138,7 @@ func parseK8sYaml(mfp string) ([]deployObject, common.FileProcessingErrorList) {
 		_, groupVersionKind, err := decode([]byte(doc), nil, nil)
 		if err != nil {
 			msg := fmt.Sprintf("Yaml document is not a K8s resource: %v", err)
-			fileProcessingErrors = append(fileProcessingErrors, &common.FileProcessingError{Msg: msg, FilePath: mfp, DocID: docID})
+			fileProcessingErrors = append(fileProcessingErrors, &FileProcessingError{Msg: msg, FilePath: mfp, DocID: docID})
 			zap.S().Warn(msg)
 			continue
 		}
