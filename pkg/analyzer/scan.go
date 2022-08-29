@@ -14,7 +14,7 @@ import (
 )
 
 // Create a common.Resource object from a k8s Workload object
-func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error) {
+func ScanK8sWorkloadObject(kind string, objDataBuf []byte) (common.Resource, error) {
 	var podSpecV1 v1.PodTemplateSpec
 	var resourceCtx common.Resource
 	var metaObj metaV1.Object

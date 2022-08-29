@@ -174,7 +174,7 @@ func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, [
 			}
 			configMaps = append(configMaps, res)
 		default:
-			res, err := analyzer.ScanK8sDeployObject(p.GroupKind, p.RuntimeObject)
+			res, err := analyzer.ScanK8sWorkloadObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
 				zap.S().Debugf("Skipping object with type: %s", p.GroupKind)
 				parseErrors = append(parseErrors, &common.FileProcessingError{Msg: err.Error(), FilePath: obj.ManifestFilepath})
