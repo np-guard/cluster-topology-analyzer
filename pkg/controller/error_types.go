@@ -34,13 +34,3 @@ func (e *FileProcessingError) LineNo() int {
 func (e *FileProcessingError) DocumentID() int {
 	return e.DocID
 }
-
-type FileProcessingErrorList []*FileProcessingError
-
-func (e FileProcessingErrorList) Error() string {
-	errMsg := ""
-	for _, err := range e {
-		errMsg += err.Error() + "\n"
-	}
-	return errMsg
-}
