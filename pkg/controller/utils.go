@@ -29,6 +29,13 @@ const (
 	configmap             string = "ConfigMap"
 )
 
+var (
+	acceptedK8sTypesRegex = fmt.Sprintf("(%s|%s|%s|%s|%s|%s|%s|%s|%s|%s)",
+		pod, replicaSet, replicationController, deployment, daemonset, statefulset, job, cronJob, service, configmap)
+	acceptedK8sTypes = regexp.MustCompile(acceptedK8sTypesRegex)
+	yamlSuffix       = regexp.MustCompile(".ya?ml$")
+)
+
 type parsedK8sObjects struct {
 	ManifestFilepath string
 	DeployObjects    []deployObject
@@ -43,7 +50,6 @@ type deployObject struct {
 func searchDeploymentManifests(repoDir string) ([]string, common.FileProcessingErrorList) {
 	yamls := []string{}
 	errors := common.FileProcessingErrorList{}
-	yamlSuffix := regexp.MustCompile(".ya?ml$")
 	err := filepath.WalkDir(repoDir, func(path string, f os.DirEntry, err error) error {
 		if err != nil {
 			errors = append(errors, &common.FileProcessingError{Msg: fmt.Sprintf("error accessing dir: %v", err), FilePath: path})
@@ -125,8 +131,6 @@ func splitByYamlDocuments(mfp string) ([]string, common.FileProcessingErrorList)
 
 func parseK8sYaml(mfp string) ([]deployObject, common.FileProcessingErrorList) {
 	dObjs := []deployObject{}
-	acceptedK8sTypes := regexp.MustCompile(fmt.Sprintf("(%s|%s|%s|%s|%s|%s|%s|%s|%s|%s)",
-		pod, replicaSet, replicationController, deployment, daemonset, statefulset, job, cronJob, service, configmap))
 	sepYamlFiles, fileProcessingErrors := splitByYamlDocuments(mfp)
 	for docID, doc := range sepYamlFiles {
 		if doc == "\n" || doc == "" {
