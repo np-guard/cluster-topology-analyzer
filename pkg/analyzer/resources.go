@@ -12,21 +12,8 @@ import (
 
 const yamlParseBufferSize = 200
 
-// ParsePod parses replicationController
-func ParsePod(r io.Reader) *v1.Pod {
-	if r == nil {
-		return nil
-	}
-	rc := v1.Pod{}
-	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
-	if err != nil {
-		return nil
-	}
-	return &rc
-}
-
-// ParseDeployment parses deployment
-func ParseDeployment(r io.Reader) *appsv1.Deployment {
+// parseDeployment parses deployment
+func parseDeployment(r io.Reader) *appsv1.Deployment {
 	if r == nil {
 		return nil
 	}
@@ -38,8 +25,8 @@ func ParseDeployment(r io.Reader) *appsv1.Deployment {
 	return &rc
 }
 
-// ParseReplicaSet parses replicaset
-func ParseReplicaSet(r io.Reader) *appsv1.ReplicaSet {
+// parseReplicaSet parses replicaset
+func parseReplicaSet(r io.Reader) *appsv1.ReplicaSet {
 	if r == nil {
 		return nil
 	}
@@ -51,8 +38,8 @@ func ParseReplicaSet(r io.Reader) *appsv1.ReplicaSet {
 	return &rc
 }
 
-// ParseReplicationController parses replicationController
-func ParseReplicationController(r io.Reader) *v1.ReplicationController {
+// parseReplicationController parses replicationController
+func parseReplicationController(r io.Reader) *v1.ReplicationController {
 	if r == nil {
 		return nil
 	}
@@ -65,8 +52,8 @@ func ParseReplicationController(r io.Reader) *v1.ReplicationController {
 	return &rc
 }
 
-// ParseDaemonSet parses replicationController
-func ParseDaemonSet(r io.Reader) *appsv1.DaemonSet {
+// parseDaemonSet parses a DaemonSet resource
+func parseDaemonSet(r io.Reader) *appsv1.DaemonSet {
 	if r == nil {
 		return nil
 	}
@@ -79,8 +66,8 @@ func ParseDaemonSet(r io.Reader) *appsv1.DaemonSet {
 	return &rc
 }
 
-// ParseStatefulSet parses replicationController
-func ParseStatefulSet(r io.Reader) *appsv1.StatefulSet {
+// parseStatefulSet parses a StatefulSet resource
+func parseStatefulSet(r io.Reader) *appsv1.StatefulSet {
 	if r == nil {
 		return nil
 	}
@@ -93,8 +80,8 @@ func ParseStatefulSet(r io.Reader) *appsv1.StatefulSet {
 	return &rc
 }
 
-// ParseJob parses replicationController
-func ParseJob(r io.Reader) *batchv1.Job {
+// parseJob parses a Job resource
+func parseJob(r io.Reader) *batchv1.Job {
 	if r == nil {
 		return nil
 	}
@@ -107,8 +94,8 @@ func ParseJob(r io.Reader) *batchv1.Job {
 	return &rc
 }
 
-// ParseService parses replicationController
-func ParseService(r io.Reader) *v1.Service {
+// parseService parses a Service resource
+func parseService(r io.Reader) *v1.Service {
 	if r == nil {
 		return nil
 	}
@@ -120,21 +107,8 @@ func ParseService(r io.Reader) *v1.Service {
 	return &rc
 }
 
-// ParseServiceAccount parses replicationController
-func ParseServiceAccount(r io.Reader) *v1.ServiceAccount {
-	if r == nil {
-		return nil
-	}
-	rc := v1.ServiceAccount{}
-	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
-	if err != nil {
-		return nil
-	}
-	return &rc
-}
-
-// ParseConfigMap parses ConfigMap
-func ParseConfigMap(r io.Reader) *v1.ConfigMap {
+// parseConfigMap parses a ConfigMap resource
+func parseConfigMap(r io.Reader) *v1.ConfigMap {
 	if r == nil {
 		return nil
 	}

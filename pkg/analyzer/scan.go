@@ -23,37 +23,37 @@ func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error
 	case "Pod":
 		zap.S().Info("evaluating pod")
 	case "ReplicaSet":
-		obj := ParseReplicaSet(bytes.NewReader(objDataBuf))
+		obj := parseReplicaSet(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.GetLabels()
 		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "ReplicationController":
-		obj := ParseReplicationController(bytes.NewReader(objDataBuf))
+		obj := parseReplicationController(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector)
 		podSpecV1 = *obj.Spec.Template
 		metaObj = obj
 	case "Deployment":
-		obj := ParseDeployment(bytes.NewReader(objDataBuf))
+		obj := parseDeployment(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "DaemonSet":
-		obj := ParseDaemonSet(bytes.NewReader(objDataBuf))
+		obj := parseDaemonSet(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "StatefulSet":
-		obj := ParseStatefulSet(bytes.NewReader(objDataBuf))
+		obj := parseStatefulSet(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "Job":
-		obj := ParseJob(bytes.NewReader(objDataBuf))
+		obj := parseJob(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
@@ -75,7 +75,7 @@ func matchLabelSelectorToStrLabels(labels map[string]string) []string {
 }
 
 func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMap, error) {
-	obj := ParseConfigMap(bytes.NewReader(objDataBuf))
+	obj := parseConfigMap(bytes.NewReader(objDataBuf))
 	if obj == nil {
 		return common.CfgMap{}, fmt.Errorf("unable to parse configmap")
 	}
@@ -98,7 +98,7 @@ func ScanK8sServiceObject(kind string, objDataBuf []byte) (common.Service, error
 	}
 
 	var serviceCtx common.Service
-	svcObj := ParseService(bytes.NewReader(objDataBuf))
+	svcObj := parseService(bytes.NewReader(objDataBuf))
 	if svcObj == nil {
 		return common.Service{}, fmt.Errorf("failed to parse Service resource")
 	}
