@@ -22,7 +22,7 @@ func Start(args common.InArgs) error {
 	// 1. Discover all connections between resources
 	connections, fileScanErrors := extractConnections(args)
 	if len(fileScanErrors) > 0 {
-		return fmt.Errorf("Errors in processing input files: %v", fileScanErrors)
+		return fmt.Errorf("errors in processing input files: %v", fileScanErrors)
 	}
 
 	// 2. Write the output to a file or to stdout
