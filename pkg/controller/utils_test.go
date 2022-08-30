@@ -11,8 +11,8 @@ func TestGetK8sDeploymentResourcesBadYamlDocument(t *testing.T) {
 	if len(errs) != 1 {
 		t.Fatalf("expected one error but got %d", len(errs))
 	}
-	if errs[0].DocID != 6 {
-		t.Fatalf("expected bad Document ID to be 6 but got %d", errs[0].DocID)
+	if errs[0].DocumentID() != 6 {
+		t.Fatalf("expected bad Document ID to be 6 but got %d", errs[0].docID)
 	}
 	if len(objs) != 1 {
 		t.Fatalf("expected 1 parsed file but got %d", len(objs))

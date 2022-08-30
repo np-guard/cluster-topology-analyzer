@@ -73,9 +73,7 @@ func extractConnections(args common.InArgs) ([]common.Connections, []FileProcess
 	// 1. Get all relevant resources from the repo and parse them
 	dObjs, fileErrors := getK8sDeploymentResources(*args.DirPath)
 	if len(dObjs) == 0 {
-		msg := "no deployment objects discovered in the repository"
-		fileErrors = append(fileErrors, FileProcessingError{Msg: msg})
-		zap.S().Errorf(msg)
+		fileErrors = append(fileErrors, *noK8sResourcesFound())
 		return []common.Connections{}, fileErrors
 	}
 	resources, links, parseErrors := parseResources(dObjs, args)
@@ -115,7 +113,7 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 					}
 				}
 			} else {
-				parseErrors = append(parseErrors, getConfigMapNotFoundError(configmapFullName, res.Resource.Name))
+				parseErrors = append(parseErrors, *configMapNotFound(configmapFullName, res.Resource.Name))
 			}
 		}
 		for _, cfgMapKeyRef := range res.Resource.ConfigMapKeyRefs {
@@ -126,11 +124,10 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 						res.Resource.Envs = append(res.Resource.Envs, val)
 					}
 				} else {
-					msg := fmt.Sprintf("configmap %s does not have key %s (referenced by %s)", cfgMapKeyRef.Name, cfgMapKeyRef.Key, res.Resource.Name)
-					parseErrors = append(parseErrors, FileProcessingError{Msg: msg})
+					parseErrors = append(parseErrors, *configMapKeyNotFound(cfgMapKeyRef.Name, cfgMapKeyRef.Key, res.Resource.Name))
 				}
 			} else {
-				parseErrors = append(parseErrors, getConfigMapNotFoundError(configmapFullName, res.Resource.Name))
+				parseErrors = append(parseErrors, *configMapNotFound(configmapFullName, res.Resource.Name))
 			}
 		}
 	}
@@ -143,11 +140,6 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 	return resources, links, parseErrors
 }
 
-func getConfigMapNotFoundError(cfgMapName, resourceName string) FileProcessingError {
-	msg := fmt.Sprintf("configmap %s not found (referenced by %s)", cfgMapName, resourceName)
-	return FileProcessingError{Msg: msg}
-}
-
 func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, []common.CfgMap, []FileProcessingError) {
 	links := []common.Service{}
 	deployments := []common.Resource{}
@@ -156,28 +148,25 @@ func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, [
 
 	for _, p := range obj.DeployObjects {
 		switch p.GroupKind {
-		case "Service":
+		case service:
 			res, err := analyzer.ScanK8sServiceObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
-				zap.S().Errorf("error scanning service object: %v", err)
-				parseErrors = append(parseErrors, FileProcessingError{Msg: err.Error(), FilePath: obj.ManifestFilepath})
+				parseErrors = append(parseErrors, *failedScanningResource(p.GroupKind, obj.ManifestFilepath, err))
 				continue
 			}
 			res.Resource.FilePath = obj.ManifestFilepath
 			links = append(links, res)
-		case "ConfigMap":
+		case configmap:
 			res, err := analyzer.ScanK8sConfigmapObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
-				zap.S().Errorf("error scanning Configmap object: %v", err)
-				parseErrors = append(parseErrors, FileProcessingError{Msg: err.Error(), FilePath: obj.ManifestFilepath})
+				parseErrors = append(parseErrors, *failedScanningResource(p.GroupKind, obj.ManifestFilepath, err))
 				continue
 			}
 			configMaps = append(configMaps, res)
 		default:
 			res, err := analyzer.ScanK8sWorkloadObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
-				zap.S().Debugf("Skipping object with type: %s", p.GroupKind)
-				parseErrors = append(parseErrors, FileProcessingError{Msg: err.Error(), FilePath: obj.ManifestFilepath})
+				parseErrors = append(parseErrors, *failedScanningResource(p.GroupKind, obj.ManifestFilepath, err))
 				continue
 			}
 			res.Resource.FilePath = obj.ManifestFilepath
