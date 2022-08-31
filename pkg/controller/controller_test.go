@@ -108,7 +108,7 @@ func TestNetpolsInterface(t *testing.T) {
 	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
 	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_netpol_interface_output.json")
 
-	netpols, fileScanningErrors := PoliciesFromFolderPath(dirPath)
+	netpols, fileScanningErrors := PoliciesFromFolderPath(dirPath, false)
 	if len(fileScanningErrors) > 0 {
 		t.Fatalf("expected no file-scanning errors, but got %v", fileScanningErrors)
 	}
@@ -137,11 +137,100 @@ func TestNetpolsInterface(t *testing.T) {
 	os.Remove(outFile)
 }
 
+func TestPoliciesSynthesizerAPI(t *testing.T) {
+	testsDir := getTestsDir()
+	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
+	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
+	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_netpol_interface_output.json")
+
+	logger := NewDefaultLogger()
+	synthesizer := NewPoliciesSynthesizer(WithLogger(logger))
+	netpols, err := synthesizer.PoliciesFromFolderPath(dirPath)
+	if err != nil {
+		t.Fatalf("expected no fatal errors, but got %v", err)
+	}
+	fileScanningErrors := synthesizer.Errors()
+	if len(fileScanningErrors) > 0 {
+		t.Fatalf("expected no file-scanning errors, but got %v", fileScanningErrors)
+	}
+	if len(netpols) == 0 {
+		t.Fatalf("expected policies to be non-empty, but got empty")
+	}
+
+	buf, _ := json.MarshalIndent(netpols, "", "    ")
+	fp, err := os.Create(outFile)
+	if err != nil {
+		t.Fatalf("failed opening output file: %v", err)
+	}
+	_, err = fp.Write(buf)
+	if err != nil {
+		t.Fatalf("failed writing to output file: %v", err)
+	}
+	fp.Close()
+	res, err := compareFiles(expectedOutput, outFile)
+	if err != nil {
+		t.Fatalf("expected err to be nil, but got %v", err)
+	}
+	if !res {
+		t.Fatalf("expected res to be true, but got false")
+	}
+
+	os.Remove(outFile)
+}
+
+func TestPoliciesSynthesizerAPIFatalError(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "badPath")
+
+	logger := NewDefaultLogger()
+	synthesizer := NewPoliciesSynthesizer(WithLogger(logger))
+	netpols, err := synthesizer.PoliciesFromFolderPath(dirPath)
+	if err == nil {
+		t.Fatal("expected a fatal error, but got none")
+	}
+	fileScanningErrors := synthesizer.Errors()
+	if len(fileScanningErrors) != 3 {
+		t.Fatalf("expected 3 file-scanning error, but got %d", len(fileScanningErrors))
+	}
+	if len(netpols) != 0 {
+		t.Fatalf("expected no policies, but got %d policies", len(netpols))
+	}
+}
+
+func TestPoliciesSynthesizerAPIFailFast(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "bad_yamls")
+
+	synthesizer := NewPoliciesSynthesizer(WithStopOnError())
+	netpols, err := synthesizer.PoliciesFromFolderPath(dirPath)
+	if err != nil {
+		t.Fatalf("expected no fatal errors, but got %v", err)
+	}
+	fileScanningErrors := synthesizer.Errors()
+	if len(fileScanningErrors) != 1 {
+		t.Fatalf("expected 1 file-scanning error, but got %d", len(fileScanningErrors))
+	}
+	if len(netpols) != 0 {
+		t.Fatalf("expected no policies, but got %d policies", len(netpols))
+	}
+}
+
 func TestExtractConnectionsNoK8sResources(t *testing.T) {
 	testsDir := getTestsDir()
 	dirPath := filepath.Join(testsDir, "bad_yamls", "irrelevant_k8s_resources.yaml")
 	args := getTestArgs(dirPath, "", false)
-	conns, errs := extractConnections(args)
+	conns, errs := extractConnections(args, false)
+	if len(errs) != 1 {
+		t.Fatalf("expected one error but got %d", len(errs))
+	}
+	if len(conns) > 0 {
+		t.Fatalf("expected no conns but got %d", len(conns))
+	}
+}
+
+func TestExtractConnectionsNoK8sResourcesFailFast(t *testing.T) {
+	testsDir := getTestsDir()
+	dirPath := filepath.Join(testsDir, "bad_yamls")
+	args := getTestArgs(dirPath, "", true)
+	conns, errs := extractConnections(args, true)
 	if len(errs) != 1 {
 		t.Fatalf("expected one error but got %d", len(errs))
 	}
@@ -154,7 +243,7 @@ func TestExtractConnectionsBadConfigMapRefs(t *testing.T) {
 	testsDir := getTestsDir()
 	dirPath := filepath.Join(testsDir, "bad_yamls", "bad_configmap_refs.yaml")
 	args := getTestArgs(dirPath, "", false)
-	conns, errs := extractConnections(args)
+	conns, errs := extractConnections(args, false)
 	if len(errs) != 3 {
 		t.Fatalf("expected 3 errors but got %d", len(errs))
 	}

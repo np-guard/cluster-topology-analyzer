@@ -18,7 +18,7 @@ import (
 // (or NetworkPolicies to allow only this connectivity)
 func Start(args common.InArgs) error {
 	// 1. Discover all connections between resources
-	connections, fileScanErrors := extractConnections(args)
+	connections, fileScanErrors := extractConnections(args, false)
 	if len(fileScanErrors) > 0 {
 		return fmt.Errorf("errors in processing input files: %v", fileScanErrors)
 	}
@@ -55,7 +55,7 @@ func Start(args common.InArgs) error {
 	return nil
 }
 
-func PoliciesFromFolderPath(fullTargetPath string) ([]*networking.NetworkPolicy, []FileProcessingError) {
+func PoliciesFromFolderPath(fullTargetPath string, stopOn1stErr bool) ([]*networking.NetworkPolicy, []FileProcessingError) {
 	emptyStr := ""
 	args := common.InArgs{}
 	args.DirPath = &fullTargetPath
@@ -63,17 +63,24 @@ func PoliciesFromFolderPath(fullTargetPath string) ([]*networking.NetworkPolicy,
 	args.GitBranch = &emptyStr
 	args.GitURL = &emptyStr
 
-	connections, fileProcessingErrors := extractConnections(args)
+	connections, fileProcessingErrors := extractConnections(args, stopOn1stErr)
+	if returnOn1StError(stopOn1stErr, fileProcessingErrors) {
+		return nil, fileProcessingErrors
+	}
 	return synthNetpols(connections), fileProcessingErrors
 }
 
-func extractConnections(args common.InArgs) ([]common.Connections, []FileProcessingError) {
+func extractConnections(args common.InArgs, stopOn1stErr bool) ([]common.Connections, []FileProcessingError) {
 	// 1. Get all relevant resources from the repo and parse them
-	dObjs, fileErrors := getK8sDeploymentResources(*args.DirPath)
+	dObjs, fileErrors := getK8sDeploymentResources(*args.DirPath, stopOn1stErr)
+	if returnOn1StError(stopOn1stErr, fileErrors) {
+		return nil, fileErrors
+	}
 	if len(dObjs) == 0 {
 		fileErrors = append(fileErrors, *noK8sResourcesFound())
 		return []common.Connections{}, fileErrors
 	}
+
 	resources, links, parseErrors := parseResources(dObjs, args)
 	fileErrors = append(fileErrors, parseErrors...)
 

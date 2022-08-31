@@ -44,7 +44,12 @@ func (ps *PoliciesSynthesizer) Errors() []FileProcessingError {
 
 func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networking.NetworkPolicy, error) {
 	activeLogger = ps.logger
-	policies, errs := PoliciesFromFolderPath(dirPath)
+	policies, errs := PoliciesFromFolderPath(dirPath, ps.stopOnError)
 	ps.errors = errs
+	for _, err := range errs {
+		if err.IsFatal() {
+			return nil, err.Error()
+		}
+	}
 	return policies, nil
 }
