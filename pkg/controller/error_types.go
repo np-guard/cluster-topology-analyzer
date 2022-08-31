@@ -39,8 +39,25 @@ func (e *FileProcessingError) LineNo() int {
 	return e.lineNum
 }
 
-func (e *FileProcessingError) DocumentID() int {
-	return e.docID
+func (e *FileProcessingError) DocumentID() (int, error) {
+	if e.docID < 0 {
+		return -1, errors.New("no document ID is available for this error")
+	}
+	return e.docID, nil
+}
+
+func (e *FileProcessingError) Location() string {
+	if e.filePath == "" {
+		return "at unknown location"
+	}
+	suffix := ""
+	if e.lineNum > 0 {
+		suffix = fmt.Sprintf(", line: %d", e.LineNo())
+	}
+	if did, err := e.DocumentID(); err == nil {
+		return fmt.Sprintf("in file: %s, document: %d%s", e.File(), did, suffix)
+	}
+	return fmt.Sprintf("in file: %s%s", e.File(), suffix)
 }
 
 func (e *FileProcessingError) IsFatal() bool {
@@ -50,6 +67,8 @@ func (e *FileProcessingError) IsFatal() bool {
 func (e *FileProcessingError) IsSevere() bool {
 	return e.severe
 }
+
+// --------  Constructors for specific error types ----------------
 
 func noYamlsFound() *FileProcessingError {
 	return newFileProcessingError("no yaml files found", "", 0, -1, false, false)
