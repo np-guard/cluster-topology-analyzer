@@ -116,7 +116,7 @@ func failedReadingFile(filePath string, err error) *FileProcessingError {
 
 func failedAccessingDir(dirPath string, err error, isSubDir bool) *FileProcessingError {
 	msg := fmt.Sprintf("error accessing directory: %v", err)
-	return newFileProcessingError(msg, dirPath, 0, -1, isSubDir, true)
+	return newFileProcessingError(msg, dirPath, 0, -1, !isSubDir, true)
 }
 
 func failedWalkDir(dirPath string, err error) *FileProcessingError {
