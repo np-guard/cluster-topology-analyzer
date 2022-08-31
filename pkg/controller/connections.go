@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"go.uber.org/zap"
-
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
@@ -21,7 +19,7 @@ func discoverConnections(resources []common.Resource, links []common.Service) []
 			srcRes := findSource(resources, svc)
 			if len(srcRes) > 0 {
 				for _, r := range srcRes {
-					zap.S().Debugf("source: %s target: %s link: %s", svc.Resource.Name, r.Resource.Name, svc.Resource.Name)
+					activeLogger.Debugf("source: %s target: %s link: %s", svc.Resource.Name, r.Resource.Name, svc.Resource.Name)
 					connections = append(connections, common.Connections{Source: r, Target: destRes, Link: svc})
 				}
 			} else {
@@ -63,7 +61,7 @@ func findServices(resource *common.Resource, links []common.Service) []common.Se
 		}
 	}
 
-	zap.S().Debugf("services matched to %v: %v", resource.Resource.Name, matchedSvc)
+	activeLogger.Debugf("services matched to %v: %v", resource.Resource.Name, matchedSvc)
 	return matchedSvc
 }
 

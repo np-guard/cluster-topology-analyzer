@@ -10,8 +10,6 @@ import (
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
-
-	"go.uber.org/zap"
 )
 
 // Start : This is the entry point for the topology analysis engine.
@@ -41,13 +39,13 @@ func Start(args common.InArgs) error {
 		fp, err := os.Create(*args.OutputFile)
 		if err != nil {
 			msg := fmt.Sprintf("error creating file: %s: %v", *args.OutputFile, err)
-			zap.S().Errorf(msg)
+			activeLogger.Errorf(msg)
 			return errors.New(msg)
 		}
 		_, err = fp.Write(buf)
 		if err != nil {
 			msg := fmt.Sprintf("error writing to file: %s: %v", *args.OutputFile, err)
-			zap.S().Errorf(msg)
+			activeLogger.Errorf(msg)
 			return errors.New(msg)
 		}
 		fp.Close()

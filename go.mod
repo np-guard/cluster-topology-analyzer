@@ -3,7 +3,6 @@ module github.com/np-guard/cluster-topology-analyzer
 go 1.17
 
 require (
-	go.uber.org/zap v1.22.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.23.8
 	k8s.io/apimachinery v0.23.8
@@ -18,8 +17,6 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect

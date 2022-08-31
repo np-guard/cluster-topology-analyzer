@@ -14,17 +14,22 @@ type FileProcessingError struct {
 	severe   bool // a severe error is recoverable. However, outputs should be used with care
 }
 
+// constructs a FileProcessingError object and prints an error/warning to the log
 func newFileProcessingError(msg, filePath string, lineNum, docID int, fatal, severe bool) *FileProcessingError {
-	errorMsg := fmt.Sprintf("In file %s", filePath)
-	if lineNum > 0 {
-		errorMsg += fmt.Sprintf(", line %d", lineNum)
+	fpe := FileProcessingError{errors.New(msg), filePath, lineNum, docID, fatal, severe}
+
+	logMsg := msg
+	location := fpe.Location()
+	if location != "" {
+		logMsg = fmt.Sprintf("%s %s", location, msg)
 	}
-	if docID >= 0 {
-		errorMsg += fmt.Sprintf(", document %d", docID)
+	if fpe.IsSevere() || fpe.IsFatal() {
+		activeLogger.Errorf(logMsg)
+	} else {
+		activeLogger.Warnf(logMsg)
 	}
-	errorMsg += fmt.Sprintf(": %s", msg)
-	err := errors.New(errorMsg)
-	return &FileProcessingError{err, filePath, lineNum, docID, fatal, severe}
+
+	return &fpe
 }
 
 func (e *FileProcessingError) Error() error {
@@ -48,14 +53,15 @@ func (e *FileProcessingError) DocumentID() (int, error) {
 
 func (e *FileProcessingError) Location() string {
 	if e.filePath == "" {
-		return "at unknown location"
+		return ""
 	}
+
 	suffix := ""
 	if e.lineNum > 0 {
 		suffix = fmt.Sprintf(", line: %d", e.LineNo())
 	}
 	if did, err := e.DocumentID(); err == nil {
-		return fmt.Sprintf("in file: %s, document: %d%s", e.File(), did, suffix)
+		suffix += fmt.Sprintf(", document: %d%s", did, suffix)
 	}
 	return fmt.Sprintf("in file: %s%s", e.File(), suffix)
 }

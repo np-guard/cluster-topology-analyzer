@@ -1,10 +1,8 @@
 package common
 
 import (
-	"errors"
 	"flag"
-
-	"go.uber.org/zap"
+	"fmt"
 )
 
 func ParseInArgs(args *InArgs) error {
@@ -20,9 +18,8 @@ func ParseInArgs(args *InArgs) error {
 		*args.GitBranch == "" ||
 		*args.CommitID == "" ||
 		*args.GitURL == "" {
-		zap.S().Debugf("missing parameters: [%s %s %s %s]", *args.DirPath, *args.GitURL, *args.GitBranch, *args.CommitID)
 		flag.PrintDefaults()
-		return errors.New("missing params")
+		return fmt.Errorf("missing parameters: [%s %s %s %s]", *args.DirPath, *args.GitURL, *args.GitBranch, *args.CommitID)
 	}
 
 	return nil

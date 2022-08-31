@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strconv"
 
-	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -19,9 +18,7 @@ func ScanK8sWorkloadObject(kind string, objDataBuf []byte) (common.Resource, err
 	var resourceCtx common.Resource
 	var metaObj metaV1.Object
 	resourceCtx.Resource.Kind = kind
-	switch kind {
-	case "Pod":
-		zap.S().Info("evaluating pod")
+	switch kind { // TODO: handle Pod
 	case "ReplicaSet":
 		obj := parseReplicaSet(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.GetLabels()

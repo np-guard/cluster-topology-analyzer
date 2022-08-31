@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"strings"
 
-	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -130,7 +129,7 @@ func parseK8sYaml(mfp string) ([]deployObject, []FileProcessingError) {
 			continue
 		}
 		if !acceptedK8sTypes.MatchString(groupVersionKind.Kind) {
-			zap.S().Infof("Skipping object with type: %s", groupVersionKind.Kind)
+			activeLogger.Infof("Skipping object with type: %s", groupVersionKind.Kind)
 		} else {
 			d := deployObject{}
 			d.GroupKind = groupVersionKind.Kind
