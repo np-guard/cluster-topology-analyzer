@@ -104,17 +104,17 @@ func splitByYamlDocuments(mfp string) ([]string, []FileProcessingError) {
 	documents := []string{}
 	documentID := 0
 	for {
-		var doc map[interface{}]interface{}
+		var doc yaml.Node
 		if err := decoder.Decode(&doc); err != nil {
 			if err != io.EOF {
-				return documents, []FileProcessingError{*malformedYamlDoc(mfp, documentID, err)}
+				return documents, []FileProcessingError{*malformedYamlDoc(mfp, 0, documentID, err)}
 			}
 			break
 		}
-		if len(doc) > 0 {
-			out, err := yaml.Marshal(doc)
+		if len(doc.Content) > 0 && doc.Content[0].Kind == yaml.MappingNode {
+			out, err := yaml.Marshal(doc.Content[0])
 			if err != nil {
-				return documents, []FileProcessingError{*malformedYamlDoc(mfp, documentID, err)}
+				return documents, []FileProcessingError{*malformedYamlDoc(mfp, doc.Line, documentID, err)}
 			}
 			documents = append(documents, string(out))
 		}

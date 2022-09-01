@@ -104,9 +104,9 @@ func notK8sResource(filePath string, docID int, err error) *FileProcessingError 
 	return newFileProcessingError(msg, filePath, 0, docID, false, false)
 }
 
-func malformedYamlDoc(filePath string, docID int, err error) *FileProcessingError {
+func malformedYamlDoc(filePath string, lineNum, docID int, err error) *FileProcessingError {
 	msg := fmt.Sprintf("YAML document is malformed: %v", err)
-	return newFileProcessingError(msg, filePath, 0, docID, false, true)
+	return newFileProcessingError(msg, filePath, lineNum, docID, false, true)
 }
 
 func failedReadingFile(filePath string, err error) *FileProcessingError {
