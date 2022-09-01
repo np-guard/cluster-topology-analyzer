@@ -102,41 +102,6 @@ func TestNetpolsJsonOutput(t *testing.T) {
 	}
 }
 
-func TestNetpolsInterface(t *testing.T) {
-	testsDir := getTestsDir()
-	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
-	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
-	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_netpol_interface_output.json")
-
-	netpols, fileScanningErrors := PoliciesFromFolderPath(dirPath, false)
-	if len(fileScanningErrors) > 0 {
-		t.Fatalf("expected no file-scanning errors, but got %v", fileScanningErrors)
-	}
-	if len(netpols) == 0 {
-		t.Fatalf("expected policies to be non-empty, but got empty")
-	}
-
-	buf, _ := json.MarshalIndent(netpols, "", "    ")
-	fp, err := os.Create(outFile)
-	if err != nil {
-		t.Fatalf("failed opening output file: %v", err)
-	}
-	_, err = fp.Write(buf)
-	if err != nil {
-		t.Fatalf("failed writing to output file: %v", err)
-	}
-	fp.Close()
-	res, err := compareFiles(expectedOutput, outFile)
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
-	if !res {
-		t.Fatalf("expected res to be true, but got false")
-	}
-
-	os.Remove(outFile)
-}
-
 func TestPoliciesSynthesizerAPI(t *testing.T) {
 	testsDir := getTestsDir()
 	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")

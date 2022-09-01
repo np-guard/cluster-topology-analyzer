@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"os"
 
-	networking "k8s.io/api/networking/v1"
-
 	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
@@ -53,21 +51,6 @@ func Start(args common.InArgs) error {
 		fmt.Printf("connection topology reports: \n ---\n%s\n---", string(buf))
 	}
 	return nil
-}
-
-func PoliciesFromFolderPath(fullTargetPath string, stopOn1stErr bool) ([]*networking.NetworkPolicy, []FileProcessingError) {
-	emptyStr := ""
-	args := common.InArgs{}
-	args.DirPath = &fullTargetPath
-	args.CommitID = &emptyStr
-	args.GitBranch = &emptyStr
-	args.GitURL = &emptyStr
-
-	connections, fileProcessingErrors := extractConnections(args, stopOn1stErr)
-	if returnOn1StError(stopOn1stErr, fileProcessingErrors) {
-		return nil, fileProcessingErrors
-	}
-	return synthNetpols(connections), fileProcessingErrors
 }
 
 func extractConnections(args common.InArgs, stopOn1stErr bool) ([]common.Connections, []FileProcessingError) {

@@ -2,6 +2,8 @@ package controller
 
 import (
 	networking "k8s.io/api/networking/v1"
+
+	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
 type PoliciesSynthesizer struct {
@@ -44,12 +46,26 @@ func (ps *PoliciesSynthesizer) Errors() []FileProcessingError {
 
 func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networking.NetworkPolicy, error) {
 	activeLogger = ps.logger
-	policies, errs := PoliciesFromFolderPath(dirPath, ps.stopOnError)
+
+	emptyStr := ""
+	args := common.InArgs{}
+	args.DirPath = &dirPath
+	args.CommitID = &emptyStr
+	args.GitBranch = &emptyStr
+	args.GitURL = &emptyStr
+
+	connections, errs := extractConnections(args, ps.stopOnError)
+	policies := []*networking.NetworkPolicy{}
+	if !returnOn1StError(ps.stopOnError, errs) {
+		policies = synthNetpols(connections)
+	}
+
 	ps.errors = errs
 	for _, err := range errs {
 		if err.IsFatal() {
 			return nil, err.Error()
 		}
 	}
+
 	return policies, nil
 }
