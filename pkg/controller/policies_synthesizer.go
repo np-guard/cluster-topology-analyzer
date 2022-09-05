@@ -61,8 +61,10 @@ func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networ
 	}
 
 	ps.errors = errs
-	if len(errs) > 0 && errs[len(errs)-1].IsFatal() {
-		return nil, errs[len(errs)-1].Error()
+	for idx := range errs {
+		if errs[idx].IsFatal() {
+			return nil, errs[idx].Error()
+		}
 	}
 
 	return policies, nil
