@@ -36,14 +36,14 @@ func Start(args common.InArgs) error {
 	if *args.OutputFile != "" {
 		fp, err := os.Create(*args.OutputFile)
 		if err != nil {
-			msg := fmt.Sprintf("error creating file: %s: %v", *args.OutputFile, err)
-			activeLogger.Errorf(msg)
+			msg := fmt.Sprintf("error creating file: %s", *args.OutputFile)
+			activeLogger.Errorf(err, msg)
 			return errors.New(msg)
 		}
 		_, err = fp.Write(buf)
 		if err != nil {
-			msg := fmt.Sprintf("error writing to file: %s: %v", *args.OutputFile, err)
-			activeLogger.Errorf(msg)
+			msg := fmt.Sprintf("error writing to file: %s", *args.OutputFile)
+			activeLogger.Errorf(err, msg)
 			return errors.New(msg)
 		}
 		fp.Close()

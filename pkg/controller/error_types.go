@@ -15,8 +15,12 @@ type FileProcessingError struct {
 }
 
 // constructs a FileProcessingError object and prints an error/warning to the log
-func newFileProcessingError(msg, filePath string, lineNum, docID int, fatal, severe bool) *FileProcessingError {
-	fpe := FileProcessingError{errors.New(msg), filePath, lineNum, docID, fatal, severe}
+func newFileProcessingError(origErr error, msg, filePath string, lineNum, docID int, fatal, severe bool) *FileProcessingError {
+	err := errors.New(msg)
+	if origErr != nil {
+		err = fmt.Errorf("%s: %w", msg, err)
+	}
+	fpe := FileProcessingError{err, filePath, lineNum, docID, fatal, severe}
 
 	logMsg := msg
 	location := fpe.Location()
@@ -24,7 +28,7 @@ func newFileProcessingError(msg, filePath string, lineNum, docID int, fatal, sev
 		logMsg = fmt.Sprintf("%s %s", location, msg)
 	}
 	if fpe.IsSevere() || fpe.IsFatal() {
-		activeLogger.Errorf(logMsg)
+		activeLogger.Errorf(origErr, logMsg)
 	} else {
 		activeLogger.Warnf(logMsg)
 	}
@@ -77,49 +81,44 @@ func (e *FileProcessingError) IsSevere() bool {
 // --------  Constructors for specific error types ----------------
 
 func noYamlsFound() *FileProcessingError {
-	return newFileProcessingError("no yaml files found", "", 0, -1, false, false)
+	return newFileProcessingError(nil, "no yaml files found", "", 0, -1, false, false)
 }
 
 func noK8sResourcesFound() *FileProcessingError {
-	return newFileProcessingError("no relevant Kubernetes resources found", "", 0, -1, false, false)
+	return newFileProcessingError(nil, "no relevant Kubernetes resources found", "", 0, -1, false, false)
 }
 
 func configMapNotFound(cfgMapName, resourceName string) *FileProcessingError {
 	msg := fmt.Sprintf("configmap %s not found (referenced by %s)", cfgMapName, resourceName)
-	return newFileProcessingError(msg, "", 0, -1, false, false)
+	return newFileProcessingError(nil, msg, "", 0, -1, false, false)
 }
 
 func configMapKeyNotFound(cfgMapName, cfgMapKey, resourceName string) *FileProcessingError {
 	msg := fmt.Sprintf("configmap %s does not have key %s (referenced by %s)", cfgMapName, cfgMapKey, resourceName)
-	return newFileProcessingError(msg, "", 0, -1, false, false)
+	return newFileProcessingError(nil, msg, "", 0, -1, false, false)
 }
 
 func failedScanningResource(resourceType, filePath string, err error) *FileProcessingError {
-	msg := fmt.Sprintf("error scanning %s resource: %v", resourceType, err)
-	return newFileProcessingError(msg, filePath, 0, -1, false, false)
+	msg := fmt.Sprintf("error scanning %s resource", resourceType)
+	return newFileProcessingError(err, msg, filePath, 0, -1, false, false)
 }
 
 func notK8sResource(filePath string, docID int, err error) *FileProcessingError {
-	msg := fmt.Sprintf("Yaml document is not a K8s resource: %v", err)
-	return newFileProcessingError(msg, filePath, 0, docID, false, false)
+	return newFileProcessingError(err, "Yaml document is not a K8s resource", filePath, 0, docID, false, false)
 }
 
 func malformedYamlDoc(filePath string, lineNum, docID int, err error) *FileProcessingError {
-	msg := fmt.Sprintf("YAML document is malformed: %v", err)
-	return newFileProcessingError(msg, filePath, lineNum, docID, false, true)
+	return newFileProcessingError(err, "YAML document is malformed", filePath, lineNum, docID, false, true)
 }
 
 func failedReadingFile(filePath string, err error) *FileProcessingError {
-	msg := fmt.Sprintf("error reading file: %v", err)
-	return newFileProcessingError(msg, filePath, 0, -1, false, true)
+	return newFileProcessingError(err, "error reading file", filePath, 0, -1, false, true)
 }
 
 func failedAccessingDir(dirPath string, err error, isSubDir bool) *FileProcessingError {
-	msg := fmt.Sprintf("error accessing directory: %v", err)
-	return newFileProcessingError(msg, dirPath, 0, -1, !isSubDir, true)
+	return newFileProcessingError(err, "error accessing directory", dirPath, 0, -1, !isSubDir, true)
 }
 
 func failedWalkDir(dirPath string, err error) *FileProcessingError {
-	msg := fmt.Sprintf("error scanning directory: %v", err)
-	return newFileProcessingError(msg, dirPath, 0, -1, true, true)
+	return newFileProcessingError(err, "error scanning directory", dirPath, 0, -1, true, true)
 }
