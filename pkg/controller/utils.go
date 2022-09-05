@@ -150,20 +150,8 @@ func parseK8sYaml(mfp string, stopOn1stErr bool) ([]deployObject, []FileProcessi
 }
 
 func stopProcessing(stopOn1stErr bool, errs []FileProcessingError) bool {
-	if len(errs) == 0 {
-		return false
-	}
-
-	if errs[len(errs)-1].IsFatal() {
-		return true
-	}
-
-	if !stopOn1stErr {
-		return false
-	}
-
 	for idx := range errs {
-		if errs[idx].IsSevere() {
+		if errs[idx].IsFatal() || stopOn1stErr && errs[idx].IsSevere() {
 			return true
 		}
 	}
