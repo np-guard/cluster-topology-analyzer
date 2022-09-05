@@ -154,6 +154,19 @@ func stopProcessing(stopOn1stErr bool, errs []FileProcessingError) bool {
 		return false
 	}
 
-	lastErr := &errs[len(errs)-1]
-	return stopOn1stErr && lastErr.IsSevere() || lastErr.IsFatal()
+	if errs[len(errs)-1].IsFatal() {
+		return true
+	}
+
+	if !stopOn1stErr {
+		return false
+	}
+
+	for idx := range errs {
+		if errs[idx].IsSevere() {
+			return true
+		}
+	}
+
+	return false
 }
