@@ -50,7 +50,7 @@ func searchDeploymentManifests(repoDir string, stopOn1stErr bool) ([]string, []F
 	err := filepath.WalkDir(repoDir, func(path string, f os.DirEntry, err error) error {
 		if err != nil {
 			errors = append(errors, *failedAccessingDir(path, err, path != repoDir))
-			if returnOn1StError(stopOn1stErr, errors) {
+			if stopProcessing(stopOn1stErr, errors) {
 				return err
 			}
 			return filepath.SkipDir
@@ -61,14 +61,14 @@ func searchDeploymentManifests(repoDir string, stopOn1stErr bool) ([]string, []F
 		return nil
 	})
 	if err != nil {
-		errors = append(errors, *failedWalkDir(repoDir, err))
+		activeLogger.Errorf(err, "Error walking directory")
 	}
 	return yamls, errors
 }
 
 func getK8sDeploymentResources(repoDir string, stopOn1stErr bool) ([]parsedK8sObjects, []FileProcessingError) {
 	manifestFiles, fileScanErrors := searchDeploymentManifests(repoDir, stopOn1stErr)
-	if returnOn1StError(stopOn1stErr, fileScanErrors) {
+	if stopProcessing(stopOn1stErr, fileScanErrors) {
 		return nil, fileScanErrors
 	}
 	if len(manifestFiles) == 0 {
@@ -80,7 +80,7 @@ func getK8sDeploymentResources(repoDir string, stopOn1stErr bool) ([]parsedK8sOb
 	for _, mfp := range manifestFiles {
 		deployObjects, err := parseK8sYaml(mfp, stopOn1stErr)
 		fileScanErrors = append(fileScanErrors, err...)
-		if returnOn1StError(stopOn1stErr, fileScanErrors) {
+		if stopProcessing(stopOn1stErr, fileScanErrors) {
 			return nil, fileScanErrors
 		}
 		if len(deployObjects) > 0 {
@@ -126,7 +126,7 @@ func splitByYamlDocuments(mfp string) ([]string, []FileProcessingError) {
 func parseK8sYaml(mfp string, stopOn1stErr bool) ([]deployObject, []FileProcessingError) {
 	dObjs := []deployObject{}
 	sepYamlFiles, fileProcessingErrors := splitByYamlDocuments(mfp)
-	if returnOn1StError(stopOn1stErr, fileProcessingErrors) {
+	if stopProcessing(stopOn1stErr, fileProcessingErrors) {
 		return nil, fileProcessingErrors
 	}
 
@@ -149,6 +149,11 @@ func parseK8sYaml(mfp string, stopOn1stErr bool) ([]deployObject, []FileProcessi
 	return dObjs, fileProcessingErrors
 }
 
-func returnOn1StError(stopOn1stErr bool, errs []FileProcessingError) bool {
-	return stopOn1stErr && len(errs) > 0 && (errs[len(errs)-1].IsSevere() || errs[len(errs)-1].IsFatal())
+func stopProcessing(stopOn1stErr bool, errs []FileProcessingError) bool {
+	if len(errs) == 0 {
+		return false
+	}
+
+	lastErr := &errs[len(errs)-1]
+	return stopOn1stErr && lastErr.IsSevere() || lastErr.IsFatal()
 }

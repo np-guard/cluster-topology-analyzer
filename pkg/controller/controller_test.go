@@ -153,8 +153,8 @@ func TestPoliciesSynthesizerAPIFatalError(t *testing.T) {
 		t.Fatal("expected a fatal error, but got none")
 	}
 	fileScanningErrors := synthesizer.Errors()
-	if len(fileScanningErrors) != 3 {
-		t.Fatalf("expected 3 file-scanning error, but got %d", len(fileScanningErrors))
+	if len(fileScanningErrors) != 1 {
+		t.Fatalf("expected 1 file-scanning error, but got %d", len(fileScanningErrors))
 	}
 	if len(netpols) != 0 {
 		t.Fatalf("expected no policies, but got %d policies", len(netpols))

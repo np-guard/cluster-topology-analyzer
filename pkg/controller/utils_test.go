@@ -64,8 +64,8 @@ func TestGetK8sDeploymentResourcesNoYAMLs(t *testing.T) {
 func TestGetK8sDeploymentResourcesBadDir(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "subdir3") // doesn't exist
 	objs, errs := getK8sDeploymentResources(dirPath, false)
-	if len(errs) != 2 {
-		t.Fatalf("expected 2 errors but got %d", len(errs))
+	if len(errs) != 1 {
+		t.Fatalf("expected 1 errors but got %d", len(errs))
 	}
 	if len(objs) != 0 {
 		t.Fatalf("expected no parsed files but got %d", len(objs))
@@ -75,8 +75,8 @@ func TestGetK8sDeploymentResourcesBadDir(t *testing.T) {
 func TestGetK8sDeploymentResourcesBadDirFailFast(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "subdir3") // doesn't exist
 	objs, errs := getK8sDeploymentResources(dirPath, true)
-	if len(errs) != 2 {
-		t.Fatalf("expected 2 errors but got %d", len(errs))
+	if len(errs) != 1 {
+		t.Fatalf("expected 1 error but got %d", len(errs))
 	}
 	if len(objs) != 0 {
 		t.Fatalf("expected no parsed files but got %d", len(objs))

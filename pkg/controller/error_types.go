@@ -118,7 +118,3 @@ func failedReadingFile(filePath string, err error) *FileProcessingError {
 func failedAccessingDir(dirPath string, err error, isSubDir bool) *FileProcessingError {
 	return newFileProcessingError(err, "error accessing directory", dirPath, 0, -1, !isSubDir, true)
 }
-
-func failedWalkDir(dirPath string, err error) *FileProcessingError {
-	return newFileProcessingError(err, "error scanning directory", dirPath, 0, -1, true, true)
-}

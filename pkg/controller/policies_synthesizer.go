@@ -56,15 +56,13 @@ func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networ
 
 	connections, errs := extractConnections(args, ps.stopOnError)
 	policies := []*networking.NetworkPolicy{}
-	if !returnOn1StError(ps.stopOnError, errs) {
+	if !stopProcessing(ps.stopOnError, errs) {
 		policies = synthNetpols(connections)
 	}
 
 	ps.errors = errs
-	for _, err := range errs {
-		if err.IsFatal() {
-			return nil, err.Error()
-		}
+	if len(errs) > 0 && errs[len(errs)-1].IsFatal() {
+		return nil, errs[len(errs)-1].Error()
 	}
 
 	return policies, nil

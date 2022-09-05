@@ -56,7 +56,7 @@ func Start(args common.InArgs) error {
 func extractConnections(args common.InArgs, stopOn1stErr bool) ([]common.Connections, []FileProcessingError) {
 	// 1. Get all relevant resources from the repo and parse them
 	dObjs, fileErrors := getK8sDeploymentResources(*args.DirPath, stopOn1stErr)
-	if returnOn1StError(stopOn1stErr, fileErrors) {
+	if stopProcessing(stopOn1stErr, fileErrors) {
 		return nil, fileErrors
 	}
 	if len(dObjs) == 0 {
@@ -66,7 +66,7 @@ func extractConnections(args common.InArgs, stopOn1stErr bool) ([]common.Connect
 
 	resources, links, parseErrors := parseResources(dObjs, args)
 	fileErrors = append(fileErrors, parseErrors...)
-	if returnOn1StError(stopOn1stErr, fileErrors) {
+	if stopProcessing(stopOn1stErr, fileErrors) {
 		return nil, fileErrors
 	}
 
