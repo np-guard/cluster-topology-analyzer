@@ -66,6 +66,9 @@ func extractConnections(args common.InArgs, stopOn1stErr bool) ([]common.Connect
 
 	resources, links, parseErrors := parseResources(dObjs, args)
 	fileErrors = append(fileErrors, parseErrors...)
+	if returnOn1StError(stopOn1stErr, fileErrors) {
+		return nil, fileErrors
+	}
 
 	// 2. Discover all connections between resources
 	return discoverConnections(resources, links), fileErrors
