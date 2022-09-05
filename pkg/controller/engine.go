@@ -60,7 +60,7 @@ func extractConnections(args common.InArgs, stopOn1stErr bool) ([]common.Connect
 		return nil, fileErrors
 	}
 	if len(dObjs) == 0 {
-		fileErrors = append(fileErrors, *noK8sResourcesFound())
+		fileErrors = appendAndLogNewError(fileErrors, noK8sResourcesFound())
 		return []common.Connections{}, fileErrors
 	}
 
@@ -104,7 +104,7 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 					}
 				}
 			} else {
-				parseErrors = append(parseErrors, *configMapNotFound(configmapFullName, res.Resource.Name))
+				parseErrors = appendAndLogNewError(parseErrors, configMapNotFound(configmapFullName, res.Resource.Name))
 			}
 		}
 		for _, cfgMapKeyRef := range res.Resource.ConfigMapKeyRefs {
@@ -115,10 +115,10 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 						res.Resource.Envs = append(res.Resource.Envs, val)
 					}
 				} else {
-					parseErrors = append(parseErrors, *configMapKeyNotFound(cfgMapKeyRef.Name, cfgMapKeyRef.Key, res.Resource.Name))
+					parseErrors = appendAndLogNewError(parseErrors, configMapKeyNotFound(cfgMapKeyRef.Name, cfgMapKeyRef.Key, res.Resource.Name))
 				}
 			} else {
-				parseErrors = append(parseErrors, *configMapNotFound(configmapFullName, res.Resource.Name))
+				parseErrors = appendAndLogNewError(parseErrors, configMapNotFound(configmapFullName, res.Resource.Name))
 			}
 		}
 	}
@@ -142,7 +142,7 @@ func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, [
 		case service:
 			res, err := analyzer.ScanK8sServiceObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
-				parseErrors = append(parseErrors, *failedScanningResource(p.GroupKind, obj.ManifestFilepath, err))
+				parseErrors = appendAndLogNewError(parseErrors, failedScanningResource(p.GroupKind, obj.ManifestFilepath, err))
 				continue
 			}
 			res.Resource.FilePath = obj.ManifestFilepath
@@ -150,14 +150,14 @@ func parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, [
 		case configmap:
 			res, err := analyzer.ScanK8sConfigmapObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
-				parseErrors = append(parseErrors, *failedScanningResource(p.GroupKind, obj.ManifestFilepath, err))
+				parseErrors = appendAndLogNewError(parseErrors, failedScanningResource(p.GroupKind, obj.ManifestFilepath, err))
 				continue
 			}
 			configMaps = append(configMaps, res)
 		default:
 			res, err := analyzer.ScanK8sWorkloadObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
-				parseErrors = append(parseErrors, *failedScanningResource(p.GroupKind, obj.ManifestFilepath, err))
+				parseErrors = appendAndLogNewError(parseErrors, failedScanningResource(p.GroupKind, obj.ManifestFilepath, err))
 				continue
 			}
 			res.Resource.FilePath = obj.ManifestFilepath

@@ -18,20 +18,9 @@ type FileProcessingError struct {
 func newFileProcessingError(origErr error, msg, filePath string, lineNum, docID int, fatal, severe bool) *FileProcessingError {
 	err := errors.New(msg)
 	if origErr != nil {
-		err = fmt.Errorf("%s: %w", msg, err)
+		err = fmt.Errorf("%s: %w", msg, origErr)
 	}
 	fpe := FileProcessingError{err, filePath, lineNum, docID, fatal, severe}
-
-	logMsg := msg
-	location := fpe.Location()
-	if location != "" {
-		logMsg = fmt.Sprintf("%s %s", location, msg)
-	}
-	if fpe.IsSevere() || fpe.IsFatal() {
-		activeLogger.Errorf(origErr, logMsg)
-	} else {
-		activeLogger.Warnf(logMsg)
-	}
 
 	return &fpe
 }

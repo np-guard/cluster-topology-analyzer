@@ -49,7 +49,7 @@ func searchDeploymentManifests(repoDir string, stopOn1stErr bool) ([]string, []F
 	errors := []FileProcessingError{}
 	err := filepath.WalkDir(repoDir, func(path string, f os.DirEntry, err error) error {
 		if err != nil {
-			errors = append(errors, *failedAccessingDir(path, err, path != repoDir))
+			errors = appendAndLogNewError(errors, failedAccessingDir(path, err, path != repoDir))
 			if stopProcessing(stopOn1stErr, errors) {
 				return err
 			}
@@ -72,7 +72,7 @@ func getK8sDeploymentResources(repoDir string, stopOn1stErr bool) ([]parsedK8sOb
 		return nil, fileScanErrors
 	}
 	if len(manifestFiles) == 0 {
-		fileScanErrors = append(fileScanErrors, *noYamlsFound())
+		fileScanErrors = appendAndLogNewError(fileScanErrors, noYamlsFound())
 		return nil, fileScanErrors
 	}
 
@@ -97,7 +97,7 @@ func getK8sDeploymentResources(repoDir string, stopOn1stErr bool) ([]parsedK8sOb
 func splitByYamlDocuments(mfp string) ([]string, []FileProcessingError) {
 	fileBuf, err := os.ReadFile(mfp)
 	if err != nil {
-		return []string{}, []FileProcessingError{*failedReadingFile(mfp, err)}
+		return []string{}, appendAndLogNewError(nil, failedReadingFile(mfp, err))
 	}
 
 	decoder := yaml.NewDecoder(bytes.NewBuffer(fileBuf))
@@ -107,14 +107,14 @@ func splitByYamlDocuments(mfp string) ([]string, []FileProcessingError) {
 		var doc yaml.Node
 		if err := decoder.Decode(&doc); err != nil {
 			if err != io.EOF {
-				return documents, []FileProcessingError{*malformedYamlDoc(mfp, 0, documentID, err)}
+				return documents, appendAndLogNewError(nil, malformedYamlDoc(mfp, 0, documentID, err))
 			}
 			break
 		}
 		if len(doc.Content) > 0 && doc.Content[0].Kind == yaml.MappingNode {
 			out, err := yaml.Marshal(doc.Content[0])
 			if err != nil {
-				return documents, []FileProcessingError{*malformedYamlDoc(mfp, doc.Line, documentID, err)}
+				return documents, appendAndLogNewError(nil, malformedYamlDoc(mfp, doc.Line, documentID, err))
 			}
 			documents = append(documents, string(out))
 		}
@@ -134,7 +134,7 @@ func parseK8sYaml(mfp string, stopOn1stErr bool) ([]deployObject, []FileProcessi
 		decode := scheme.Codecs.UniversalDeserializer().Decode
 		_, groupVersionKind, err := decode([]byte(doc), nil, nil)
 		if err != nil {
-			fileProcessingErrors = append(fileProcessingErrors, *notK8sResource(mfp, docID, err))
+			fileProcessingErrors = appendAndLogNewError(fileProcessingErrors, notK8sResource(mfp, docID, err))
 			continue
 		}
 		if !acceptedK8sTypes.MatchString(groupVersionKind.Kind) {
@@ -169,4 +169,10 @@ func stopProcessing(stopOn1stErr bool, errs []FileProcessingError) bool {
 	}
 
 	return false
+}
+
+func appendAndLogNewError(errs []FileProcessingError, newErr *FileProcessingError) []FileProcessingError {
+	logError(newErr)
+	errs = append(errs, *newErr)
+	return errs
 }
