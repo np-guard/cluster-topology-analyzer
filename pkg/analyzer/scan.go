@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strconv"
 
-	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -14,46 +13,44 @@ import (
 )
 
 // Create a common.Resource object from a k8s Workload object
-func ScanK8sDeployObject(kind string, objDataBuf []byte) (common.Resource, error) {
+func ScanK8sWorkloadObject(kind string, objDataBuf []byte) (common.Resource, error) {
 	var podSpecV1 v1.PodTemplateSpec
 	var resourceCtx common.Resource
 	var metaObj metaV1.Object
 	resourceCtx.Resource.Kind = kind
-	switch kind {
-	case "Pod":
-		zap.S().Info("evaluating pod")
+	switch kind { // TODO: handle Pod
 	case "ReplicaSet":
-		obj := ParseReplicaSet(bytes.NewReader(objDataBuf))
+		obj := parseReplicaSet(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.GetLabels()
 		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "ReplicationController":
-		obj := ParseReplicationController(bytes.NewReader(objDataBuf))
+		obj := parseReplicationController(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector)
 		podSpecV1 = *obj.Spec.Template
 		metaObj = obj
 	case "Deployment":
-		obj := ParseDeployment(bytes.NewReader(objDataBuf))
+		obj := parseDeployment(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "DaemonSet":
-		obj := ParseDaemonSet(bytes.NewReader(objDataBuf))
+		obj := parseDaemonSet(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "StatefulSet":
-		obj := ParseStatefulSet(bytes.NewReader(objDataBuf))
+		obj := parseStatefulSet(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "Job":
-		obj := ParseJob(bytes.NewReader(objDataBuf))
+		obj := parseJob(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
@@ -75,7 +72,10 @@ func matchLabelSelectorToStrLabels(labels map[string]string) []string {
 }
 
 func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMap, error) {
-	obj := ParseConfigMap(bytes.NewReader(objDataBuf))
+	obj := parseConfigMap(bytes.NewReader(objDataBuf))
+	if obj == nil {
+		return common.CfgMap{}, fmt.Errorf("unable to parse configmap")
+	}
 
 	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
 	data := map[string]string{}
@@ -95,7 +95,10 @@ func ScanK8sServiceObject(kind string, objDataBuf []byte) (common.Service, error
 	}
 
 	var serviceCtx common.Service
-	svcObj := ParseService(bytes.NewReader(objDataBuf))
+	svcObj := parseService(bytes.NewReader(objDataBuf))
+	if svcObj == nil {
+		return common.Service{}, fmt.Errorf("failed to parse Service resource")
+	}
 	serviceCtx.Resource.Name = svcObj.GetName()
 	serviceCtx.Resource.Namespace = svcObj.Namespace
 	serviceCtx.Resource.Kind = kind
@@ -129,8 +132,7 @@ func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourc
 		}
 		for _, e := range container.Env {
 			if e.Value != "" {
-				isPotentialAddress := IsNetworkAddressValue(e.Value)
-				if isPotentialAddress {
+				if IsNetworkAddressValue(e.Value) {
 					resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, e.Value)
 				}
 			} else if e.ValueFrom != nil && e.ValueFrom.ConfigMapKeyRef != nil {

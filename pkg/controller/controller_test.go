@@ -16,10 +16,10 @@ import (
 // TestOutput calls controller.Start() with an example repo dir tests/onlineboutique/ ,
 // checking for the json output to match expected output at tests/expected_output.json
 func TestConnectionsOutput(t *testing.T) {
-	currentDir, _ := os.Getwd()
-	dirPath := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "kubernetes-manifests.yaml")
-	outFile := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "output.json")
-	expectedOutput := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "expected_output.json")
+	testsDir := getTestsDir()
+	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
+	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
+	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_output.json")
 	args := getTestArgs(dirPath, outFile, false)
 
 	err := Start(args)
@@ -40,10 +40,10 @@ func TestConnectionsOutput(t *testing.T) {
 }
 
 func TestDirScan(t *testing.T) {
-	currentDir, _ := os.Getwd()
-	dirPath := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique")
-	outFile := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "output.json")
-	expectedOutput := filepath.Join(currentDir, "..", "..", "tests", "onlineboutique", "expected_dirscan_output.json")
+	testsDir := getTestsDir()
+	dirPath := filepath.Join(testsDir, "onlineboutique")
+	outFile := filepath.Join(dirPath, "output.json")
+	expectedOutput := filepath.Join(dirPath, "expected_dirscan_output.json")
 	args := getTestArgs(dirPath, outFile, false)
 
 	err := Start(args)
@@ -70,8 +70,7 @@ type TestDetails struct {
 }
 
 func TestNetpolsJsonOutput(t *testing.T) {
-	currentDir, _ := os.Getwd()
-	testsDir := filepath.Join(currentDir, "..", "..", "tests")
+	testsDir := getTestsDir()
 	tests := map[string]TestDetails{} // map from test name to test details
 	tests["onlineboutique"] = TestDetails{dirPath: filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml"),
 		outFile:        filepath.Join(testsDir, "onlineboutique", "output.json"),
@@ -103,16 +102,21 @@ func TestNetpolsJsonOutput(t *testing.T) {
 	}
 }
 
-func TestNetpolsInterface(t *testing.T) {
-	currentDir, _ := os.Getwd()
-	testsDir := filepath.Join(currentDir, "..", "..", "tests")
+func TestPoliciesSynthesizerAPI(t *testing.T) {
+	testsDir := getTestsDir()
 	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
 	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
 	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_netpol_interface_output.json")
 
-	netpols, err := PoliciesFromFolderPath(dirPath)
+	logger := NewDefaultLogger()
+	synthesizer := NewPoliciesSynthesizer(WithLogger(logger))
+	netpols, err := synthesizer.PoliciesFromFolderPath(dirPath)
 	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
+		t.Fatalf("expected no fatal errors, but got %v", err)
+	}
+	fileScanningErrors := synthesizer.Errors()
+	if len(fileScanningErrors) > 0 {
+		t.Fatalf("expected no file-scanning errors, but got %v", fileScanningErrors)
 	}
 	if len(netpols) == 0 {
 		t.Fatalf("expected policies to be non-empty, but got empty")
@@ -139,6 +143,80 @@ func TestNetpolsInterface(t *testing.T) {
 	os.Remove(outFile)
 }
 
+func TestPoliciesSynthesizerAPIFatalError(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "badPath")
+
+	logger := NewDefaultLogger()
+	synthesizer := NewPoliciesSynthesizer(WithLogger(logger))
+	netpols, err := synthesizer.PoliciesFromFolderPath(dirPath)
+	if err == nil {
+		t.Fatal("expected a fatal error, but got none")
+	}
+	fileScanningErrors := synthesizer.Errors()
+	if len(fileScanningErrors) != 1 {
+		t.Fatalf("expected 1 file-scanning error, but got %d", len(fileScanningErrors))
+	}
+	if len(netpols) != 0 {
+		t.Fatalf("expected no policies, but got %d policies", len(netpols))
+	}
+}
+
+func TestPoliciesSynthesizerAPIFailFast(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "bad_yamls")
+
+	synthesizer := NewPoliciesSynthesizer(WithStopOnError())
+	netpols, err := synthesizer.PoliciesFromFolderPath(dirPath)
+	if err != nil {
+		t.Fatalf("expected no fatal errors, but got %v", err)
+	}
+	fileScanningErrors := synthesizer.Errors()
+	if len(fileScanningErrors) != 1 {
+		t.Fatalf("expected 1 file-scanning error, but got %d", len(fileScanningErrors))
+	}
+	if len(netpols) != 0 {
+		t.Fatalf("expected no policies, but got %d policies", len(netpols))
+	}
+}
+
+func TestExtractConnectionsNoK8sResources(t *testing.T) {
+	testsDir := getTestsDir()
+	dirPath := filepath.Join(testsDir, "bad_yamls", "irrelevant_k8s_resources.yaml")
+	args := getTestArgs(dirPath, "", false)
+	conns, errs := extractConnections(args, false)
+	if len(errs) != 1 {
+		t.Fatalf("expected one error but got %d", len(errs))
+	}
+	if len(conns) > 0 {
+		t.Fatalf("expected no conns but got %d", len(conns))
+	}
+}
+
+func TestExtractConnectionsNoK8sResourcesFailFast(t *testing.T) {
+	testsDir := getTestsDir()
+	dirPath := filepath.Join(testsDir, "bad_yamls")
+	args := getTestArgs(dirPath, "", true)
+	conns, errs := extractConnections(args, true)
+	if len(errs) != 1 {
+		t.Fatalf("expected one error but got %d", len(errs))
+	}
+	if len(conns) > 0 {
+		t.Fatalf("expected no conns but got %d", len(conns))
+	}
+}
+
+func TestExtractConnectionsBadConfigMapRefs(t *testing.T) {
+	testsDir := getTestsDir()
+	dirPath := filepath.Join(testsDir, "bad_yamls", "bad_configmap_refs.yaml")
+	args := getTestArgs(dirPath, "", false)
+	conns, errs := extractConnections(args, false)
+	if len(errs) != 3 {
+		t.Fatalf("expected 3 errors but got %d", len(errs))
+	}
+	if len(conns) > 0 {
+		t.Fatalf("expected no conns but got %d", len(conns))
+	}
+}
+
 func readLines(path string) ([]string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -152,6 +230,11 @@ func readLines(path string) ([]string, error) {
 		lines = append(lines, scanner.Text())
 	}
 	return lines, scanner.Err()
+}
+
+func getTestsDir() string {
+	currentDir, _ := os.Getwd()
+	return filepath.Join(currentDir, "..", "..", "tests")
 }
 
 func getTestArgs(dirPath, outFile string, netpols bool) common.InArgs {

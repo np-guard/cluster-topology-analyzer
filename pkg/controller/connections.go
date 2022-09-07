@@ -4,16 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"go.uber.org/zap"
-
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
-var debug = false
-
 // This function is at the core of the topology analysis
 // For each resource, it finds other resources that may use it and compiles a list of connections holding these dependencies
-func discoverConnections(resources []common.Resource, links []common.Service) ([]common.Connections, error) {
+func discoverConnections(resources []common.Resource, links []common.Service) []common.Connections {
 	connections := []common.Connections{}
 	for destResIdx := range resources {
 		destRes := &resources[destResIdx]
@@ -23,7 +19,7 @@ func discoverConnections(resources []common.Resource, links []common.Service) ([
 			srcRes := findSource(resources, svc)
 			if len(srcRes) > 0 {
 				for _, r := range srcRes {
-					zap.S().Debugf("source: %s target: %s link: %s", svc.Resource.Name, r.Resource.Name, svc.Resource.Name)
+					activeLogger.Debugf("source: %s target: %s link: %s", svc.Resource.Name, r.Resource.Name, svc.Resource.Name)
 					connections = append(connections, common.Connections{Source: r, Target: destRes, Link: svc})
 				}
 			} else {
@@ -31,7 +27,7 @@ func discoverConnections(resources []common.Resource, links []common.Service) ([
 			}
 		}
 	}
-	return connections, nil
+	return connections
 }
 
 // areSelectorsContained returns true if selectors2 is contained in selectors1
@@ -65,9 +61,7 @@ func findServices(resource *common.Resource, links []common.Service) []common.Se
 		}
 	}
 
-	if debug {
-		zap.S().Debugf("matched service: %v", matchedSvc)
-	}
+	activeLogger.Debugf("services matched to %v: %v", resource.Resource.Name, matchedSvc)
 	return matchedSvc
 }
 
