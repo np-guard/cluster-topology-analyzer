@@ -5,7 +5,7 @@
 Make sure  you have golang 1.13+ on your platform
 
 ```
-$ git clone git@github.com:shift-left-netconfig/cluster-topology-analyzer.git
+$ git clone git@github.com:np-guard/cluster-topology-analyzer.git
 $ cd cluster-topology-analyzer
 $ go mod download
 $ make
