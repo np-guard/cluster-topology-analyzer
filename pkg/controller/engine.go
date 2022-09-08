@@ -16,7 +16,7 @@ import (
 // (or NetworkPolicies to allow only this connectivity)
 func Start(args common.InArgs) error {
 	// 1. Discover all connections between resources
-	connections, fileScanErrors := extractConnections(args, false)
+	connections, fileScanErrors := extractConnections(*args.DirPath, false)
 	if len(fileScanErrors) > 0 {
 		return fmt.Errorf("errors in processing input files: %v", fileScanErrors)
 	}
@@ -53,9 +53,9 @@ func Start(args common.InArgs) error {
 	return nil
 }
 
-func extractConnections(args common.InArgs, stopOn1stErr bool) ([]common.Connections, []FileProcessingError) {
+func extractConnections(dirPath string, stopOn1stErr bool) ([]common.Connections, []FileProcessingError) {
 	// 1. Get all relevant resources from the repo and parse them
-	dObjs, fileErrors := getK8sDeploymentResources(*args.DirPath, stopOn1stErr)
+	dObjs, fileErrors := getK8sDeploymentResources(dirPath, stopOn1stErr)
 	if stopProcessing(stopOn1stErr, fileErrors) {
 		return nil, fileErrors
 	}
@@ -64,7 +64,7 @@ func extractConnections(args common.InArgs, stopOn1stErr bool) ([]common.Connect
 		return []common.Connections{}, fileErrors
 	}
 
-	resources, links, parseErrors := parseResources(dObjs, args)
+	resources, links, parseErrors := parseResources(dObjs)
 	fileErrors = append(fileErrors, parseErrors...)
 	if stopProcessing(stopOn1stErr, fileErrors) {
 		return nil, fileErrors
@@ -74,7 +74,7 @@ func extractConnections(args common.InArgs, stopOn1stErr bool) ([]common.Connect
 	return discoverConnections(resources, links), fileErrors
 }
 
-func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resource, []common.Service, []FileProcessingError) {
+func parseResources(objs []parsedK8sObjects) ([]common.Resource, []common.Service, []FileProcessingError) {
 	resources := []common.Resource{}
 	links := []common.Service{}
 	configmaps := map[string]common.CfgMap{} // map from a configmap's full-name to its data
@@ -90,9 +90,6 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 	}
 	for idx := range resources {
 		res := &resources[idx]
-		res.CommitID = *args.CommitID
-		res.GitBranch = *args.GitBranch
-		res.GitURL = *args.GitURL
 
 		// handle config maps data to be associated into relevant deployments resource objects
 		for _, cfgMapRef := range res.Resource.ConfigMapRefs {
@@ -123,11 +120,6 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 		}
 	}
 
-	for idx := range links {
-		links[idx].CommitID = *args.CommitID
-		links[idx].GitBranch = *args.GitBranch
-		links[idx].GitURL = *args.GitURL
-	}
 	return resources, links, parseErrors
 }
 

@@ -1,9 +1,6 @@
 [
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "checkoutservice",
                 "selectors": [
@@ -39,9 +36,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "emailservice",
                 "selectors": [
@@ -65,9 +59,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "emailservice",
                 "selectors": [
@@ -86,9 +77,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "frontend",
                 "selectors": [
@@ -125,9 +113,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "checkoutservice",
                 "selectors": [
@@ -158,9 +143,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "checkoutservice",
                 "selectors": [
@@ -179,9 +161,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "frontend",
                 "selectors": [
@@ -218,9 +197,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "recommendationservice",
                 "selectors": [
@@ -246,9 +222,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "recommendationservice",
                 "selectors": [
@@ -267,9 +240,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "loadgenerator",
                 "selectors": [
@@ -296,9 +266,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "frontend",
                 "selectors": [
@@ -330,9 +297,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "frontend",
                 "selectors": [
@@ -351,9 +315,6 @@
     },
     {
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "frontend",
                 "selectors": [
@@ -385,9 +346,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "frontend-external",
                 "selectors": [
@@ -406,9 +364,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "checkoutservice",
                 "selectors": [
@@ -444,9 +399,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "paymentservice",
                 "selectors": [
@@ -470,9 +422,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "paymentservice",
                 "selectors": [
@@ -491,9 +440,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "checkoutservice",
                 "selectors": [
@@ -529,9 +475,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "productcatalogservice",
                 "selectors": [
@@ -555,9 +498,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "productcatalogservice",
                 "selectors": [
@@ -576,9 +516,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "recommendationservice",
                 "selectors": [
@@ -609,9 +546,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "productcatalogservice",
                 "selectors": [
@@ -635,9 +569,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "productcatalogservice",
                 "selectors": [
@@ -656,9 +587,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "frontend",
                 "selectors": [
@@ -695,9 +623,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "productcatalogservice",
                 "selectors": [
@@ -721,9 +646,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "productcatalogservice",
                 "selectors": [
@@ -742,9 +664,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "checkoutservice",
                 "selectors": [
@@ -780,9 +699,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "cartservice",
                 "selectors": [
@@ -808,9 +724,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "cartservice",
                 "selectors": [
@@ -829,9 +742,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "frontend",
                 "selectors": [
@@ -868,9 +778,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "cartservice",
                 "selectors": [
@@ -896,9 +803,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "cartservice",
                 "selectors": [
@@ -917,9 +821,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "checkoutservice",
                 "selectors": [
@@ -955,9 +856,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "currencyservice",
                 "selectors": [
@@ -981,9 +879,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "currencyservice",
                 "selectors": [
@@ -1002,9 +897,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "frontend",
                 "selectors": [
@@ -1041,9 +933,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "currencyservice",
                 "selectors": [
@@ -1067,9 +956,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "currencyservice",
                 "selectors": [
@@ -1088,9 +974,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "checkoutservice",
                 "selectors": [
@@ -1126,9 +1009,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "shippingservice",
                 "selectors": [
@@ -1152,9 +1032,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "shippingservice",
                 "selectors": [
@@ -1173,9 +1050,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "frontend",
                 "selectors": [
@@ -1212,9 +1086,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "shippingservice",
                 "selectors": [
@@ -1238,9 +1109,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "shippingservice",
                 "selectors": [
@@ -1259,9 +1127,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "cartservice",
                 "selectors": [
@@ -1292,9 +1157,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "redis-cart",
                 "selectors": [
@@ -1317,9 +1179,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "redis-cart",
                 "selectors": [
@@ -1338,9 +1197,6 @@
     },
     {
         "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "frontend",
                 "selectors": [
@@ -1377,9 +1233,6 @@
             }
         },
         "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "adservice",
                 "selectors": [
@@ -1403,9 +1256,6 @@
             }
         },
         "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
             "resource": {
                 "name": "adservice",
                 "selectors": [

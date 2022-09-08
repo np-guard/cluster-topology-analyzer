@@ -6,9 +6,6 @@ import (
 
 type InArgs struct {
 	DirPath      *string
-	GitURL       *string
-	GitBranch    *string
-	CommitID     *string
 	OutputFile   *string
 	SynthNetpols *bool
 }
@@ -24,10 +21,6 @@ type CfgMapKeyRef struct {
 }
 
 type Resource struct {
-	GitURL    string `json:"git_url"`
-	GitBranch string `json:"git_branch"`
-	CommitID  string `json:"commitid"`
-
 	Resource struct {
 		Name               string            `json:"name,omitempty"`
 		Namespace          string            `json:"namespace,omitempty"`
@@ -60,10 +53,7 @@ type SvcNetworkAttr struct {
 }
 
 type Service struct {
-	GitURL    string `json:"git_url"`
-	GitBranch string `json:"git_branch"`
-	CommitID  string `json:"commitid"`
-	Resource  struct {
+	Resource struct {
 		Name      string   `json:"name,omitempty"`
 		Namespace string   `json:"namespace,omitempty"`
 		Selectors []string `json:"selectors,omitempty"`
