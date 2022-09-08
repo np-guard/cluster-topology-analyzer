@@ -13,7 +13,7 @@ func ParseInArgs(args *InArgs) error {
 
 	if *args.DirPath == "" {
 		flag.PrintDefaults()
-		return fmt.Errorf("missing parameter: %s]", *args.DirPath)
+		return fmt.Errorf("missing parameter: %s", *args.DirPath)
 	}
 
 	return nil
