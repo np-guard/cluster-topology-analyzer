@@ -47,12 +47,8 @@ func (ps *PoliciesSynthesizer) Errors() []FileProcessingError {
 func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networking.NetworkPolicy, error) {
 	activeLogger = ps.logger
 
-	emptyStr := ""
 	args := common.InArgs{}
 	args.DirPath = &dirPath
-	args.CommitID = &emptyStr
-	args.GitBranch = &emptyStr
-	args.GitURL = &emptyStr
 
 	connections, errs := extractConnections(args, ps.stopOnError)
 	policies := []*networking.NetworkPolicy{}

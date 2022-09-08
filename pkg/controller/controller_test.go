@@ -239,11 +239,7 @@ func getTestsDir() string {
 
 func getTestArgs(dirPath, outFile string, netpols bool) common.InArgs {
 	args := common.InArgs{}
-	emptyStr := ""
 	args.DirPath = &dirPath
-	args.CommitID = &emptyStr
-	args.GitBranch = &emptyStr
-	args.GitURL = &emptyStr
 	args.OutputFile = &outFile
 	args.SynthNetpols = &netpols
 	return args

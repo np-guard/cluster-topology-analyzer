@@ -90,9 +90,6 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 	}
 	for idx := range resources {
 		res := &resources[idx]
-		res.CommitID = *args.CommitID
-		res.GitBranch = *args.GitBranch
-		res.GitURL = *args.GitURL
 
 		// handle config maps data to be associated into relevant deployments resource objects
 		for _, cfgMapRef := range res.Resource.ConfigMapRefs {
@@ -123,11 +120,6 @@ func parseResources(objs []parsedK8sObjects, args common.InArgs) ([]common.Resou
 		}
 	}
 
-	for idx := range links {
-		links[idx].CommitID = *args.CommitID
-		links[idx].GitBranch = *args.GitBranch
-		links[idx].GitURL = *args.GitURL
-	}
 	return resources, links, parseErrors
 }
 
