@@ -181,8 +181,7 @@ func TestPoliciesSynthesizerAPIFailFast(t *testing.T) {
 func TestExtractConnectionsNoK8sResources(t *testing.T) {
 	testsDir := getTestsDir()
 	dirPath := filepath.Join(testsDir, "bad_yamls", "irrelevant_k8s_resources.yaml")
-	args := getTestArgs(dirPath, "", false)
-	conns, errs := extractConnections(args, false)
+	conns, errs := extractConnections(dirPath, false)
 	if len(errs) != 1 {
 		t.Fatalf("expected one error but got %d", len(errs))
 	}
@@ -194,8 +193,7 @@ func TestExtractConnectionsNoK8sResources(t *testing.T) {
 func TestExtractConnectionsNoK8sResourcesFailFast(t *testing.T) {
 	testsDir := getTestsDir()
 	dirPath := filepath.Join(testsDir, "bad_yamls")
-	args := getTestArgs(dirPath, "", true)
-	conns, errs := extractConnections(args, true)
+	conns, errs := extractConnections(dirPath, true)
 	if len(errs) != 1 {
 		t.Fatalf("expected one error but got %d", len(errs))
 	}
@@ -207,8 +205,7 @@ func TestExtractConnectionsNoK8sResourcesFailFast(t *testing.T) {
 func TestExtractConnectionsBadConfigMapRefs(t *testing.T) {
 	testsDir := getTestsDir()
 	dirPath := filepath.Join(testsDir, "bad_yamls", "bad_configmap_refs.yaml")
-	args := getTestArgs(dirPath, "", false)
-	conns, errs := extractConnections(args, false)
+	conns, errs := extractConnections(dirPath, false)
 	if len(errs) != 3 {
 		t.Fatalf("expected 3 errors but got %d", len(errs))
 	}
