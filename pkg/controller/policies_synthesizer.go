@@ -2,6 +2,8 @@ package controller
 
 import (
 	networking "k8s.io/api/networking/v1"
+
+	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
 type PoliciesSynthesizer struct {
@@ -35,6 +37,7 @@ func NewPoliciesSynthesizer(options ...PoliciesSynthesizerOption) *PoliciesSynth
 	for _, o := range options {
 		o(ps)
 	}
+	activeLogger = ps.logger
 	return ps
 }
 
@@ -43,8 +46,6 @@ func (ps *PoliciesSynthesizer) Errors() []FileProcessingError {
 }
 
 func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networking.NetworkPolicy, error) {
-	activeLogger = ps.logger
-
 	connections, errs := extractConnections(dirPath, ps.stopOnError)
 	policies := []*networking.NetworkPolicy{}
 	if !stopProcessing(ps.stopOnError, errs) {
@@ -52,11 +53,28 @@ func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networ
 	}
 
 	ps.errors = errs
-	for idx := range errs {
-		if errs[idx].IsFatal() {
-			return nil, errs[idx].Error()
-		}
+	if err := hasFatalError(errs); err != nil {
+		return nil, err
 	}
 
 	return policies, nil
+}
+
+func (ps *PoliciesSynthesizer) ConnectionsFromFolderPath(dirPath string) ([]*common.Connections, error) {
+	connections, errs := extractConnections(dirPath, ps.stopOnError)
+	ps.errors = errs
+	if err := hasFatalError(errs); err != nil {
+		return nil, err
+	}
+
+	return connections, nil
+}
+
+func hasFatalError(errs []FileProcessingError) error {
+	for idx := range errs {
+		if errs[idx].IsFatal() {
+			return errs[idx].Error()
+		}
+	}
+	return nil
 }

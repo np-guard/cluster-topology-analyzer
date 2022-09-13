@@ -45,16 +45,15 @@ func (deployConn *DeploymentConnectivity) addEgressRule(
 	deployConn.egressConns = append(deployConn.egressConns, rule)
 }
 
-func synthNetpols(connections []common.Connections) []*network.NetworkPolicy {
+func synthNetpols(connections []*common.Connections) []*network.NetworkPolicy {
 	deployConnectivity := determineConnectivityPerDeployment(connections)
 	netpols := buildNetpolPerDeployment(deployConnectivity)
 	return netpols
 }
 
-func determineConnectivityPerDeployment(connections []common.Connections) []*DeploymentConnectivity {
+func determineConnectivityPerDeployment(connections []*common.Connections) []*DeploymentConnectivity {
 	deploysConnectivity := map[string]*DeploymentConnectivity{}
-	for idx := range connections {
-		conn := &connections[idx]
+	for _, conn := range connections {
 		srcDeploy := findOrAddDeploymentConn(conn.Source, deploysConnectivity)
 		dstDeploy := findOrAddDeploymentConn(conn.Target, deploysConnectivity)
 		targetPorts := toNetpolPorts(conn.Link.Resource.Network)
@@ -181,8 +180,7 @@ func getDNSPort() network.NetworkPolicyPort {
 	}
 }
 
-func synthNetpolList(connections []common.Connections) network.NetworkPolicyList {
-	netpols := synthNetpols(connections)
+func NetpolListFromNetpolSlice(netpols []*network.NetworkPolicy) network.NetworkPolicyList {
 	netpols2 := []network.NetworkPolicy{}
 	for _, netpol := range netpols {
 		netpols2 = append(netpols2, *netpol)
