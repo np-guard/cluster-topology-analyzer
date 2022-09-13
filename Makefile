@@ -48,8 +48,7 @@ ci: lint test ## Run all the tests and code checks
 
 .PHONY: build
 build: ## Build a version
-	#GOOS=linux go build -a -installsuffix cgo -o ./bin/cis-task cmd/cis-task/main.go
-	go build -o ./bin/net-top cmd/nettop/main.go
+	go build -o ./bin/net-top ./cmd/nettop
 
 .PHONY: clean
 clean: ## Remove temporary files

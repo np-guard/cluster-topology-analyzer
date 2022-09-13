@@ -4,12 +4,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-type InArgs struct {
-	DirPath      *string
-	OutputFile   *string
-	SynthNetpols *bool
-}
-
 type CfgMap struct {
 	FullName string
 	Data     map[string]string

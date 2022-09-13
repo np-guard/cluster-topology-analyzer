@@ -1,9 +1,15 @@
-package common
+package main
 
 import (
 	"flag"
 	"fmt"
 )
+
+type InArgs struct {
+	DirPath      *string
+	OutputFile   *string
+	SynthNetpols *bool
+}
 
 func ParseInArgs(args *InArgs) error {
 	args.DirPath = flag.String("dirpath", "", "input directory path")

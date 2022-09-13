@@ -9,98 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
 // TestOutput calls controller.Start() with an example repo dir tests/onlineboutique/ ,
 // checking for the json output to match expected output at tests/expected_output.json
-func TestConnectionsOutput(t *testing.T) {
-	testsDir := getTestsDir()
-	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
-	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
-	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_output.json")
-	args := getTestArgs(dirPath, outFile, false)
-
-	err := Start(args)
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
-
-	res, err := compareFiles(expectedOutput, outFile)
-
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
-	if !res {
-		t.Fatalf("expected res to be true, but got false")
-	}
-
-	os.Remove(outFile)
-}
-
-func TestDirScan(t *testing.T) {
-	testsDir := getTestsDir()
-	dirPath := filepath.Join(testsDir, "onlineboutique")
-	outFile := filepath.Join(dirPath, "output.json")
-	expectedOutput := filepath.Join(dirPath, "expected_dirscan_output.json")
-	args := getTestArgs(dirPath, outFile, false)
-
-	err := Start(args)
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
-
-	res, err := compareFiles(expectedOutput, outFile)
-
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
-	if !res {
-		t.Fatalf("expected res to be true, but got false")
-	}
-
-	os.Remove(outFile)
-}
-
-type TestDetails struct {
-	dirPath        string
-	outFile        string
-	expectedOutput string
-}
-
-func TestNetpolsJsonOutput(t *testing.T) {
-	testsDir := getTestsDir()
-	tests := map[string]TestDetails{} // map from test name to test details
-	tests["onlineboutique"] = TestDetails{dirPath: filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml"),
-		outFile:        filepath.Join(testsDir, "onlineboutique", "output.json"),
-		expectedOutput: filepath.Join(testsDir, "onlineboutique", "expected_netpol_output.json")}
-	tests["sockshop"] = TestDetails{dirPath: filepath.Join(testsDir, "sockshop", "manifests"),
-		outFile:        filepath.Join(testsDir, "sockshop", "output.json"),
-		expectedOutput: filepath.Join(testsDir, "sockshop", "expected_netpol_output.json")}
-	tests["wordpress"] = TestDetails{dirPath: filepath.Join(testsDir, "k8s_wordpress_example"),
-		outFile:        filepath.Join(testsDir, "k8s_wordpress_example", "output.json"),
-		expectedOutput: filepath.Join(testsDir, "k8s_wordpress_example", "expected_netpol_output.json")}
-	tests["guestbook"] = TestDetails{dirPath: filepath.Join(testsDir, "k8s_guestbook"),
-		outFile:        filepath.Join(testsDir, "k8s_guestbook", "output.json"),
-		expectedOutput: filepath.Join(testsDir, "k8s_guestbook", "expected_netpol_output.json")}
-
-	for testName, testDetails := range tests {
-		args := getTestArgs(testDetails.dirPath, testDetails.outFile, true)
-		err := Start(args)
-		if err != nil {
-			t.Fatalf("Test %v: expected Start to return no error, but got %v", testName, err)
-		}
-		res, err := compareFiles(testDetails.expectedOutput, testDetails.outFile)
-		if err != nil {
-			t.Fatalf("Test %v: expected err to be nil, but got %v", testName, err)
-		}
-		if !res {
-			t.Fatalf("Test %v: expected res to be true, but got false", testName)
-		}
-		os.Remove(testDetails.outFile)
-	}
-}
 
 func TestPoliciesSynthesizerAPI(t *testing.T) {
 	testsDir := getTestsDir()
@@ -232,14 +144,6 @@ func readLines(path string) ([]string, error) {
 func getTestsDir() string {
 	currentDir, _ := os.Getwd()
 	return filepath.Join(currentDir, "..", "..", "tests")
-}
-
-func getTestArgs(dirPath, outFile string, netpols bool) common.InArgs {
-	args := common.InArgs{}
-	args.DirPath = &dirPath
-	args.OutputFile = &outFile
-	args.SynthNetpols = &netpols
-	return args
 }
 
 func compareFiles(expectedFile, actualFile string) (bool, error) {

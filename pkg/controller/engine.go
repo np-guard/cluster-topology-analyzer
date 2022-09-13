@@ -1,59 +1,12 @@
 package controller
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"os"
-
 	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
-// Start : This is the entry point for the topology analysis engine.
-// Based on the arguments it is given, the engine scans all YAML files,
-// detects all required connection between resources and outputs a json connectivity report
-// (or NetworkPolicies to allow only this connectivity)
-func Start(args common.InArgs) error {
-	// 1. Discover all connections between resources
-	connections, fileScanErrors := extractConnections(*args.DirPath, false)
-	if len(fileScanErrors) > 0 {
-		return fmt.Errorf("errors in processing input files: %v", fileScanErrors)
-	}
-
-	// 2. Write the output to a file or to stdout
-	const indent = "    "
-	var buf []byte
-	var err error
-	if args.SynthNetpols != nil && *args.SynthNetpols {
-		buf, err = json.MarshalIndent(synthNetpolList(connections), "", indent)
-	} else {
-		buf, err = json.MarshalIndent(connections, "", indent)
-	}
-	if err != nil {
-		return err
-	}
-	if *args.OutputFile != "" {
-		fp, err := os.Create(*args.OutputFile)
-		if err != nil {
-			msg := fmt.Sprintf("error creating file: %s", *args.OutputFile)
-			activeLogger.Errorf(err, msg)
-			return errors.New(msg)
-		}
-		_, err = fp.Write(buf)
-		if err != nil {
-			msg := fmt.Sprintf("error writing to file: %s", *args.OutputFile)
-			activeLogger.Errorf(err, msg)
-			return errors.New(msg)
-		}
-		fp.Close()
-	} else {
-		fmt.Printf("connection topology reports: \n ---\n%s\n---", string(buf))
-	}
-	return nil
-}
-
-func extractConnections(dirPath string, stopOn1stErr bool) ([]common.Connections, []FileProcessingError) {
+// Scans the given directory for YAMLs with k8s resources and extracts required connections between workloads
+func extractConnections(dirPath string, stopOn1stErr bool) ([]*common.Connections, []FileProcessingError) {
 	// 1. Get all relevant resources from the repo and parse them
 	dObjs, fileErrors := getK8sDeploymentResources(dirPath, stopOn1stErr)
 	if stopProcessing(stopOn1stErr, fileErrors) {
@@ -61,7 +14,7 @@ func extractConnections(dirPath string, stopOn1stErr bool) ([]common.Connections
 	}
 	if len(dObjs) == 0 {
 		fileErrors = appendAndLogNewError(fileErrors, noK8sResourcesFound())
-		return []common.Connections{}, fileErrors
+		return []*common.Connections{}, fileErrors
 	}
 
 	resources, links, parseErrors := parseResources(dObjs)
