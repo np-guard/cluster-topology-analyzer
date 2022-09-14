@@ -1,11 +1,9 @@
 name: Create docker release and github release
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release version number'
-        required: true
+  push:
+    tags:
+      - v1.**
 
 permissions:
   contents: read
@@ -15,7 +13,6 @@ jobs:
     name: Publish a new Docker image and create a GitHub release
     runs-on: ubuntu-latest
     permissions:
-      contents: write
       packages: write
     steps:
       - name: Check out the repo
@@ -33,21 +30,15 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/np-guard/net-top-analyzer:${{ github.event.inputs.version }}
-
-      - name: Create and push a new git tag
-        run: |
-          git config user.name ${{ github.actor }}
-          git tag -a v${{ github.event.inputs.version }} -m "Version ${{ github.event.inputs.version }}"
-          git push origin v${{ github.event.inputs.version }}
+          tags: ghcr.io/np-guard/net-top-analyzer:${{ github.ref }}
 
       - name: Create a github release
         uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ github.event.inputs.version }}
-          release_name: Release v${{ github.event.inputs.version }}
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
           body: |
             Changes in this Release:
           draft: false
@@ -59,4 +50,4 @@ jobs:
           go-version: 1.17
 
       - name: Publish on pkg.go.dev
-        run: GOPROXY=proxy.golang.org go list -m github.com/np-guard/cluster-topology-analyzer@v${{ github.event.inputs.version }}
+        run: GOPROXY=proxy.golang.org go list -m github.com/np-guard/cluster-topology-analyzer@${{ github.ref }}
