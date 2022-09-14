@@ -13,7 +13,7 @@ COPY go.sum go.sum
 
 RUN go mod tidy
 
-RUN CGO_ENABLED=0 GOOS=linux go build --tags static_all -v -o ./bin/net-top cmd/nettop/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build --tags static_all -v -o ./bin/net-top ./cmd/nettop
 
 FROM registry.access.redhat.com/ubi8@sha256:6edca3916b34d10481e4d24d14ebe6ebc6db517bec1b2db6ae2d7d47c2ecfaee
 RUN yum -y upgrade
