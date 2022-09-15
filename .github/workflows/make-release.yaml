@@ -32,18 +32,6 @@ jobs:
           push: true
           tags: ghcr.io/np-guard/net-top-analyzer:${{ github.ref_name }}
 
-      - name: Create a github release
-        uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          body: |
-            Changes in this Release:
-          draft: false
-          prerelease: false
-
       - name: Set up Go
         uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f
         with:
