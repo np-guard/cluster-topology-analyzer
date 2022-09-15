@@ -6,6 +6,14 @@ import (
 	"log"
 )
 
+type Verbosity int
+
+const (
+	LowVerbosity Verbosity = iota
+	MediumVerbosity
+	HighVerbosity
+)
+
 type Logger interface {
 	Debugf(format string, o ...interface{})
 	Infof(format string, o ...interface{})
@@ -14,24 +22,39 @@ type Logger interface {
 }
 
 type DefaultLogger struct {
-	l *log.Logger
+	verbosity Verbosity
+	l         *log.Logger
 }
 
 func NewDefaultLogger() *DefaultLogger {
+	return NewDefaultLoggerWithVerbosity(HighVerbosity)
+}
+
+func NewDefaultLoggerWithVerbosity(verbosity Verbosity) *DefaultLogger {
 	return &DefaultLogger{
-		l: log.Default(),
+		verbosity: verbosity,
+		l:         log.Default(),
 	}
 }
 
 func (df *DefaultLogger) Debugf(format string, o ...interface{}) {
-	df.l.Printf(format, o...)
+	if df.verbosity == HighVerbosity {
+		df.l.Printf(format, o...)
+	}
 }
+
 func (df *DefaultLogger) Infof(format string, o ...interface{}) {
-	df.l.Printf(format, o...)
+	if df.verbosity == HighVerbosity {
+		df.l.Printf(format, o...)
+	}
 }
+
 func (df *DefaultLogger) Warnf(format string, o ...interface{}) {
-	df.l.Printf(format, o...)
+	if df.verbosity >= MediumVerbosity {
+		df.l.Printf(format, o...)
+	}
 }
+
 func (df *DefaultLogger) Errorf(err error, format string, o ...interface{}) {
 	df.l.Printf("%s: %v", fmt.Sprintf(format, o...), err)
 }
