@@ -1,4 +1,4 @@
-name: Create docker release and github release
+name: Create docker release and publish to pkg.go.dev
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   push_to_registry:
-    name: Publish a new Docker image and create a GitHub release
+    name: Publish a new Docker image and publish a new version in pkg.go.dev
     runs-on: ubuntu-latest
     permissions:
       packages: write
