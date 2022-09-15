@@ -1,0 +1,305 @@
+{
+    "kind": "NetworkPolicyList",
+    "apiVersion": "networking.k8s.io/v1",
+    "metadata": {},
+    "items": [
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "details-v1-netpol",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "details",
+                        "version": "v1"
+                    }
+                },
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            }
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "details-v2-netpol",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "details",
+                        "version": "v2"
+                    }
+                },
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            }
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "mongodb-v1-netpol",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "mongodb",
+                        "version": "v1"
+                    }
+                },
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            }
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "mysqldb-v1-netpol",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "mysqldb",
+                        "version": "v1"
+                    }
+                },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3306
+                            }
+                        ],
+                        "from": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "ratings",
+                                        "version": "v2-mysql"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            }
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "productpage-v1-netpol",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "productpage",
+                        "version": "v1"
+                    }
+                },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 9080
+                            }
+                        ]
+                    }
+                ],
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            }
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "ratings-v1-netpol",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "ratings",
+                        "version": "v1"
+                    }
+                },
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            }
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "ratings-v2-netpol",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "ratings",
+                        "version": "v2"
+                    }
+                },
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            }
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "ratings-v2-mysql-netpol",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "ratings",
+                        "version": "v2-mysql"
+                    }
+                },
+                "egress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3306
+                            }
+                        ],
+                        "to": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "mysqldb",
+                                        "version": "v1"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "UDP",
+                                "port": 53
+                            }
+                        ]
+                    }
+                ],
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            }
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "ratings-v2-mysql-vm-netpol",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "ratings",
+                        "version": "v2-mysql-vm"
+                    }
+                },
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            }
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "reviews-v1-netpol",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "reviews",
+                        "version": "v1"
+                    }
+                },
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            }
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "reviews-v2-netpol",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "reviews",
+                        "version": "v2"
+                    }
+                },
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            }
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "reviews-v3-netpol",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "reviews",
+                        "version": "v3"
+                    }
+                },
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            }
+        }
+    ]
+}
