@@ -27,7 +27,7 @@ const (
 )
 
 var (
-	acceptedK8sTypesRegex = fmt.Sprintf("(%s|%s|%s|%s|%s|%s|%s|%s|%s|%s)",
+	acceptedK8sTypesRegex = fmt.Sprintf("(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)",
 		pod, replicaSet, replicationController, deployment, daemonset, statefulset, job, cronJob, service, configmap)
 	acceptedK8sTypes = regexp.MustCompile(acceptedK8sTypesRegex)
 	yamlSuffix       = regexp.MustCompile(".ya?ml$")
