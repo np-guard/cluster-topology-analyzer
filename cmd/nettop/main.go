@@ -33,15 +33,26 @@ func writeContent(outputFile string, content interface{}) error {
 		return writeBufToFile(outputFile, buf)
 	}
 
-	fmt.Printf("connection topology reports: \n ---\n%s\n---", string(buf))
+	fmt.Println(string(buf))
 	return nil
+}
+
+// returns verbosity level based on the -q and -v switches
+func getVerbosity(args InArgs) controller.Verbosity {
+	verbosity := controller.MediumVerbosity
+	if *args.Quiet {
+		verbosity = controller.LowVerbosity
+	} else if *args.Verbose {
+		verbosity = controller.HighVerbosity
+	}
+	return verbosity
 }
 
 // Based on the arguments it is given, scans all YAML files,
 // detects all required connection between resources and outputs a json connectivity report
 // (or NetworkPolicies to allow only this connectivity)
 func detectTopology(args InArgs) error {
-	logger := controller.NewDefaultLogger()
+	logger := controller.NewDefaultLoggerWithVerbosity(getVerbosity(args))
 	synth := controller.NewPoliciesSynthesizer(controller.WithLogger(logger))
 
 	var content interface{}
