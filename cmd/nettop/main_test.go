@@ -15,7 +15,7 @@ func TestConnectionsOutput(t *testing.T) {
 	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
 	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
 	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_output.json")
-	args := getTestArgs(dirPath, outFile, false)
+	args := getTestArgs(dirPath, outFile, false, false, false)
 
 	err := detectTopology(args)
 	if err != nil {
@@ -39,7 +39,7 @@ func TestDirScan(t *testing.T) {
 	dirPath := filepath.Join(testsDir, "onlineboutique")
 	outFile := filepath.Join(dirPath, "output.json")
 	expectedOutput := filepath.Join(dirPath, "expected_dirscan_output.json")
-	args := getTestArgs(dirPath, outFile, false)
+	args := getTestArgs(dirPath, outFile, false, true, false)
 
 	err := detectTopology(args)
 	if err != nil {
@@ -81,7 +81,7 @@ func TestNetpolsJsonOutput(t *testing.T) {
 		expectedOutput: filepath.Join(testsDir, "k8s_guestbook", "expected_netpol_output.json")}
 
 	for testName, testDetails := range tests {
-		args := getTestArgs(testDetails.dirPath, testDetails.outFile, true)
+		args := getTestArgs(testDetails.dirPath, testDetails.outFile, true, false, true)
 		err := detectTopology(args)
 		if err != nil {
 			t.Fatalf("Test %v: expected Start to return no error, but got %v", testName, err)
@@ -102,11 +102,13 @@ func getTestsDir() string {
 	return filepath.Join(currentDir, "..", "..", "tests")
 }
 
-func getTestArgs(dirPath, outFile string, netpols bool) InArgs {
+func getTestArgs(dirPath, outFile string, netpols, quiet, verbose bool) InArgs {
 	args := InArgs{}
 	args.DirPath = &dirPath
 	args.OutputFile = &outFile
 	args.SynthNetpols = &netpols
+	args.Quiet = &quiet
+	args.Verbose = &verbose
 	return args
 }
 
