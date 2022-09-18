@@ -27,7 +27,7 @@ const (
 )
 
 var (
-	acceptedK8sTypesRegex = fmt.Sprintf("(%s|%s|%s|%s|%s|%s|%s|%s|%s|%s)",
+	acceptedK8sTypesRegex = fmt.Sprintf("(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)",
 		pod, replicaSet, replicationController, deployment, daemonset, statefulset, job, cronJob, service, configmap)
 	acceptedK8sTypes = regexp.MustCompile(acceptedK8sTypesRegex)
 	yamlSuffix       = regexp.MustCompile(".ya?ml$")
@@ -138,7 +138,7 @@ func parseK8sYaml(mfp string, stopOn1stErr bool) ([]deployObject, []FileProcessi
 			continue
 		}
 		if !acceptedK8sTypes.MatchString(groupVersionKind.Kind) {
-			activeLogger.Infof("Skipping object with type: %s", groupVersionKind.Kind)
+			activeLogger.Infof("in file: %s, document: %d, skipping object with type: %s", mfp, docID, groupVersionKind.Kind)
 		} else {
 			d := deployObject{}
 			d.GroupKind = groupVersionKind.Kind
