@@ -1,120 +1,66 @@
 # Shift-left Network Topology Analyzer
 
-### Build the project
+## About Topology Analyzer
+This tool analyzes resource YAMLs of a Kubernetes-based application to extract the required connectivity between its workloads. It looks for network addresses that appear in workload specifications (e.g., in a Deployment's pod-spec environment) and correlates them to known and to predicted network addresses (e.g., expected Service URLs). Optionally, the tool can produce a list of NetworkPolicy resources that limit the workloads' connectivity to nothing but the detected required connectivity.
 
-Make sure  you have golang 1.13+ on your platform
-
-```
-$ git clone git@github.com:np-guard/cluster-topology-analyzer.git
-$ cd cluster-topology-analyzer
-$ go mod download
-$ make
-```
-
-### Usage
+## Usage
 ```
 $ ./bin/net-top -h
 Usage of ./bin/net-top:
-  -commitid string
-    	gitsecure run id
   -dirpath string
-    	input directory path
-  -gitbranch string
-    	git repository branch
-  -giturl string
-    	git repository url
+    	input directory path (required)
   -outputfile string
     	file path to store results
+  -netpols
+        whether to synthesize NetworkPolicies to allow only the discovered connections
+  -q    runs quietly, reports only severe errors and results
+  -v    runs with more informative messages printed to log
 ```
 
-### Example
+## Build the project
+Make sure  you have golang 1.17+ on your platform
+
+```shell
+git clone git@github.com:np-guard/cluster-topology-analyzer.git
+cd cluster-topology-analyzer
+go mod download
+make
+```
+
+## Run Examples
 
 1. Clone a sample source code repository that you want to scan
-```
-$ cd $HOME
-$ git clone git@github.com:nadgowdas/microservices-demo.git
+```shell
+git clone git@github.com:GoogleCloudPlatform/microservices-demo.git $HOME/microservices-demo
 ```
 
 2. Point topology analyzer to this sample repo
+```shell
+./bin/net-top -dirpath $HOME/microservices-demo
 ```
-$ ./bin/net-top -dirpath $HOME/microservices-demo -commitid 9133fdc043b20be15f958339e96564eac04bed6e -giturl https://github.com/nadgowdas/microservices-demo -gitbranch master
-```
-
-3. You can expect the result connection in following schema
-```
-[
-    {
-        "source": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
-            "Resource": {
-                "name": "",
-                "selectors": null,
-                "filepath": "",
-                "kind": "",
-                "image": {
-                    "id": ""
-                },
-                "network": null,
-                "Envs": null
-            }
-        },
-        "target": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
-            "Resource": {
-                "name": "",
-                "selectors": null,
-                "filepath": "",
-                "kind": "",
-                "image": {
-                    "id": ""
-                },
-                "network": null,
-                "Envs": null
-            }
-        },
-        "link": {
-            "git_url": "",
-            "git_branch": "",
-            "commitid": "",
-            "resource": {
-                "name": "",
-                "selectors": null,
-                "filepath": "",
-                "kind": "",
-                "network": null
-            }
-        }
-    }
-]
-```
-
-4. Sample result
-```
+3. The tool outputs a list of identified connections. Each connection is defined as a triplet: `<source, target, link>`. The list should look like this:
+```json
 [
     ...
-        {
+    {
         "source": {
-            "git_url": "https://github.com/nadgowdas/microservices-demo",
-            "git_branch": "master",
-            "commitid": "9133fdc043b20be15f958339e96564eac04bed6e",
-            "Resource": {
+            "resource": {
                 "name": "frontend",
                 "selectors": [
                     "app:frontend"
                 ],
-                "filepath": "",
+                "labels": {
+                    "app": "frontend"
+                },
+                "serviceaccountname": "default",
+                "filepath": "/release/kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
-                    "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.0"
+                    "id": "gcr.io/google-samples/microservices-demo/frontend:v0.3.9"
                 },
                 "network": [
                     {
-                        "container_url": 8080,
-                        "protocol": ""
+                        "container_url": 8080
                     }
                 ],
                 "Envs": [
@@ -125,42 +71,47 @@ $ ./bin/net-top -dirpath $HOME/microservices-demo -commitid 9133fdc043b20be15f95
                     "shippingservice:50051",
                     "checkoutservice:5050",
                     "adservice:9555"
+                ],
+                "UsedPorts": [
+                    {
+                        "port": 9555,
+                        "target_port": 9555
+                    }
                 ]
             }
         },
         "target": {
-            "git_url": "https://github.com/nadgowdas/microservices-demo",
-            "git_branch": "master",
-            "commitid": "9133fdc043b20be15f958339e96564eac04bed6e",
-            "Resource": {
-                "name": "adservice",
-                "selectors": [
-                    "app:adservice"
-                ],
-                "filepath": "",
-                "kind": "Deployment",
-                "image": {
-                    "id": "gcr.io/google-samples/microservices-demo/adservice:v0.2.0"
-                },
-                "network": [
-                    {
-                        "container_url": 9555,
-                        "protocol": ""
-                    }
-                ],
-                "Envs": null
-            }
-        },
-        "link": {
-            "git_url": "https://github.com/nadgowdas/microservices-demo",
-            "git_branch": "master",
-            "commitid": "9133fdc043b20be15f958339e96564eac04bed6e",
             "resource": {
                 "name": "adservice",
                 "selectors": [
                     "app:adservice"
                 ],
-                "filepath": "release/kubernetes-manifests.yaml",
+                "labels": {
+                    "app": "adservice"
+                },
+                "serviceaccountname": "default",
+                "filepath": "/release/kubernetes-manifests.yaml",
+                "kind": "Deployment",
+                "image": {
+                    "id": "gcr.io/google-samples/microservices-demo/adservice:v0.3.9"
+                },
+                "network": [
+                    {
+                        "container_url": 9555
+                    }
+                ],
+                "Envs": null,
+                "UsedPorts": null
+            }
+        },
+        "link": {
+            "resource": {
+                "name": "adservice",
+                "selectors": [
+                    "app:adservice"
+                ],
+                "type": "ClusterIP",
+                "filepath": "/release/kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
@@ -173,12 +124,40 @@ $ ./bin/net-top -dirpath $HOME/microservices-demo -commitid 9133fdc043b20be15f95
     }
 ]
 ```
+4. Produce NetworkPolicies for this sample repo to only allow detected connectivity, and store them in `netpols.json` as a single NetworkPolicyList resource. Run quietly.
+```shell
+./bin/net-top -dirpath $HOME/microservices-demo -netpols -outputfile netpols.json -q
+```
 
-### TODOs
-1. Support following network/service configurations:
+## Golang API
+The functionality of this tool can be consumed via a [Golang package API](https://pkg.go.dev/github.com/np-guard/cluster-topology-analyzer/pkg/controller). The relevant package to import is `github.com/np-guard/cluster-topology-analyzer/pkg/controller`.
 
-    a. Routes
+Main functionality is encapsulated under the `PoliciesSynthesizer`, which exposes two methods:
+* `func (ps *PoliciesSynthesizer) ConnectionsFromFolderPath(dirPath string) ([]*common.Connections, error)` - getting a slice of Connection objects, each representing a required connection in the scan application.
+* `func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networking.NetworkPolicy, error)` - getting a slice of K8s NetworkPolicy objects that limit the allowed connectivity to only the required connections.
 
-    b. ConfigMaps
+The example code below extracts required connections from the K8s manifests in the `/tmp/k8s_manifests` directory, and outputs appropriate K8s NetworkPolicies to standard output.
+```golang
+package main
 
-    c. Network Policies
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+
+	"github.com/np-guard/cluster-topology-analyzer/pkg/controller"
+)
+
+func main() {
+	logger := controller.NewDefaultLogger()
+	synth := controller.NewPoliciesSynthesizer(controller.WithLogger(logger))
+
+	netpols, err := synth.PoliciesFromFolderPath("/tmp/k8s_manifests")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error synthesizing policies: %v\n", err)
+		os.Exit(1)
+	}
+	buf, _ := json.MarshalIndent(netpols, "", "    ")
+	fmt.Printf("%v\n", string(buf))
+}
+```
