@@ -17,13 +17,13 @@ const (
 	networkAPIVersion = "networking.k8s.io/v1"
 )
 
-type DeploymentConnectivity struct {
+type deploymentConnectivity struct {
 	common.Resource
 	ingressConns []network.NetworkPolicyIngressRule
 	egressConns  []network.NetworkPolicyEgressRule
 }
 
-func (deployConn *DeploymentConnectivity) addIngressRule(
+func (deployConn *deploymentConnectivity) addIngressRule(
 	peers []network.NetworkPolicyPeer, ports []network.NetworkPolicyPort) {
 	rule := network.NetworkPolicyIngressRule{From: peers, Ports: ports}
 	for _, existingRule := range deployConn.ingressConns {
@@ -34,7 +34,7 @@ func (deployConn *DeploymentConnectivity) addIngressRule(
 	deployConn.ingressConns = append(deployConn.ingressConns, rule)
 }
 
-func (deployConn *DeploymentConnectivity) addEgressRule(
+func (deployConn *deploymentConnectivity) addEgressRule(
 	peers []network.NetworkPolicyPeer, ports []network.NetworkPolicyPort) {
 	rule := network.NetworkPolicyEgressRule{To: peers, Ports: ports}
 	for _, existingRule := range deployConn.egressConns {
@@ -51,8 +51,8 @@ func synthNetpols(connections []*common.Connections) []*network.NetworkPolicy {
 	return netpols
 }
 
-func determineConnectivityPerDeployment(connections []*common.Connections) []*DeploymentConnectivity {
-	deploysConnectivity := map[string]*DeploymentConnectivity{}
+func determineConnectivityPerDeployment(connections []*common.Connections) []*deploymentConnectivity {
+	deploysConnectivity := map[string]*deploymentConnectivity{}
 	for _, conn := range connections {
 		srcDeploy := findOrAddDeploymentConn(conn.Source, deploysConnectivity)
 		dstDeploy := findOrAddDeploymentConn(conn.Target, deploysConnectivity)
@@ -74,7 +74,7 @@ func determineConnectivityPerDeployment(connections []*common.Connections) []*De
 		}
 	}
 
-	retSlice := []*DeploymentConnectivity{}
+	retSlice := []*deploymentConnectivity{}
 	for _, deployConn := range deploysConnectivity {
 		retSlice = append(retSlice, deployConn)
 	}
@@ -85,7 +85,7 @@ func determineConnectivityPerDeployment(connections []*common.Connections) []*De
 	return retSlice
 }
 
-func findOrAddDeploymentConn(resource *common.Resource, deployConns map[string]*DeploymentConnectivity) *DeploymentConnectivity {
+func findOrAddDeploymentConn(resource *common.Resource, deployConns map[string]*deploymentConnectivity) *deploymentConnectivity {
 	if resource == nil || resource.Resource.Name == "" {
 		return nil
 	}
@@ -93,12 +93,12 @@ func findOrAddDeploymentConn(resource *common.Resource, deployConns map[string]*
 		return deployConn
 	}
 
-	deploy := DeploymentConnectivity{Resource: *resource}
+	deploy := deploymentConnectivity{Resource: *resource}
 	deployConns[resource.Resource.Name] = &deploy
 	return &deploy
 }
 
-func getNetpolPeer(netpolDeploy, otherDeploy *DeploymentConnectivity) network.NetworkPolicyPeer {
+func getNetpolPeer(netpolDeploy, otherDeploy *deploymentConnectivity) network.NetworkPolicyPeer {
 	netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(otherDeploy)}
 	if netpolDeploy.Resource.Resource.Namespace != otherDeploy.Resource.Resource.Namespace {
 		if otherDeploy.Resource.Resource.Namespace != "" {
@@ -110,7 +110,7 @@ func getNetpolPeer(netpolDeploy, otherDeploy *DeploymentConnectivity) network.Ne
 	return netpolPeer
 }
 
-func getDeployConnSelector(deployConn *DeploymentConnectivity) *metaV1.LabelSelector {
+func getDeployConnSelector(deployConn *deploymentConnectivity) *metaV1.LabelSelector {
 	return &metaV1.LabelSelector{MatchLabels: deployConn.Resource.Resource.Labels}
 }
 
@@ -144,7 +144,7 @@ func toCoreProtocol(protocol string) core.Protocol {
 	}
 }
 
-func buildNetpolPerDeployment(deployConnectivity []*DeploymentConnectivity) []*network.NetworkPolicy {
+func buildNetpolPerDeployment(deployConnectivity []*deploymentConnectivity) []*network.NetworkPolicy {
 	var netpols []*network.NetworkPolicy
 	for _, deployConn := range deployConnectivity {
 		if len(deployConn.egressConns) > 0 {
@@ -180,6 +180,8 @@ func getDNSPort() network.NetworkPolicyPort {
 	}
 }
 
+// NetpolListFromNetpolSlice converts a slice of Kubernetes NetworkPolicies to a Kubernetes NetworkPolicyList
+// containing all the policies in the slice.
 func NetpolListFromNetpolSlice(netpols []*network.NetworkPolicy) network.NetworkPolicyList {
 	netpols2 := []network.NetworkPolicy{}
 	for _, netpol := range netpols {

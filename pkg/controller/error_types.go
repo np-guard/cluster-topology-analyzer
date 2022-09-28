@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+// FileProcessingError holds all information about a single error/warning that occurred during
+// the discovery and processing of the connectivity of a given K8s-app.
 type FileProcessingError struct {
 	err      error
 	filePath string
@@ -25,18 +27,22 @@ func newFileProcessingError(origErr error, msg, filePath string, lineNum, docID 
 	return &fpe
 }
 
+// Error returns the actual error
 func (e *FileProcessingError) Error() error {
 	return e.err
 }
 
+// File returns the file in which the error occurred (or an empty string if no file context is available)
 func (e *FileProcessingError) File() string {
 	return e.filePath
 }
 
+// LineNo returns the file's line-number in which the error occurred (or 0 if not applicable)
 func (e *FileProcessingError) LineNo() int {
 	return e.lineNum
 }
 
+// DocumentID returns the file's YAML document ID (0-based) in which the error occurred (or an error if not applicable)
 func (e *FileProcessingError) DocumentID() (int, error) {
 	if e.docID < 0 {
 		return -1, errors.New("no document ID is available for this error")
@@ -44,6 +50,7 @@ func (e *FileProcessingError) DocumentID() (int, error) {
 	return e.docID, nil
 }
 
+// Location returns file location (filename, line-number, document ID) of an error (or an empty string if not applicable)
 func (e *FileProcessingError) Location() string {
 	if e.filePath == "" {
 		return ""
@@ -59,10 +66,13 @@ func (e *FileProcessingError) Location() string {
 	return fmt.Sprintf("in file: %s%s", e.File(), suffix)
 }
 
+// IsFatal returns whether the error is considered fatal (no further processing is possible)
 func (e *FileProcessingError) IsFatal() bool {
 	return e.fatal
 }
 
+// IsFatal returns whether the error is considered severe
+// (further processing is possible, but results may not be useable)
 func (e *FileProcessingError) IsSevere() bool {
 	return e.severe
 }
