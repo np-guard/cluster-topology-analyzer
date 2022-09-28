@@ -71,8 +71,8 @@ func (e *FileProcessingError) IsFatal() bool {
 	return e.fatal
 }
 
-// IsFatal returns whether the error is considered severe (further processing is possible,
-//	but results may not be useable)
+// IsFatal returns whether the error is considered severe
+// (further processing is possible, but results may not be useable)
 func (e *FileProcessingError) IsSevere() bool {
 	return e.severe
 }
