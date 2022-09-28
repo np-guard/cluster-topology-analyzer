@@ -180,6 +180,8 @@ func getDNSPort() network.NetworkPolicyPort {
 	}
 }
 
+// NetpolListFromNetpolSlice converts a slice of Kubernetes NetworkPolicies to a Kubernetes NetworkPolicyList
+// containing all the policies in the slice.
 func NetpolListFromNetpolSlice(netpols []*network.NetworkPolicy) network.NetworkPolicyList {
 	netpols2 := []network.NetworkPolicy{}
 	for _, netpol := range netpols {
