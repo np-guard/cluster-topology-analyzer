@@ -16,7 +16,7 @@ type FileProcessingError struct {
 	severe   bool // a severe error is recoverable. However, outputs should be used with care
 }
 
-// constructs a FileProcessingError object and prints an error/warning to the log
+// constructs a FileProcessingError object
 func newFileProcessingError(origErr error, msg, filePath string, lineNum, docID int, fatal, severe bool) *FileProcessingError {
 	err := errors.New(msg)
 	if origErr != nil {
@@ -71,7 +71,7 @@ func (e *FileProcessingError) IsFatal() bool {
 	return e.fatal
 }
 
-// IsFatal returns whether the error is considered severe
+// IsSevere returns whether the error is considered severe
 // (further processing is possible, but results may not be useable)
 func (e *FileProcessingError) IsSevere() bool {
 	return e.severe
