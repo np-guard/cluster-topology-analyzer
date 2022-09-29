@@ -53,7 +53,6 @@ func writeContent(outputFile, outputFormat string, content interface{}) error {
 	} else {
 		const indent = "    "
 		buf, err = json.MarshalIndent(content, "", indent)
-
 	}
 	if err != nil {
 		return err
