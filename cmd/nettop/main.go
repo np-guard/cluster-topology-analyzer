@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"gopkg.in/yaml.v3"
+
 	"github.com/np-guard/cluster-topology-analyzer/pkg/controller"
 )
 
@@ -21,10 +23,37 @@ func writeBufToFile(filepath string, buf []byte) error {
 	return nil
 }
 
-func writeContent(outputFile string, content interface{}) error {
-	const indent = "    "
+func yamlMarshalUsingJSON(content interface{}) ([]byte, error) {
+	// Directly marshaling content into YAML, results in malformed Kubernetes resources.
+	// This is because K8s NetworkPolicy struct has json field tags, but no yaml field tags (also true for other resources).
+	// The (somewhat ugly) solution is to first marshal content to json, unmarshal to an interface{} var and marshal to yaml
+	buf, err := json.Marshal(content)
+	if err != nil {
+		return nil, err
+	}
 
-	buf, err := json.MarshalIndent(content, "", indent)
+	var contentFromJSON interface{}
+	err = json.Unmarshal(buf, &contentFromJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	buf, err = yaml.Marshal(contentFromJSON)
+	if err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+func writeContent(outputFile, outputFormat string, content interface{}) error {
+	var buf []byte
+	var err error
+	if outputFormat == YamlFormat {
+		buf, err = yamlMarshalUsingJSON(content)
+	} else {
+		const indent = "    "
+		buf, err = json.MarshalIndent(content, "", indent)
+	}
 	if err != nil {
 		return err
 	}
@@ -72,7 +101,7 @@ func detectTopology(args InArgs) error {
 		}
 	}
 
-	if err := writeContent(*args.OutputFile, content); err != nil {
+	if err := writeContent(*args.OutputFile, *args.OutputFormat, content); err != nil {
 		logger.Errorf(err, "error writing results")
 		return err
 	}

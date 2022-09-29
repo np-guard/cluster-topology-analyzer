@@ -15,7 +15,31 @@ func TestConnectionsOutput(t *testing.T) {
 	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
 	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
 	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_output.json")
-	args := getTestArgs(dirPath, outFile, false, false, false)
+	args := getTestArgs(dirPath, outFile, JSONFormat, false, false, false)
+
+	err := detectTopology(args)
+	if err != nil {
+		t.Fatalf("expected err to be nil, but got %v", err)
+	}
+
+	res, err := compareFiles(expectedOutput, outFile)
+
+	if err != nil {
+		t.Fatalf("expected err to be nil, but got %v", err)
+	}
+	if !res {
+		t.Fatalf("expected res to be true, but got false")
+	}
+
+	os.Remove(outFile)
+}
+
+func TestConnectionsYamlOutput(t *testing.T) {
+	testsDir := getTestsDir()
+	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
+	outFile := filepath.Join(testsDir, "onlineboutique", "output.yaml")
+	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_output.yaml")
+	args := getTestArgs(dirPath, outFile, YamlFormat, false, false, false)
 
 	err := detectTopology(args)
 	if err != nil {
@@ -39,7 +63,7 @@ func TestDirScan(t *testing.T) {
 	dirPath := filepath.Join(testsDir, "onlineboutique")
 	outFile := filepath.Join(dirPath, "output.json")
 	expectedOutput := filepath.Join(dirPath, "expected_dirscan_output.json")
-	args := getTestArgs(dirPath, outFile, false, true, false)
+	args := getTestArgs(dirPath, outFile, JSONFormat, false, true, false)
 
 	err := detectTopology(args)
 	if err != nil {
@@ -84,7 +108,7 @@ func TestNetpolsJsonOutput(t *testing.T) {
 		expectedOutput: filepath.Join(testsDir, "bookinfo", "expected_netpol_output.json")}
 
 	for testName, testDetails := range tests {
-		args := getTestArgs(testDetails.dirPath, testDetails.outFile, true, false, true)
+		args := getTestArgs(testDetails.dirPath, testDetails.outFile, JSONFormat, true, false, true)
 		err := detectTopology(args)
 		if err != nil {
 			t.Fatalf("Test %v: expected Start to return no error, but got %v", testName, err)
@@ -100,15 +124,40 @@ func TestNetpolsJsonOutput(t *testing.T) {
 	}
 }
 
+func TestNetpolsYamlOutput(t *testing.T) {
+	testsDir := getTestsDir()
+	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
+	outFile := filepath.Join(testsDir, "onlineboutique", "output.yaml")
+	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_netpol_output.yaml")
+	args := getTestArgs(dirPath, outFile, YamlFormat, true, false, false)
+
+	err := detectTopology(args)
+	if err != nil {
+		t.Fatalf("expected err to be nil, but got %v", err)
+	}
+
+	res, err := compareFiles(expectedOutput, outFile)
+
+	if err != nil {
+		t.Fatalf("expected err to be nil, but got %v", err)
+	}
+	if !res {
+		t.Fatalf("expected res to be true, but got false")
+	}
+
+	os.Remove(outFile)
+}
+
 func getTestsDir() string {
 	currentDir, _ := os.Getwd()
 	return filepath.Join(currentDir, "..", "..", "tests")
 }
 
-func getTestArgs(dirPath, outFile string, netpols, quiet, verbose bool) InArgs {
+func getTestArgs(dirPath, outFile, outFormat string, netpols, quiet, verbose bool) InArgs {
 	args := InArgs{}
 	args.DirPath = &dirPath
 	args.OutputFile = &outFile
+	args.OutputFormat = &outFormat
 	args.SynthNetpols = &netpols
 	args.Quiet = &quiet
 	args.Verbose = &verbose

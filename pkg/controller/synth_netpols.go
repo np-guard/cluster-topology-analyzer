@@ -115,7 +115,7 @@ func getDeployConnSelector(deployConn *deploymentConnectivity) *metaV1.LabelSele
 }
 
 func toNetpolPorts(ports []common.SvcNetworkAttr) []network.NetworkPolicyPort {
-	var netpolPorts []network.NetworkPolicyPort
+	netpolPorts := make([]network.NetworkPolicyPort, 0, len(ports))
 	for _, port := range ports {
 		protocol := toCoreProtocol(port.Protocol)
 		portNum := port.TargetPort
@@ -145,7 +145,7 @@ func toCoreProtocol(protocol string) core.Protocol {
 }
 
 func buildNetpolPerDeployment(deployConnectivity []*deploymentConnectivity) []*network.NetworkPolicy {
-	var netpols []*network.NetworkPolicy
+	netpols := make([]*network.NetworkPolicy, 0, len(deployConnectivity))
 	for _, deployConn := range deployConnectivity {
 		if len(deployConn.egressConns) > 0 {
 			deployConn.addEgressRule(nil, []network.NetworkPolicyPort{getDNSPort()})

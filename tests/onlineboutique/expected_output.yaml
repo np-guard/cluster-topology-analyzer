@@ -1,0 +1,806 @@
+- link:
+    resource:
+        kind: Service
+        name: emailservice
+        network:
+            - port: 5000
+              target_port: 8080
+        selectors:
+            - app:emailservice
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - paymentservice:50051
+            - emailservice:5000
+            - currencyservice:7000
+            - cartservice:7070
+            - shippingservice:50051
+        UsedPorts:
+            - port: 5000
+              target_port: 8080
+        image:
+            id: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: checkoutservice
+        name: checkoutservice
+        network:
+            - container_url: 5050
+        selectors:
+            - app:checkoutservice
+        serviceaccountname: default
+  target:
+    resource:
+        Envs: null
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/emailservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: emailservice
+        name: emailservice
+        network:
+            - container_url: 8080
+        selectors:
+            - app:emailservice
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: checkoutservice
+        network:
+            - port: 5050
+              target_port: 5050
+        selectors:
+            - app:checkoutservice
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - currencyservice:7000
+            - cartservice:7070
+            - recommendationservice:8080
+            - checkoutservice:5050
+            - adservice:9555
+            - shippingservice:50051
+        UsedPorts:
+            - port: 5050
+              target_port: 5050
+        image:
+            id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
+        kind: Deployment
+        labels:
+            app: frontend
+        name: frontend
+        network:
+            - container_url: 8080
+        selectors:
+            - app:frontend
+        serviceaccountname: default
+  target:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - paymentservice:50051
+            - emailservice:5000
+            - currencyservice:7000
+            - cartservice:7070
+            - shippingservice:50051
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: checkoutservice
+        name: checkoutservice
+        network:
+            - container_url: 5050
+        selectors:
+            - app:checkoutservice
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: recommendationservice
+        network:
+            - port: 8080
+              target_port: 8080
+        selectors:
+            - app:recommendationservice
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - currencyservice:7000
+            - cartservice:7070
+            - recommendationservice:8080
+            - checkoutservice:5050
+            - adservice:9555
+            - shippingservice:50051
+        UsedPorts:
+            - port: 8080
+              target_port: 8080
+        image:
+            id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
+        kind: Deployment
+        labels:
+            app: frontend
+        name: frontend
+        network:
+            - container_url: 8080
+        selectors:
+            - app:frontend
+        serviceaccountname: default
+  target:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/recommendationservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: recommendationservice
+        name: recommendationservice
+        network:
+            - container_url: 8080
+        selectors:
+            - app:recommendationservice
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: frontend
+        network:
+            - port: 80
+              target_port: 8080
+        selectors:
+            - app:frontend
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - frontend:80
+        UsedPorts:
+            - port: 80
+              target_port: 8080
+        image:
+            id: gcr.io/google-samples/microservices-demo/loadgenerator:v0.2.3
+        kind: Deployment
+        labels:
+            app: loadgenerator
+        name: loadgenerator
+        network: null
+        selectors:
+            - app:loadgenerator
+        serviceaccountname: default
+  target:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - currencyservice:7000
+            - cartservice:7070
+            - recommendationservice:8080
+            - checkoutservice:5050
+            - adservice:9555
+            - shippingservice:50051
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
+        kind: Deployment
+        labels:
+            app: frontend
+        name: frontend
+        network:
+            - container_url: 8080
+        selectors:
+            - app:frontend
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: frontend-external
+        network:
+            - port: 80
+              target_port: 8080
+        selectors:
+            - app:frontend
+        type: LoadBalancer
+  target:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - currencyservice:7000
+            - cartservice:7070
+            - recommendationservice:8080
+            - checkoutservice:5050
+            - adservice:9555
+            - shippingservice:50051
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
+        kind: Deployment
+        labels:
+            app: frontend
+        name: frontend
+        network:
+            - container_url: 8080
+        selectors:
+            - app:frontend
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: paymentservice
+        network:
+            - port: 50051
+              target_port: 50051
+        selectors:
+            - app:paymentservice
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - paymentservice:50051
+            - emailservice:5000
+            - currencyservice:7000
+            - cartservice:7070
+            - shippingservice:50051
+        UsedPorts:
+            - port: 50051
+              target_port: 50051
+        image:
+            id: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: checkoutservice
+        name: checkoutservice
+        network:
+            - container_url: 5050
+        selectors:
+            - app:checkoutservice
+        serviceaccountname: default
+  target:
+    resource:
+        Envs: null
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/paymentservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: paymentservice
+        name: paymentservice
+        network:
+            - container_url: 50051
+        selectors:
+            - app:paymentservice
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: productcatalogservice
+        network:
+            - port: 3550
+              target_port: 3550
+        selectors:
+            - app:productcatalogservice
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - paymentservice:50051
+            - emailservice:5000
+            - currencyservice:7000
+            - cartservice:7070
+            - shippingservice:50051
+        UsedPorts:
+            - port: 3550
+              target_port: 3550
+        image:
+            id: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: checkoutservice
+        name: checkoutservice
+        network:
+            - container_url: 5050
+        selectors:
+            - app:checkoutservice
+        serviceaccountname: default
+  target:
+    resource:
+        Envs: null
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: productcatalogservice
+        name: productcatalogservice
+        network:
+            - container_url: 3550
+        selectors:
+            - app:productcatalogservice
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: productcatalogservice
+        network:
+            - port: 3550
+              target_port: 3550
+        selectors:
+            - app:productcatalogservice
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+        UsedPorts:
+            - port: 3550
+              target_port: 3550
+        image:
+            id: gcr.io/google-samples/microservices-demo/recommendationservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: recommendationservice
+        name: recommendationservice
+        network:
+            - container_url: 8080
+        selectors:
+            - app:recommendationservice
+        serviceaccountname: default
+  target:
+    resource:
+        Envs: null
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: productcatalogservice
+        name: productcatalogservice
+        network:
+            - container_url: 3550
+        selectors:
+            - app:productcatalogservice
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: productcatalogservice
+        network:
+            - port: 3550
+              target_port: 3550
+        selectors:
+            - app:productcatalogservice
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - currencyservice:7000
+            - cartservice:7070
+            - recommendationservice:8080
+            - checkoutservice:5050
+            - adservice:9555
+            - shippingservice:50051
+        UsedPorts:
+            - port: 3550
+              target_port: 3550
+        image:
+            id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
+        kind: Deployment
+        labels:
+            app: frontend
+        name: frontend
+        network:
+            - container_url: 8080
+        selectors:
+            - app:frontend
+        serviceaccountname: default
+  target:
+    resource:
+        Envs: null
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: productcatalogservice
+        name: productcatalogservice
+        network:
+            - container_url: 3550
+        selectors:
+            - app:productcatalogservice
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: cartservice
+        network:
+            - port: 7070
+              target_port: 7070
+        selectors:
+            - app:cartservice
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - paymentservice:50051
+            - emailservice:5000
+            - currencyservice:7000
+            - cartservice:7070
+            - shippingservice:50051
+        UsedPorts:
+            - port: 7070
+              target_port: 7070
+        image:
+            id: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: checkoutservice
+        name: checkoutservice
+        network:
+            - container_url: 5050
+        selectors:
+            - app:checkoutservice
+        serviceaccountname: default
+  target:
+    resource:
+        Envs:
+            - redis-cart:6379
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/cartservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: cartservice
+        name: cartservice
+        network:
+            - container_url: 7070
+        selectors:
+            - app:cartservice
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: cartservice
+        network:
+            - port: 7070
+              target_port: 7070
+        selectors:
+            - app:cartservice
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - currencyservice:7000
+            - cartservice:7070
+            - recommendationservice:8080
+            - checkoutservice:5050
+            - adservice:9555
+            - shippingservice:50051
+        UsedPorts:
+            - port: 7070
+              target_port: 7070
+        image:
+            id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
+        kind: Deployment
+        labels:
+            app: frontend
+        name: frontend
+        network:
+            - container_url: 8080
+        selectors:
+            - app:frontend
+        serviceaccountname: default
+  target:
+    resource:
+        Envs:
+            - redis-cart:6379
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/cartservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: cartservice
+        name: cartservice
+        network:
+            - container_url: 7070
+        selectors:
+            - app:cartservice
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: currencyservice
+        network:
+            - port: 7000
+              target_port: 7000
+        selectors:
+            - app:currencyservice
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - paymentservice:50051
+            - emailservice:5000
+            - currencyservice:7000
+            - cartservice:7070
+            - shippingservice:50051
+        UsedPorts:
+            - port: 7000
+              target_port: 7000
+        image:
+            id: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: checkoutservice
+        name: checkoutservice
+        network:
+            - container_url: 5050
+        selectors:
+            - app:checkoutservice
+        serviceaccountname: default
+  target:
+    resource:
+        Envs: null
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/currencyservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: currencyservice
+        name: currencyservice
+        network:
+            - container_url: 7000
+        selectors:
+            - app:currencyservice
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: currencyservice
+        network:
+            - port: 7000
+              target_port: 7000
+        selectors:
+            - app:currencyservice
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - currencyservice:7000
+            - cartservice:7070
+            - recommendationservice:8080
+            - checkoutservice:5050
+            - adservice:9555
+            - shippingservice:50051
+        UsedPorts:
+            - port: 7000
+              target_port: 7000
+        image:
+            id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
+        kind: Deployment
+        labels:
+            app: frontend
+        name: frontend
+        network:
+            - container_url: 8080
+        selectors:
+            - app:frontend
+        serviceaccountname: default
+  target:
+    resource:
+        Envs: null
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/currencyservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: currencyservice
+        name: currencyservice
+        network:
+            - container_url: 7000
+        selectors:
+            - app:currencyservice
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: shippingservice
+        network:
+            - port: 50051
+              target_port: 50051
+        selectors:
+            - app:shippingservice
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - paymentservice:50051
+            - emailservice:5000
+            - currencyservice:7000
+            - cartservice:7070
+            - shippingservice:50051
+        UsedPorts:
+            - port: 50051
+              target_port: 50051
+        image:
+            id: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: checkoutservice
+        name: checkoutservice
+        network:
+            - container_url: 5050
+        selectors:
+            - app:checkoutservice
+        serviceaccountname: default
+  target:
+    resource:
+        Envs: null
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/shippingservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: shippingservice
+        name: shippingservice
+        network:
+            - container_url: 50051
+        selectors:
+            - app:shippingservice
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: shippingservice
+        network:
+            - port: 50051
+              target_port: 50051
+        selectors:
+            - app:shippingservice
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - currencyservice:7000
+            - cartservice:7070
+            - recommendationservice:8080
+            - checkoutservice:5050
+            - adservice:9555
+            - shippingservice:50051
+        UsedPorts:
+            - port: 50051
+              target_port: 50051
+        image:
+            id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
+        kind: Deployment
+        labels:
+            app: frontend
+        name: frontend
+        network:
+            - container_url: 8080
+        selectors:
+            - app:frontend
+        serviceaccountname: default
+  target:
+    resource:
+        Envs: null
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/shippingservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: shippingservice
+        name: shippingservice
+        network:
+            - container_url: 50051
+        selectors:
+            - app:shippingservice
+        serviceaccountname: default
+- link:
+    resource:
+        kind: Service
+        name: redis-cart
+        network:
+            - port: 6379
+              target_port: 6379
+        selectors:
+            - app:redis-cart
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - redis-cart:6379
+        UsedPorts:
+            - port: 6379
+              target_port: 6379
+        image:
+            id: gcr.io/google-samples/microservices-demo/cartservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: cartservice
+        name: cartservice
+        network:
+            - container_url: 7070
+        selectors:
+            - app:cartservice
+        serviceaccountname: default
+  target:
+    resource:
+        Envs: null
+        UsedPorts: null
+        image:
+            id: redis:alpine
+        kind: Deployment
+        labels:
+            app: redis-cart
+        name: redis-cart
+        network:
+            - container_url: 6379
+        selectors:
+            - app:redis-cart
+- link:
+    resource:
+        kind: Service
+        name: adservice
+        network:
+            - port: 9555
+              target_port: 9555
+        selectors:
+            - app:adservice
+        type: ClusterIP
+  source:
+    resource:
+        Envs:
+            - productcatalogservice:3550
+            - currencyservice:7000
+            - cartservice:7070
+            - recommendationservice:8080
+            - checkoutservice:5050
+            - adservice:9555
+            - shippingservice:50051
+        UsedPorts:
+            - port: 9555
+              target_port: 9555
+        image:
+            id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
+        kind: Deployment
+        labels:
+            app: frontend
+        name: frontend
+        network:
+            - container_url: 8080
+        selectors:
+            - app:frontend
+        serviceaccountname: default
+  target:
+    resource:
+        Envs: null
+        UsedPorts: null
+        image:
+            id: gcr.io/google-samples/microservices-demo/adservice:v0.2.3
+        kind: Deployment
+        labels:
+            app: adservice
+        name: adservice
+        network:
+            - container_url: 9555
+        selectors:
+            - app:adservice
+        serviceaccountname: default
