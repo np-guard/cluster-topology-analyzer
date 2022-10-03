@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 // TestOutput calls controller.Start() with an example repo dir tests/onlineboutique/ ,
@@ -23,107 +25,64 @@ func TestPoliciesSynthesizerAPI(t *testing.T) {
 	logger := NewDefaultLogger()
 	synthesizer := NewPoliciesSynthesizer(WithLogger(logger))
 	netpols, err := synthesizer.PoliciesFromFolderPath(dirPath)
-	if err != nil {
-		t.Fatalf("expected no fatal errors, but got %v", err)
-	}
+	require.Nilf(t, err, "expected no fatal errors, but got %v", err)
+
 	fileScanningErrors := synthesizer.Errors()
-	if len(fileScanningErrors) > 0 {
-		t.Fatalf("expected no file-scanning errors, but got %v", fileScanningErrors)
-	}
-	if len(netpols) == 0 {
-		t.Fatalf("expected policies to be non-empty, but got empty")
-	}
+	require.Empty(t, fileScanningErrors)
+	require.NotEmpty(t, netpols)
 
 	buf, _ := json.MarshalIndent(netpols, "", "    ")
 	fp, err := os.Create(outFile)
-	if err != nil {
-		t.Fatalf("failed opening output file: %v", err)
-	}
+	require.Nil(t, err, "failed opening output file")
 	_, err = fp.Write(buf)
-	if err != nil {
-		t.Fatalf("failed writing to output file: %v", err)
-	}
+	require.Nil(t, err, "failed writing to output file")
 	fp.Close()
+
 	res, err := compareFiles(expectedOutput, outFile)
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
-	if !res {
-		t.Fatalf("expected res to be true, but got false")
-	}
+	require.Nil(t, err, "error comparing files")
+	require.True(t, res, "files not equal")
 
 	os.Remove(outFile)
 }
 
 func TestPoliciesSynthesizerAPIFatalError(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "badPath")
-
 	logger := NewDefaultLogger()
 	synthesizer := NewPoliciesSynthesizer(WithLogger(logger))
 	netpols, err := synthesizer.PoliciesFromFolderPath(dirPath)
-	if err == nil {
-		t.Fatal("expected a fatal error, but got none")
-	}
-	fileScanningErrors := synthesizer.Errors()
-	if len(fileScanningErrors) != 1 {
-		t.Fatalf("expected 1 file-scanning error, but got %d", len(fileScanningErrors))
-	}
-	if len(netpols) != 0 {
-		t.Fatalf("expected no policies, but got %d policies", len(netpols))
-	}
+	require.NotNil(t, err)
+	require.Len(t, synthesizer.Errors(), 1)
+	require.Empty(t, netpols)
 }
 
 func TestPoliciesSynthesizerAPIFailFast(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls")
-
 	synthesizer := NewPoliciesSynthesizer(WithStopOnError())
 	netpols, err := synthesizer.PoliciesFromFolderPath(dirPath)
-	if err != nil {
-		t.Fatalf("expected no fatal errors, but got %v", err)
-	}
-	fileScanningErrors := synthesizer.Errors()
-	if len(fileScanningErrors) != 1 {
-		t.Fatalf("expected 1 file-scanning error, but got %d", len(fileScanningErrors))
-	}
-	if len(netpols) != 0 {
-		t.Fatalf("expected no policies, but got %d policies", len(netpols))
-	}
+	require.Nil(t, err)
+	require.Len(t, synthesizer.Errors(), 1)
+	require.Empty(t, netpols)
 }
 
 func TestExtractConnectionsNoK8sResources(t *testing.T) {
-	testsDir := getTestsDir()
-	dirPath := filepath.Join(testsDir, "bad_yamls", "irrelevant_k8s_resources.yaml")
+	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "irrelevant_k8s_resources.yaml")
 	conns, errs := extractConnections(dirPath, false)
-	if len(errs) != 1 {
-		t.Fatalf("expected one error but got %d", len(errs))
-	}
-	if len(conns) > 0 {
-		t.Fatalf("expected no conns but got %d", len(conns))
-	}
+	require.Len(t, errs, 1)
+	require.Empty(t, conns)
 }
 
 func TestExtractConnectionsNoK8sResourcesFailFast(t *testing.T) {
-	testsDir := getTestsDir()
-	dirPath := filepath.Join(testsDir, "bad_yamls")
+	dirPath := filepath.Join(getTestsDir(), "bad_yamls")
 	conns, errs := extractConnections(dirPath, true)
-	if len(errs) != 1 {
-		t.Fatalf("expected one error but got %d", len(errs))
-	}
-	if len(conns) > 0 {
-		t.Fatalf("expected no conns but got %d", len(conns))
-	}
+	require.Len(t, errs, 1)
+	require.Empty(t, conns)
 }
 
 func TestExtractConnectionsBadConfigMapRefs(t *testing.T) {
-	testsDir := getTestsDir()
-	dirPath := filepath.Join(testsDir, "bad_yamls", "bad_configmap_refs.yaml")
+	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "bad_configmap_refs.yaml")
 	conns, errs := extractConnections(dirPath, false)
-	if len(errs) != 3 {
-		t.Fatalf("expected 3 errors but got %d", len(errs))
-	}
-	if len(conns) > 0 {
-		t.Fatalf("expected no conns but got %d", len(conns))
-	}
+	require.Len(t, errs, 3)
+	require.Empty(t, conns)
 }
 
 func readLines(path string) ([]string, error) {

@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestConnectionsOutput(t *testing.T) {
@@ -18,18 +20,11 @@ func TestConnectionsOutput(t *testing.T) {
 	args := getTestArgs(dirPath, outFile, JSONFormat, false, false, false)
 
 	err := detectTopology(args)
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
+	require.Nil(t, err)
 
 	res, err := compareFiles(expectedOutput, outFile)
-
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
-	if !res {
-		t.Fatalf("expected res to be true, but got false")
-	}
+	require.Nil(t, err)
+	require.True(t, res)
 
 	os.Remove(outFile)
 }
@@ -42,18 +37,11 @@ func TestConnectionsYamlOutput(t *testing.T) {
 	args := getTestArgs(dirPath, outFile, YamlFormat, false, false, false)
 
 	err := detectTopology(args)
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
+	require.Nil(t, err)
 
 	res, err := compareFiles(expectedOutput, outFile)
-
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
-	if !res {
-		t.Fatalf("expected res to be true, but got false")
-	}
+	require.Nil(t, err)
+	require.True(t, res)
 
 	os.Remove(outFile)
 }
@@ -66,18 +54,11 @@ func TestDirScan(t *testing.T) {
 	args := getTestArgs(dirPath, outFile, JSONFormat, false, true, false)
 
 	err := detectTopology(args)
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
+	require.Nil(t, err)
 
 	res, err := compareFiles(expectedOutput, outFile)
-
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
-	if !res {
-		t.Fatalf("expected res to be true, but got false")
-	}
+	require.Nil(t, err)
+	require.True(t, res)
 
 	os.Remove(outFile)
 }
@@ -110,16 +91,11 @@ func TestNetpolsJsonOutput(t *testing.T) {
 	for testName, testDetails := range tests {
 		args := getTestArgs(testDetails.dirPath, testDetails.outFile, JSONFormat, true, false, true)
 		err := detectTopology(args)
-		if err != nil {
-			t.Fatalf("Test %v: expected Start to return no error, but got %v", testName, err)
-		}
+		require.Nilf(t, err, "on test %s", testName)
+
 		res, err := compareFiles(testDetails.expectedOutput, testDetails.outFile)
-		if err != nil {
-			t.Fatalf("Test %v: expected err to be nil, but got %v", testName, err)
-		}
-		if !res {
-			t.Fatalf("Test %v: expected res to be true, but got false", testName)
-		}
+		require.Nilf(t, err, "on test %s", testName)
+		require.Truef(t, res, "on test %s", testName)
 		os.Remove(testDetails.outFile)
 	}
 }
@@ -132,18 +108,11 @@ func TestNetpolsYamlOutput(t *testing.T) {
 	args := getTestArgs(dirPath, outFile, YamlFormat, true, false, false)
 
 	err := detectTopology(args)
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
+	require.Nil(t, err)
 
 	res, err := compareFiles(expectedOutput, outFile)
-
-	if err != nil {
-		t.Fatalf("expected err to be nil, but got %v", err)
-	}
-	if !res {
-		t.Fatalf("expected res to be true, but got false")
-	}
+	require.Nil(t, err)
+	require.True(t, res)
 
 	os.Remove(outFile)
 }
