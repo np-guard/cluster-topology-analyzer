@@ -11,6 +11,8 @@ Usage of ./bin/net-top:
     	input directory path (required)
   -outputfile string
     	file path to store results
+  -format string
+        output format; must be either "json" or "yaml" (default "json")
   -netpols
         whether to synthesize NetworkPolicies to allow only the discovered connections
   -q    runs quietly, reports only severe errors and results
