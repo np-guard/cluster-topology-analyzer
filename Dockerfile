@@ -1,5 +1,5 @@
-# FROM golang:1.17-alpine
-FROM golang@sha256:99ddec1bbfd6d6bca3f9804c02363daee8c8524dae50df7942e8e60788fd17c9
+# FROM golang:1.18-alpine
+FROM golang@sha256:5b58b2e5963db4cc97d5c5d2580744713303e8ddc979ff89d939c559502ec263
 
 RUN apk --no-cache add git
 
