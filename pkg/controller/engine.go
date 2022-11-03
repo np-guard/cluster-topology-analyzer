@@ -6,25 +6,26 @@ import (
 )
 
 // Scans the given directory for YAMLs with k8s resources and extracts required connections between workloads
-func extractConnections(dirPath string, stopOn1stErr bool) ([]*common.Connections, []FileProcessingError) {
+func extractConnections(dirPath string, stopOn1stErr bool) ([]common.Resource, []*common.Connections, []FileProcessingError) {
 	// 1. Get all relevant resources from the repo and parse them
 	dObjs, fileErrors := getK8sDeploymentResources(dirPath, stopOn1stErr)
 	if stopProcessing(stopOn1stErr, fileErrors) {
-		return nil, fileErrors
+		return nil, nil, fileErrors
 	}
 	if len(dObjs) == 0 {
 		fileErrors = appendAndLogNewError(fileErrors, noK8sResourcesFound())
-		return []*common.Connections{}, fileErrors
+		return []common.Resource{}, []*common.Connections{}, fileErrors
 	}
 
 	resources, links, parseErrors := parseResources(dObjs)
 	fileErrors = append(fileErrors, parseErrors...)
 	if stopProcessing(stopOn1stErr, fileErrors) {
-		return nil, fileErrors
+		return nil, nil, fileErrors
 	}
 
 	// 2. Discover all connections between resources
-	return discoverConnections(resources, links), fileErrors
+	connections := discoverConnections(resources, links)
+	return resources, connections, fileErrors
 }
 
 func parseResources(objs []parsedK8sObjects) ([]common.Resource, []common.Service, []FileProcessingError) {

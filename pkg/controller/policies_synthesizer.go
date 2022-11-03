@@ -64,10 +64,10 @@ func (ps *PoliciesSynthesizer) Errors() []FileProcessingError {
 // PoliciesFromFolderPath returns a slice of Kubernetes NetworkPolicies that allow only the connections discovered
 // while processing K8s resources under the provided directory or one of its subdirectories (recursively).
 func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networking.NetworkPolicy, error) {
-	connections, errs := extractConnections(dirPath, ps.stopOnError)
+	resources, connections, errs := extractConnections(dirPath, ps.stopOnError)
 	policies := []*networking.NetworkPolicy{}
 	if !stopProcessing(ps.stopOnError, errs) {
-		policies = synthNetpols(connections)
+		policies = synthNetpols(resources, connections)
 	}
 
 	ps.errors = errs
@@ -81,7 +81,7 @@ func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networ
 // ConnectionsFromFolderPath returns a slice of Connections, listing the connections discovered
 // while processing K8s resources under the provided directory or one of its subdirectories (recursively).
 func (ps *PoliciesSynthesizer) ConnectionsFromFolderPath(dirPath string) ([]*common.Connections, error) {
-	connections, errs := extractConnections(dirPath, ps.stopOnError)
+	_, connections, errs := extractConnections(dirPath, ps.stopOnError)
 	ps.errors = errs
 	if err := hasFatalError(errs); err != nil {
 		return nil, err

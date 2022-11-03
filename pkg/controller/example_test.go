@@ -118,6 +118,21 @@ func ExamplePoliciesSynthesizer() {
 	//                 "Egress"
 	//             ]
 	//         }
+	//     },
+	//     {
+	//         "kind": "NetworkPolicy",
+	//         "apiVersion": "networking.k8s.io/v1",
+	//         "metadata": {
+	//             "name": "default-deny-in-namespace-",
+	//             "creationTimestamp": null
+	//         },
+	//         "spec": {
+	//             "podSelector": {},
+	//             "policyTypes": [
+	//                 "Ingress",
+	//                 "Egress"
+	//             ]
+	//         }
 	//     }
 	// ]
 }

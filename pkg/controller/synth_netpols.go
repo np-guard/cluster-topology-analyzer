@@ -15,6 +15,7 @@ import (
 const (
 	dnsPort           = 53
 	networkAPIVersion = "networking.k8s.io/v1"
+	networkPolicyKind = "NetworkPolicy"
 )
 
 type deploymentConnectivity struct {
@@ -45,9 +46,44 @@ func (deployConn *deploymentConnectivity) addEgressRule(
 	deployConn.egressConns = append(deployConn.egressConns, rule)
 }
 
-func synthNetpols(connections []*common.Connections) []*network.NetworkPolicy {
+// Generate a default-deny NetworkPolicy for the given namespace
+func getNsDefaultDenyPolicy(namespace string) *network.NetworkPolicy {
+	return &network.NetworkPolicy{
+		TypeMeta: metaV1.TypeMeta{
+			Kind:       networkPolicyKind,
+			APIVersion: networkAPIVersion,
+		},
+		ObjectMeta: metaV1.ObjectMeta{
+			Name:      "default-deny-in-namespace-" + namespace,
+			Namespace: namespace,
+		},
+		Spec: network.NetworkPolicySpec{
+			PodSelector: metaV1.LabelSelector{},               // select all pods in the namespace
+			Ingress:     []network.NetworkPolicyIngressRule{}, // deny all ingress
+			Egress:      []network.NetworkPolicyEgressRule{},  // deny all egress
+			PolicyTypes: []network.PolicyType{network.PolicyTypeIngress, network.PolicyTypeEgress},
+		},
+	}
+}
+
+// Generate default-deny NetworkPolicy for each namespace of the given resources
+func getNsDefaultDenyPolicies(resources []common.Resource) []*network.NetworkPolicy {
+	denyNetpols := []*network.NetworkPolicy{}
+	namespaces := map[string]bool{}
+	for resIdx := range resources {
+		namespace := resources[resIdx].Resource.Namespace
+		if _, ok := namespaces[namespace]; !ok {
+			namespaces[namespace] = true
+			denyNetpols = append(denyNetpols, getNsDefaultDenyPolicy(namespace))
+		}
+	}
+	return denyNetpols
+}
+
+func synthNetpols(resources []common.Resource, connections []*common.Connections) []*network.NetworkPolicy {
 	deployConnectivity := determineConnectivityPerDeployment(connections)
 	netpols := buildNetpolPerDeployment(deployConnectivity)
+	netpols = append(netpols, getNsDefaultDenyPolicies(resources)...)
 	return netpols
 }
 
@@ -152,7 +188,7 @@ func buildNetpolPerDeployment(deployConnectivity []*deploymentConnectivity) []*n
 		}
 		netpol := network.NetworkPolicy{
 			TypeMeta: metaV1.TypeMeta{
-				Kind:       "NetworkPolicy",
+				Kind:       networkPolicyKind,
 				APIVersion: networkAPIVersion,
 			},
 			ObjectMeta: metaV1.ObjectMeta{
