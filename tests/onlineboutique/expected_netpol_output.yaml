@@ -402,5 +402,15 @@ items:
         policyTypes:
             - Ingress
             - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: default-deny-in-namespace-
+      spec:
+        podSelector: {}
+        policyTypes:
+            - Ingress
+            - Egress
 kind: NetworkPolicyList
 metadata: {}

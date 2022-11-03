@@ -66,23 +66,26 @@ func TestPoliciesSynthesizerAPIFailFast(t *testing.T) {
 
 func TestExtractConnectionsNoK8sResources(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "irrelevant_k8s_resources.yaml")
-	conns, errs := extractConnections(dirPath, false)
+	resources, conns, errs := extractConnections(dirPath, false)
 	require.Len(t, errs, 1)
 	require.Empty(t, conns)
+	require.Empty(t, resources)
 }
 
 func TestExtractConnectionsNoK8sResourcesFailFast(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls")
-	conns, errs := extractConnections(dirPath, true)
+	resources, conns, errs := extractConnections(dirPath, true)
 	require.Len(t, errs, 1)
 	require.Empty(t, conns)
+	require.Empty(t, resources)
 }
 
 func TestExtractConnectionsBadConfigMapRefs(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "bad_configmap_refs.yaml")
-	conns, errs := extractConnections(dirPath, false)
+	resources, conns, errs := extractConnections(dirPath, false)
 	require.Len(t, errs, 3)
 	require.Empty(t, conns)
+	require.Len(t, resources, 2) // the two deployments in this example get read
 }
 
 func readLines(path string) ([]string, error) {
