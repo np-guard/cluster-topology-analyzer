@@ -15,6 +15,7 @@ import (
 const (
 	dnsPort           = 53
 	networkAPIVersion = "networking.k8s.io/v1"
+	networkPolicyKind = "NetworkPolicy"
 )
 
 type deploymentConnectivity struct {
@@ -49,7 +50,7 @@ func (deployConn *deploymentConnectivity) addEgressRule(
 func getNsDefaultDenyPolicy(namespace string) *network.NetworkPolicy {
 	return &network.NetworkPolicy{
 		TypeMeta: metaV1.TypeMeta{
-			Kind:       "NetworkPolicy",
+			Kind:       networkPolicyKind,
 			APIVersion: networkAPIVersion,
 		},
 		ObjectMeta: metaV1.ObjectMeta{
@@ -57,7 +58,7 @@ func getNsDefaultDenyPolicy(namespace string) *network.NetworkPolicy {
 			Namespace: namespace,
 		},
 		Spec: network.NetworkPolicySpec{
-			PodSelector: *&metaV1.LabelSelector{},             // select all pods in the namespace
+			PodSelector: metaV1.LabelSelector{},               // select all pods in the namespace
 			Ingress:     []network.NetworkPolicyIngressRule{}, // deny all ingress
 			Egress:      []network.NetworkPolicyEgressRule{},  // deny all egress
 			PolicyTypes: []network.PolicyType{network.PolicyTypeIngress, network.PolicyTypeEgress},
@@ -187,7 +188,7 @@ func buildNetpolPerDeployment(deployConnectivity []*deploymentConnectivity) []*n
 		}
 		netpol := network.NetworkPolicy{
 			TypeMeta: metaV1.TypeMeta{
-				Kind:       "NetworkPolicy",
+				Kind:       networkPolicyKind,
 				APIVersion: networkAPIVersion,
 			},
 			ObjectMeta: metaV1.ObjectMeta{
