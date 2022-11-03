@@ -406,7 +406,7 @@ items:
       kind: NetworkPolicy
       metadata:
         creationTimestamp: null
-        name: default-deny-in-namespace-
+        name: default-deny-in-namespace
       spec:
         podSelector: {}
         policyTypes:

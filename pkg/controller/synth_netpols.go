@@ -48,13 +48,17 @@ func (deployConn *deploymentConnectivity) addEgressRule(
 
 // Generate a default-deny NetworkPolicy for the given namespace
 func getNsDefaultDenyPolicy(namespace string) *network.NetworkPolicy {
+	policyName := "default-deny-in-namespace"
+	if namespace != "" {
+		policyName += "-" + namespace
+	}
 	return &network.NetworkPolicy{
 		TypeMeta: metaV1.TypeMeta{
 			Kind:       networkPolicyKind,
 			APIVersion: networkAPIVersion,
 		},
 		ObjectMeta: metaV1.ObjectMeta{
-			Name:      "default-deny-in-namespace-" + namespace,
+			Name:      policyName,
 			Namespace: namespace,
 		},
 		Spec: network.NetworkPolicySpec{
