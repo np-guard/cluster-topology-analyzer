@@ -64,8 +64,3 @@ type Connections struct {
 	Target *Resource `json:"target"`
 	Link   *Service  `json:"link"`
 }
-
-const (
-	ServiceCtx = "service"
-	DeployCtx  = "deployment"
-)
