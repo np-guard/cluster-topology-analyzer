@@ -44,10 +44,10 @@ type deployObject struct {
 }
 
 // return a list of yaml files under a given directory (recursively)
-func searchDeploymentManifests(repoDir string, stopOn1stErr bool) ([]string, []FileProcessingError) {
+func searchForManifests(repoDir string, stopOn1stErr bool, walkFn WalkFunction) ([]string, []FileProcessingError) {
 	yamls := []string{}
 	errors := []FileProcessingError{}
-	err := filepath.WalkDir(repoDir, func(path string, f os.DirEntry, err error) error {
+	err := walkFn(repoDir, func(path string, f os.DirEntry, err error) error {
 		if err != nil {
 			errors = appendAndLogNewError(errors, failedAccessingDir(path, err, path != repoDir))
 			if stopProcessing(stopOn1stErr, errors) {
@@ -66,8 +66,8 @@ func searchDeploymentManifests(repoDir string, stopOn1stErr bool) ([]string, []F
 	return yamls, errors
 }
 
-func getK8sDeploymentResources(repoDir string, stopOn1stErr bool) ([]parsedK8sObjects, []FileProcessingError) {
-	manifestFiles, fileScanErrors := searchDeploymentManifests(repoDir, stopOn1stErr)
+func getRelevantK8sResources(repoDir string, stopOn1stErr bool, walkFn WalkFunction) ([]parsedK8sObjects, []FileProcessingError) {
+	manifestFiles, fileScanErrors := searchForManifests(repoDir, stopOn1stErr, walkFn)
 	if stopProcessing(stopOn1stErr, fileScanErrors) {
 		return nil, fileScanErrors
 	}

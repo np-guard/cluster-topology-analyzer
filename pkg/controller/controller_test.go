@@ -66,7 +66,8 @@ func TestPoliciesSynthesizerAPIFailFast(t *testing.T) {
 
 func TestExtractConnectionsNoK8sResources(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "irrelevant_k8s_resources.yaml")
-	resources, conns, errs := extractConnections(dirPath, false)
+	synthesizer := NewPoliciesSynthesizer()
+	resources, conns, errs := synthesizer.extractConnections(dirPath)
 	require.Len(t, errs, 1)
 	require.Empty(t, conns)
 	require.Empty(t, resources)
@@ -74,7 +75,8 @@ func TestExtractConnectionsNoK8sResources(t *testing.T) {
 
 func TestExtractConnectionsNoK8sResourcesFailFast(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls")
-	resources, conns, errs := extractConnections(dirPath, true)
+	synthesizer := NewPoliciesSynthesizer(WithStopOnError())
+	resources, conns, errs := synthesizer.extractConnections(dirPath)
 	require.Len(t, errs, 1)
 	require.Empty(t, conns)
 	require.Empty(t, resources)
@@ -82,10 +84,29 @@ func TestExtractConnectionsNoK8sResourcesFailFast(t *testing.T) {
 
 func TestExtractConnectionsBadConfigMapRefs(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "bad_configmap_refs.yaml")
-	resources, conns, errs := extractConnections(dirPath, false)
+	synthesizer := NewPoliciesSynthesizer()
+	resources, conns, errs := synthesizer.extractConnections(dirPath)
 	require.Len(t, errs, 3)
 	require.Empty(t, conns)
 	require.Len(t, resources, 2) // the two deployments in this example get read
+}
+
+func TestExtractConnectionsCustomWalk(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "sockshop")
+	synthesizer := NewPoliciesSynthesizer(WithWalkFn(nonRecursiveWalk))
+	resources, conns, errs := synthesizer.extractConnections(dirPath)
+	require.Len(t, errs, 2) // no yaml should be found in a non-recursive scan
+	require.Empty(t, conns)
+	require.Empty(t, resources)
+}
+
+func TestExtractConnectionsCustomWalk2(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "sockshop")
+	synthesizer := NewPoliciesSynthesizer(WithWalkFn(filepath.WalkDir))
+	resources, conns, errs := synthesizer.extractConnections(dirPath)
+	require.Len(t, errs, 0)
+	require.Len(t, conns, 14)
+	require.Len(t, resources, 14)
 }
 
 func readLines(path string) ([]string, error) {

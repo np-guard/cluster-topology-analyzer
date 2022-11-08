@@ -5,10 +5,17 @@
 package controller
 
 import (
+	"io/fs"
+	"path/filepath"
+
 	networking "k8s.io/api/networking/v1"
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
+
+// Walk function is a function for recursively scanning a directory, in the spirit of Go's native filepath.WalkDir()
+// See https://pkg.go.dev/path/filepath#WalkDir for full description on how such file should work
+type WalkFunction func(root string, fn fs.WalkDirFunc) error
 
 // A PoliciesSynthesizer provides API to recursively scan a directory for Kubernetes resources
 // and extract the required connectivity between the workloads of the K8s application managed in this directory.
@@ -17,6 +24,7 @@ import (
 type PoliciesSynthesizer struct {
 	logger      Logger
 	stopOnError bool
+	walkFn      WalkFunction
 
 	errors []FileProcessingError
 }
@@ -24,6 +32,12 @@ type PoliciesSynthesizer struct {
 // PoliciesSynthesizerOption is the type for specifying options for PoliciesSynthesizer,
 // using Golang's Options Pattern (https://golang.cafe/blog/golang-functional-options-pattern.html).
 type PoliciesSynthesizerOption func(*PoliciesSynthesizer)
+
+func WithWalkFn(walkFn WalkFunction) PoliciesSynthesizerOption {
+	return func(p *PoliciesSynthesizer) {
+		p.walkFn = walkFn
+	}
+}
 
 // WithLogger is a functional option which sets the logger for a PoliciesSynthesizer to use.
 // The provided logger must conform with the package's Logger interface.
@@ -47,6 +61,7 @@ func NewPoliciesSynthesizer(options ...PoliciesSynthesizerOption) *PoliciesSynth
 	ps := &PoliciesSynthesizer{
 		logger:      NewDefaultLogger(),
 		stopOnError: false,
+		walkFn:      filepath.WalkDir,
 		errors:      []FileProcessingError{},
 	}
 	for _, o := range options {
@@ -64,7 +79,7 @@ func (ps *PoliciesSynthesizer) Errors() []FileProcessingError {
 // PoliciesFromFolderPath returns a slice of Kubernetes NetworkPolicies that allow only the connections discovered
 // while processing K8s resources under the provided directory or one of its subdirectories (recursively).
 func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networking.NetworkPolicy, error) {
-	resources, connections, errs := extractConnections(dirPath, ps.stopOnError)
+	resources, connections, errs := ps.extractConnections(dirPath)
 	policies := []*networking.NetworkPolicy{}
 	if !stopProcessing(ps.stopOnError, errs) {
 		policies = synthNetpols(resources, connections)
@@ -81,13 +96,36 @@ func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networ
 // ConnectionsFromFolderPath returns a slice of Connections, listing the connections discovered
 // while processing K8s resources under the provided directory or one of its subdirectories (recursively).
 func (ps *PoliciesSynthesizer) ConnectionsFromFolderPath(dirPath string) ([]*common.Connections, error) {
-	_, connections, errs := extractConnections(dirPath, ps.stopOnError)
+	_, connections, errs := ps.extractConnections(dirPath)
 	ps.errors = errs
 	if err := hasFatalError(errs); err != nil {
 		return nil, err
 	}
 
 	return connections, nil
+}
+
+// Scans the given directory for YAMLs with k8s resources and extracts required connections between workloads
+func (ps *PoliciesSynthesizer) extractConnections(dirPath string) ([]common.Resource, []*common.Connections, []FileProcessingError) {
+	// 1. Get all relevant resources from the repo and parse them
+	dObjs, fileErrors := getRelevantK8sResources(dirPath, ps.stopOnError, ps.walkFn)
+	if stopProcessing(ps.stopOnError, fileErrors) {
+		return nil, nil, fileErrors
+	}
+	if len(dObjs) == 0 {
+		fileErrors = appendAndLogNewError(fileErrors, noK8sResourcesFound())
+		return []common.Resource{}, []*common.Connections{}, fileErrors
+	}
+
+	resources, links, parseErrors := parseResources(dObjs)
+	fileErrors = append(fileErrors, parseErrors...)
+	if stopProcessing(ps.stopOnError, fileErrors) {
+		return nil, nil, fileErrors
+	}
+
+	// 2. Discover all connections between resources
+	connections := discoverConnections(resources, links)
+	return resources, connections, fileErrors
 }
 
 func hasFatalError(errs []FileProcessingError) error {
