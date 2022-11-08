@@ -9,7 +9,7 @@ type resourceParser struct {
 	logger Logger
 }
 
-func (rp *resourceParser) parseResources(objs []parsedK8sObjects) ([]common.Resource, []common.Service, []FileProcessingError) {
+func (rp *resourceParser) parseResources(objs []rawResourcesInFile) ([]common.Resource, []common.Service, []FileProcessingError) {
 	resources := []common.Resource{}
 	links := []common.Service{}
 	configmaps := map[string]common.CfgMap{} // map from a configmap's full-name to its data
@@ -58,7 +58,7 @@ func (rp *resourceParser) parseResources(objs []parsedK8sObjects) ([]common.Reso
 	return resources, links, parseErrors
 }
 
-func (rp *resourceParser) parseResource(obj parsedK8sObjects) ([]common.Resource, []common.Service, []common.CfgMap, []FileProcessingError) {
+func (rp *resourceParser) parseResource(obj rawResourcesInFile) ([]common.Resource, []common.Service, []common.CfgMap, []FileProcessingError) {
 	links := []common.Service{}
 	deployments := []common.Resource{}
 	configMaps := []common.CfgMap{}

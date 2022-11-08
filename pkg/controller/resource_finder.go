@@ -34,8 +34,8 @@ var (
 	yamlSuffix       = regexp.MustCompile(".ya?ml$")
 )
 
-// parsedK8sObjects represents a single YAML file with multiple K8s resources
-type parsedK8sObjects struct {
+// rawResourcesInFile represents a single YAML file with multiple K8s resources
+type rawResourcesInFile struct {
 	ManifestFilepath string
 	rawK8sResources  []rawK8sResource
 }
@@ -56,8 +56,8 @@ type resourceFinder struct {
 // getRelevantK8sResources is the main function of resourceFinder.
 // It scans a given directory using walkFn, looking for all yaml files. It then breaks each yaml into its documents
 // and extracts all K8s resources that are relevant for connectivity analysis.
-// The result is stored in a slice of parsedK8sObjects (one per yaml file), each containing a slice of rawK8sResource
-func (rf *resourceFinder) getRelevantK8sResources(repoDir string) ([]parsedK8sObjects, []FileProcessingError) {
+// The result is stored in a slice of rawResourcesInFile (one per yaml file), each containing a slice of rawK8sResource
+func (rf *resourceFinder) getRelevantK8sResources(repoDir string) ([]rawResourcesInFile, []FileProcessingError) {
 	manifestFiles, fileScanErrors := rf.searchForManifests(repoDir)
 	if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
 		return nil, fileScanErrors
@@ -67,7 +67,7 @@ func (rf *resourceFinder) getRelevantK8sResources(repoDir string) ([]parsedK8sOb
 		return nil, fileScanErrors
 	}
 
-	parsedObjs := []parsedK8sObjects{}
+	parsedObjs := []rawResourcesInFile{}
 	for _, mfp := range manifestFiles {
 		rawK8sResources, err := rf.parseK8sYaml(mfp)
 		fileScanErrors = append(fileScanErrors, err...)
@@ -79,7 +79,7 @@ func (rf *resourceFinder) getRelevantK8sResources(repoDir string) ([]parsedK8sOb
 			if pathSplit := strings.Split(mfp, repoDir); len(pathSplit) > 1 {
 				manifestFilepath = pathSplit[1]
 			}
-			parsedObjs = append(parsedObjs, parsedK8sObjects{rawK8sResources: rawK8sResources, ManifestFilepath: manifestFilepath})
+			parsedObjs = append(parsedObjs, rawResourcesInFile{rawK8sResources: rawK8sResources, ManifestFilepath: manifestFilepath})
 		}
 	}
 	return parsedObjs, fileScanErrors
