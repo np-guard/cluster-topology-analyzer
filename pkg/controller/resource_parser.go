@@ -5,10 +5,13 @@ import (
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
+// resourceParser encapsulates the code for extracting workload resources and service resources from raw YAML documents
 type resourceParser struct {
 	logger Logger
 }
 
+// parseResources takes a slice of raw resources per file, and returns a slice with all workload resources
+// and a slice with all Service resources. It also flattens all references a workload makes to ConfigMaps.
 func (rp *resourceParser) parseResources(objs []rawResourcesInFile) ([]common.Resource, []common.Service, []FileProcessingError) {
 	resources := []common.Resource{}
 	links := []common.Service{}
@@ -23,42 +26,21 @@ func (rp *resourceParser) parseResources(objs []rawResourcesInFile) ([]common.Re
 			configmaps[cfgObj.FullName] = cfgObj
 		}
 	}
-	for idx := range resources {
-		res := &resources[idx]
 
-		// handle config maps data to be associated into relevant deployments resource objects
-		for _, cfgMapRef := range res.Resource.ConfigMapRefs {
-			configmapFullName := res.Resource.Namespace + "/" + cfgMapRef
-			if cfgMap, ok := configmaps[configmapFullName]; ok {
-				for _, v := range cfgMap.Data {
-					if analyzer.IsNetworkAddressValue(v) {
-						res.Resource.Envs = append(res.Resource.Envs, v)
-					}
-				}
-			} else {
-				parseErrors = appendAndLogNewError(parseErrors, configMapNotFound(configmapFullName, res.Resource.Name), rp.logger)
-			}
-		}
-		for _, cfgMapKeyRef := range res.Resource.ConfigMapKeyRefs {
-			configmapFullName := res.Resource.Namespace + "/" + cfgMapKeyRef.Name
-			if cfgMap, ok := configmaps[configmapFullName]; ok {
-				if val, ok := cfgMap.Data[cfgMapKeyRef.Key]; ok {
-					if analyzer.IsNetworkAddressValue(val) {
-						res.Resource.Envs = append(res.Resource.Envs, val)
-					}
-				} else {
-					parseErrors = appendAndLogNewError(parseErrors, configMapKeyNotFound(cfgMapKeyRef.Name, cfgMapKeyRef.Key, res.Resource.Name), rp.logger)
-				}
-			} else {
-				parseErrors = appendAndLogNewError(parseErrors, configMapNotFound(configmapFullName, res.Resource.Name), rp.logger)
-			}
-		}
-	}
+	errs := rp.inlineConfigMapRefsAsEnvs(resources, configmaps)
+	parseErrors = append(parseErrors, errs...)
 
 	return resources, links, parseErrors
 }
 
-func (rp *resourceParser) parseResource(obj rawResourcesInFile) ([]common.Resource, []common.Service, []common.CfgMap, []FileProcessingError) {
+// parseResource takes raw K8s resources in a file and breaks them into 3 separate slices:
+// a slice with workload resources, a slice with Service resources, and a slice with ConfigMaps resources
+func (rp *resourceParser) parseResource(obj rawResourcesInFile) (
+	[]common.Resource,
+	[]common.Service,
+	[]common.CfgMap,
+	[]FileProcessingError,
+) {
 	links := []common.Service{}
 	deployments := []common.Resource{}
 	configMaps := []common.CfgMap{}
@@ -93,4 +75,44 @@ func (rp *resourceParser) parseResource(obj rawResourcesInFile) ([]common.Resour
 	}
 
 	return deployments, links, configMaps, parseErrors
+}
+
+// inlineConfigMapRefsAsEnvs appends to the Envs of each given resource the ConfigMap values it is referring to
+func (rp *resourceParser) inlineConfigMapRefsAsEnvs(resources []common.Resource, cfgMaps map[string]common.CfgMap) []FileProcessingError {
+	parseErrors := []FileProcessingError{}
+	for idx := range resources {
+		res := &resources[idx]
+
+		// inline the envFrom field in PodSpec->containers
+		for _, cfgMapRef := range res.Resource.ConfigMapRefs {
+			configmapFullName := res.Resource.Namespace + "/" + cfgMapRef
+			if cfgMap, ok := cfgMaps[configmapFullName]; ok {
+				for _, v := range cfgMap.Data {
+					if analyzer.IsNetworkAddressValue(v) {
+						res.Resource.Envs = append(res.Resource.Envs, v)
+					}
+				}
+			} else {
+				parseErrors = appendAndLogNewError(parseErrors, configMapNotFound(configmapFullName, res.Resource.Name), rp.logger)
+			}
+		}
+
+		// inline PodSpec->container->env->valueFrom->configMapKeyRef
+		for _, cfgMapKeyRef := range res.Resource.ConfigMapKeyRefs {
+			configmapFullName := res.Resource.Namespace + "/" + cfgMapKeyRef.Name
+			if cfgMap, ok := cfgMaps[configmapFullName]; ok {
+				if val, ok := cfgMap.Data[cfgMapKeyRef.Key]; ok {
+					if analyzer.IsNetworkAddressValue(val) {
+						res.Resource.Envs = append(res.Resource.Envs, val)
+					}
+				} else {
+					err := configMapKeyNotFound(cfgMapKeyRef.Name, cfgMapKeyRef.Key, res.Resource.Name)
+					parseErrors = appendAndLogNewError(parseErrors, err, rp.logger)
+				}
+			} else {
+				parseErrors = appendAndLogNewError(parseErrors, configMapNotFound(configmapFullName, res.Resource.Name), rp.logger)
+			}
+		}
+	}
+	return parseErrors
 }
