@@ -68,17 +68,15 @@ func (df *DefaultLogger) Errorf(err error, format string, o ...interface{}) {
 	df.l.Printf("%s: %v", fmt.Sprintf(format, o...), err)
 }
 
-var activeLogger Logger = NewDefaultLogger()
-
-func logError(fpe *FileProcessingError) {
+func logError(logger Logger, fpe *FileProcessingError) {
 	logMsg := fpe.Error().Error()
 	location := fpe.Location()
 	if location != "" {
 		logMsg = fmt.Sprintf("%s %s", location, logMsg)
 	}
 	if fpe.IsSevere() || fpe.IsFatal() {
-		activeLogger.Errorf(errors.New(logMsg), "")
+		logger.Errorf(errors.New(logMsg), "")
 	} else {
-		activeLogger.Warnf(logMsg)
+		logger.Warnf(logMsg)
 	}
 }

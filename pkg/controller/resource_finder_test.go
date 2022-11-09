@@ -11,7 +11,8 @@ import (
 
 func TestGetRelevantK8sResourcesBadYamlDocument(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "document_with_syntax_error.yaml")
-	objs, errs := getRelevantK8sResources(dirPath, false, filepath.WalkDir)
+	resFinder := resourceFinder{logger: NewDefaultLogger(), stopOn1stErr: false, walkFn: filepath.WalkDir}
+	objs, errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
 
 	docID, err := errs[0].DocumentID()
@@ -19,12 +20,13 @@ func TestGetRelevantK8sResourcesBadYamlDocument(t *testing.T) {
 	require.Nil(t, err)
 
 	require.Len(t, objs, 1)
-	require.Len(t, objs[0].DeployObjects, 6)
+	require.Len(t, objs[0].rawK8sResources, 6)
 }
 
 func TestGetRelevantK8sResourcesBadYamlDocumentFailFast(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "document_with_syntax_error.yaml")
-	objs, errs := getRelevantK8sResources(dirPath, true, filepath.WalkDir)
+	resFinder := resourceFinder{logger: NewDefaultLogger(), stopOn1stErr: true, walkFn: filepath.WalkDir}
+	objs, errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
 
 	docID, err := errs[0].DocumentID()
@@ -36,36 +38,41 @@ func TestGetRelevantK8sResourcesBadYamlDocumentFailFast(t *testing.T) {
 
 func TestGetRelevantK8sResourcesNoK8sResource(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "not_a_k8s_resource.yaml")
-	objs, errs := getRelevantK8sResources(dirPath, false, filepath.WalkDir)
+	resFinder := resourceFinder{logger: NewDefaultLogger(), stopOn1stErr: false, walkFn: filepath.WalkDir}
+	objs, errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
 	require.Len(t, objs, 1)
-	require.Len(t, objs[0].DeployObjects, 1)
+	require.Len(t, objs[0].rawK8sResources, 1)
 }
 
 func TestGetRelevantK8sResourcesNoYAMLs(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "subdir2")
-	objs, errs := getRelevantK8sResources(dirPath, false, filepath.WalkDir)
+	resFinder := resourceFinder{logger: NewDefaultLogger(), stopOn1stErr: false, walkFn: filepath.WalkDir}
+	objs, errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
 	require.Empty(t, objs)
 }
 
 func TestGetRelevantK8sResourcesBadDir(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "subdir3") // doesn't exist
-	objs, errs := getRelevantK8sResources(dirPath, false, filepath.WalkDir)
+	resFinder := resourceFinder{logger: NewDefaultLogger(), stopOn1stErr: false, walkFn: filepath.WalkDir}
+	objs, errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
 	require.Empty(t, objs)
 }
 
 func TestGetRelevantK8sResourcesBadDirFailFast(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "subdir3") // doesn't exist
-	objs, errs := getRelevantK8sResources(dirPath, true, filepath.WalkDir)
+	resFinder := resourceFinder{logger: NewDefaultLogger(), stopOn1stErr: true, walkFn: filepath.WalkDir}
+	objs, errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
 	require.Empty(t, objs)
 }
 
 func TestSearchForManifests(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls")
-	yamlFiles, errs := searchForManifests(dirPath, false, filepath.WalkDir)
+	resFinder := resourceFinder{logger: NewDefaultLogger(), stopOn1stErr: false, walkFn: filepath.WalkDir}
+	yamlFiles, errs := resFinder.searchForManifests(dirPath)
 	require.Empty(t, errs)
 	require.Len(t, yamlFiles, 5)
 }
@@ -85,7 +92,8 @@ func nonRecursiveWalk(root string, fn fs.WalkDirFunc) error {
 
 func TestSearchForManifestsNonRecursiveWalk(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls")
-	yamlFiles, errs := searchForManifests(dirPath, false, nonRecursiveWalk)
+	resFinder := resourceFinder{logger: NewDefaultLogger(), stopOn1stErr: false, walkFn: nonRecursiveWalk}
+	yamlFiles, errs := resFinder.searchForManifests(dirPath)
 	require.Empty(t, errs)
 	require.Len(t, yamlFiles, 4)
 }

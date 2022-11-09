@@ -9,17 +9,18 @@ import (
 
 // This function is at the core of the topology analysis
 // For each resource, it finds other resources that may use it and compiles a list of connections holding these dependencies
-func discoverConnections(resources []common.Resource, links []common.Service) []*common.Connections {
+func discoverConnections(resources []common.Resource, links []common.Service, logger Logger) []*common.Connections {
 	connections := []*common.Connections{}
 	for destResIdx := range resources {
 		destRes := &resources[destResIdx]
 		deploymentServices := findServices(destRes, links)
+		logger.Debugf("services matched to %v: %v", destRes.Resource.Name, deploymentServices)
 		for svcIdx := range deploymentServices {
 			svc := &deploymentServices[svcIdx]
 			srcRes := findSource(resources, svc)
 			if len(srcRes) > 0 {
 				for _, r := range srcRes {
-					activeLogger.Debugf("source: %s target: %s link: %s", svc.Resource.Name, r.Resource.Name, svc.Resource.Name)
+					logger.Debugf("source: %s target: %s link: %s", svc.Resource.Name, r.Resource.Name, svc.Resource.Name)
 					connections = append(connections, &common.Connections{Source: r, Target: destRes, Link: svc})
 				}
 			} else {
@@ -61,7 +62,6 @@ func findServices(resource *common.Resource, links []common.Service) []common.Se
 		}
 	}
 
-	activeLogger.Debugf("services matched to %v: %v", resource.Resource.Name, matchedSvc)
 	return matchedSvc
 }
 
