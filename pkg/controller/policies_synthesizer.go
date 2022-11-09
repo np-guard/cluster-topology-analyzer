@@ -67,7 +67,6 @@ func NewPoliciesSynthesizer(options ...PoliciesSynthesizerOption) *PoliciesSynth
 	for _, o := range options {
 		o(ps)
 	}
-	activeLogger = ps.logger
 	return ps
 }
 
@@ -127,7 +126,7 @@ func (ps *PoliciesSynthesizer) extractConnections(dirPath string) ([]common.Reso
 	}
 
 	// 3. Discover all connections between resources
-	connections := discoverConnections(resources, links)
+	connections := discoverConnections(resources, links, ps.logger)
 	return resources, connections, fileErrors
 }
 

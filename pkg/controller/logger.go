@@ -68,8 +68,6 @@ func (df *DefaultLogger) Errorf(err error, format string, o ...interface{}) {
 	df.l.Printf("%s: %v", fmt.Sprintf(format, o...), err)
 }
 
-var activeLogger Logger = NewDefaultLogger()
-
 func logError(logger Logger, fpe *FileProcessingError) {
 	logMsg := fpe.Error().Error()
 	location := fpe.Location()
