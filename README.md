@@ -19,6 +19,39 @@ Usage of ./bin/net-top:
   -v    runs with more informative messages printed to log
 ```
 
+## Algorithm
+The underlying algorithm for identifying required connectivity works as follows.
+1. Scan the given directory for all YAML files.
+1. In each YAML file identify manifests for [workload resources](https://kubernetes.io/docs/concepts/workloads/controllers/), [Service resources](https://kubernetes.io/docs/concepts/services-networking/service/#service-resource) and [ConfigMap resources](https://kubernetes.io/docs/concepts/configuration/configmap/).
+1. In each workload resource, inline references to ConfigMaps as if they were directly defined in the container's `envs` field.
+1. For each target-workload in the list of workload resources:
+    1. Identify all services whose selector matches target-workload
+    1. For each such service:
+        1. Compile a list of possible network addresses that can be used to access this service, e.g., `mysvc`, `mysvc.myns`, `mysvc.myns.svc.cluster.local`.
+        1. Identify all workload resources with a container whose `envs` field contains a value from the list of possible network addresses, possibly with an additional port specifier.
+        1. For each source-workload in the set of identified workloads:
+            1. Add a connection from source-workload to target-workload to the list of identified connections. Add protocol and port information if available.
+
+The algorithm for synthesizing NetworkPolicies that only allow the required connections and no other connection:
+1. For each workload generate a NetworkPolicy resources as follows:
+    - `metadata.namespace` is set to the workload's namespace (if specified)
+    - `spec.podSelector` is set to the workload pod selector
+    - `spec.policyTypes` is set to `["Ingress", "Egress"]`
+    - `spec.ingress` contains one rule for each required connection in which the workload is the target workload
+    - `spec.egress` contains one rule for each required connection in which the workload is the source workload. If such connections exist, also add a rule to allow egress to UDP port 53 (DNS).
+1. For each **workload namespace** add a *default deny* NetworkPolicy as follows
+    - `metadata.namespace` is set to the workload's namespace 
+    - `spec.podSelector` is set to the empty selector (selects all pods in the namespace)
+    - `spec.policyTypes` is set to `["Ingress", "Egress"]`
+    - `spec.ingress` contains no rules (allows no ingress)
+    - `spec.egress` contains no rules (allows no egress)
+
+## Assumptions
+
+1. All the relevant application resources (workloads, Services, ConfigMaps) are defined in YAML files under the given directory or its subdirectories
+1. All YAML files can be applied to a Kubernetes cluster as-is using `kubectl apply -f` (i.e., no helm-style templating).
+1. Every workload that needs to connect to a Service, will have the Service network address as the value of an environment variable (either directly in the containers `envs` or via a ConfigMap).
+
 ## Build the project
 Make sure  you have golang 1.18+ on your platform
 
