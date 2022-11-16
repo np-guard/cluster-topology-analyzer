@@ -50,7 +50,8 @@ The algorithm for synthesizing NetworkPolicies that only allow the required conn
 
 1. All the relevant application resources (workloads, Services, ConfigMaps) are defined in YAML files under the given directory or its subdirectories
 1. All YAML files can be applied to a Kubernetes cluster as-is using `kubectl apply -f` (i.e., no helm-style templating).
-1. Every workload that needs to connect to a Service, will have the Service network address as the value of an environment variable (either directly in the containers `envs` or via a ConfigMap).
+1. Every workload that needs to connect to a Service, will have the Service network address as the value of an environment variable. This can be specified directly in the containers `envs` (see example [here](tests/k8s_guestbook/frontend-deployment.yaml#L25:L28)) or via a ConfigMap (see examples [here](tests/onlineboutique/kubernetes-manifests.yaml#L105:L109) and [here](tests/onlineboutique/kubernetes-manifests.yaml#L269:L271)).
+1. The network addresses of a given Service `<svc>` in Namespace `<ns>`, exposing port `<portNum>`, must match this pattern `(http(s)?://)?<svc>(.<ns>(.svc.cluster.local)?)?(:<portNum>)?`. Examples for legal network addresses are `wordpress-mysql:3306`, `redis-follower.redis.svc.cluster.local:6379`, `redis-leader.redis`, `http://rating-service`.
 
 ## Build the project
 Make sure  you have golang 1.18+ on your platform
