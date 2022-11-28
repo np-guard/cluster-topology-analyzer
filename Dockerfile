@@ -1,7 +1,7 @@
 # FROM golang:1.18-alpine
 FROM golang@sha256:5b58b2e5963db4cc97d5c5d2580744713303e8ddc979ff89d939c559502ec263
 
-RUN apk --no-cache add git
+RUN apk update && apk upgrade && apk --no-cache add git
 
 WORKDIR /go/src/github.ibm.com/gitsecure-net-top/
 
