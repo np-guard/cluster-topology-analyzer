@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 
 	"gopkg.in/yaml.v3"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -75,11 +74,8 @@ func (rf *resourceFinder) getRelevantK8sResources(repoDir string) ([]rawResource
 			return nil, fileScanErrors
 		}
 		if len(rawK8sResources) > 0 {
-			manifestFilepath := mfp
-			if pathSplit := strings.Split(mfp, repoDir); len(pathSplit) > 1 {
-				manifestFilepath = pathSplit[1]
-			}
-			parsedObjs = append(parsedObjs, rawResourcesInFile{rawK8sResources: rawK8sResources, ManifestFilepath: manifestFilepath})
+			manifestFilePath := pathWithoutBaseDir(mfp, repoDir)
+			parsedObjs = append(parsedObjs, rawResourcesInFile{rawK8sResources: rawK8sResources, ManifestFilepath: manifestFilePath})
 		}
 	}
 	return parsedObjs, fileScanErrors
@@ -164,4 +160,17 @@ func (rf *resourceFinder) parseK8sYaml(mfp string) ([]rawK8sResource, []FileProc
 		}
 	}
 	return dObjs, fileProcessingErrors
+}
+
+// returns a file path without its prefix base dir
+func pathWithoutBaseDir(path, baseDir string) string {
+	if path == baseDir { // baseDir is actually a file...
+		return filepath.Base(path) // return just the file name
+	}
+
+	relPath, err := filepath.Rel(baseDir, path)
+	if err != nil {
+		return path
+	}
+	return relPath
 }
