@@ -1,5 +1,6 @@
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: emailservice
         network:
@@ -20,6 +21,7 @@
         UsedPorts:
             - port: 5000
               target_port: 8080
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
         kind: Deployment
@@ -28,13 +30,12 @@
         name: checkoutservice
         network:
             - container_url: 5050
-        selectors:
-            - app:checkoutservice
         serviceaccountname: default
   target:
     resource:
         Envs: null
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/emailservice:v0.2.3
         kind: Deployment
@@ -43,11 +44,10 @@
         name: emailservice
         network:
             - container_url: 8080
-        selectors:
-            - app:emailservice
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: checkoutservice
         network:
@@ -69,6 +69,7 @@
         UsedPorts:
             - port: 5050
               target_port: 5050
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
         kind: Deployment
@@ -77,8 +78,6 @@
         name: frontend
         network:
             - container_url: 8080
-        selectors:
-            - app:frontend
         serviceaccountname: default
   target:
     resource:
@@ -90,6 +89,7 @@
             - cartservice:7070
             - shippingservice:50051
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
         kind: Deployment
@@ -98,11 +98,10 @@
         name: checkoutservice
         network:
             - container_url: 5050
-        selectors:
-            - app:checkoutservice
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: recommendationservice
         network:
@@ -124,6 +123,7 @@
         UsedPorts:
             - port: 8080
               target_port: 8080
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
         kind: Deployment
@@ -132,14 +132,13 @@
         name: frontend
         network:
             - container_url: 8080
-        selectors:
-            - app:frontend
         serviceaccountname: default
   target:
     resource:
         Envs:
             - productcatalogservice:3550
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/recommendationservice:v0.2.3
         kind: Deployment
@@ -148,11 +147,10 @@
         name: recommendationservice
         network:
             - container_url: 8080
-        selectors:
-            - app:recommendationservice
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: frontend
         network:
@@ -168,6 +166,7 @@
         UsedPorts:
             - port: 80
               target_port: 8080
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/loadgenerator:v0.2.3
         kind: Deployment
@@ -175,8 +174,6 @@
             app: loadgenerator
         name: loadgenerator
         network: null
-        selectors:
-            - app:loadgenerator
         serviceaccountname: default
   target:
     resource:
@@ -189,6 +186,7 @@
             - adservice:9555
             - shippingservice:50051
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
         kind: Deployment
@@ -197,11 +195,10 @@
         name: frontend
         network:
             - container_url: 8080
-        selectors:
-            - app:frontend
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: frontend-external
         network:
@@ -221,6 +218,7 @@
             - adservice:9555
             - shippingservice:50051
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
         kind: Deployment
@@ -229,11 +227,10 @@
         name: frontend
         network:
             - container_url: 8080
-        selectors:
-            - app:frontend
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: paymentservice
         network:
@@ -254,6 +251,7 @@
         UsedPorts:
             - port: 50051
               target_port: 50051
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
         kind: Deployment
@@ -262,13 +260,12 @@
         name: checkoutservice
         network:
             - container_url: 5050
-        selectors:
-            - app:checkoutservice
         serviceaccountname: default
   target:
     resource:
         Envs: null
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/paymentservice:v0.2.3
         kind: Deployment
@@ -277,11 +274,10 @@
         name: paymentservice
         network:
             - container_url: 50051
-        selectors:
-            - app:paymentservice
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: productcatalogservice
         network:
@@ -302,6 +298,7 @@
         UsedPorts:
             - port: 3550
               target_port: 3550
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
         kind: Deployment
@@ -310,13 +307,12 @@
         name: checkoutservice
         network:
             - container_url: 5050
-        selectors:
-            - app:checkoutservice
         serviceaccountname: default
   target:
     resource:
         Envs: null
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3
         kind: Deployment
@@ -325,11 +321,10 @@
         name: productcatalogservice
         network:
             - container_url: 3550
-        selectors:
-            - app:productcatalogservice
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: productcatalogservice
         network:
@@ -345,6 +340,7 @@
         UsedPorts:
             - port: 3550
               target_port: 3550
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/recommendationservice:v0.2.3
         kind: Deployment
@@ -353,13 +349,12 @@
         name: recommendationservice
         network:
             - container_url: 8080
-        selectors:
-            - app:recommendationservice
         serviceaccountname: default
   target:
     resource:
         Envs: null
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3
         kind: Deployment
@@ -368,11 +363,10 @@
         name: productcatalogservice
         network:
             - container_url: 3550
-        selectors:
-            - app:productcatalogservice
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: productcatalogservice
         network:
@@ -394,6 +388,7 @@
         UsedPorts:
             - port: 3550
               target_port: 3550
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
         kind: Deployment
@@ -402,13 +397,12 @@
         name: frontend
         network:
             - container_url: 8080
-        selectors:
-            - app:frontend
         serviceaccountname: default
   target:
     resource:
         Envs: null
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3
         kind: Deployment
@@ -417,11 +411,10 @@
         name: productcatalogservice
         network:
             - container_url: 3550
-        selectors:
-            - app:productcatalogservice
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: cartservice
         network:
@@ -442,6 +435,7 @@
         UsedPorts:
             - port: 7070
               target_port: 7070
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
         kind: Deployment
@@ -450,14 +444,13 @@
         name: checkoutservice
         network:
             - container_url: 5050
-        selectors:
-            - app:checkoutservice
         serviceaccountname: default
   target:
     resource:
         Envs:
             - redis-cart:6379
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/cartservice:v0.2.3
         kind: Deployment
@@ -466,11 +459,10 @@
         name: cartservice
         network:
             - container_url: 7070
-        selectors:
-            - app:cartservice
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: cartservice
         network:
@@ -492,6 +484,7 @@
         UsedPorts:
             - port: 7070
               target_port: 7070
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
         kind: Deployment
@@ -500,14 +493,13 @@
         name: frontend
         network:
             - container_url: 8080
-        selectors:
-            - app:frontend
         serviceaccountname: default
   target:
     resource:
         Envs:
             - redis-cart:6379
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/cartservice:v0.2.3
         kind: Deployment
@@ -516,11 +508,10 @@
         name: cartservice
         network:
             - container_url: 7070
-        selectors:
-            - app:cartservice
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: currencyservice
         network:
@@ -541,6 +532,7 @@
         UsedPorts:
             - port: 7000
               target_port: 7000
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
         kind: Deployment
@@ -549,13 +541,12 @@
         name: checkoutservice
         network:
             - container_url: 5050
-        selectors:
-            - app:checkoutservice
         serviceaccountname: default
   target:
     resource:
         Envs: null
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/currencyservice:v0.2.3
         kind: Deployment
@@ -564,11 +555,10 @@
         name: currencyservice
         network:
             - container_url: 7000
-        selectors:
-            - app:currencyservice
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: currencyservice
         network:
@@ -590,6 +580,7 @@
         UsedPorts:
             - port: 7000
               target_port: 7000
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
         kind: Deployment
@@ -598,13 +589,12 @@
         name: frontend
         network:
             - container_url: 8080
-        selectors:
-            - app:frontend
         serviceaccountname: default
   target:
     resource:
         Envs: null
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/currencyservice:v0.2.3
         kind: Deployment
@@ -613,11 +603,10 @@
         name: currencyservice
         network:
             - container_url: 7000
-        selectors:
-            - app:currencyservice
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: shippingservice
         network:
@@ -638,6 +627,7 @@
         UsedPorts:
             - port: 50051
               target_port: 50051
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
         kind: Deployment
@@ -646,13 +636,12 @@
         name: checkoutservice
         network:
             - container_url: 5050
-        selectors:
-            - app:checkoutservice
         serviceaccountname: default
   target:
     resource:
         Envs: null
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/shippingservice:v0.2.3
         kind: Deployment
@@ -661,11 +650,10 @@
         name: shippingservice
         network:
             - container_url: 50051
-        selectors:
-            - app:shippingservice
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: shippingservice
         network:
@@ -687,6 +675,7 @@
         UsedPorts:
             - port: 50051
               target_port: 50051
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
         kind: Deployment
@@ -695,13 +684,12 @@
         name: frontend
         network:
             - container_url: 8080
-        selectors:
-            - app:frontend
         serviceaccountname: default
   target:
     resource:
         Envs: null
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/shippingservice:v0.2.3
         kind: Deployment
@@ -710,11 +698,10 @@
         name: shippingservice
         network:
             - container_url: 50051
-        selectors:
-            - app:shippingservice
         serviceaccountname: default
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: redis-cart
         network:
@@ -730,6 +717,7 @@
         UsedPorts:
             - port: 6379
               target_port: 6379
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/cartservice:v0.2.3
         kind: Deployment
@@ -738,13 +726,12 @@
         name: cartservice
         network:
             - container_url: 7070
-        selectors:
-            - app:cartservice
         serviceaccountname: default
   target:
     resource:
         Envs: null
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: redis:alpine
         kind: Deployment
@@ -753,10 +740,9 @@
         name: redis-cart
         network:
             - container_url: 6379
-        selectors:
-            - app:redis-cart
 - link:
     resource:
+        filepath: kubernetes-manifests.yaml
         kind: Service
         name: adservice
         network:
@@ -778,6 +764,7 @@
         UsedPorts:
             - port: 9555
               target_port: 9555
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/frontend:v0.2.3
         kind: Deployment
@@ -786,13 +773,12 @@
         name: frontend
         network:
             - container_url: 8080
-        selectors:
-            - app:frontend
         serviceaccountname: default
   target:
     resource:
         Envs: null
         UsedPorts: null
+        filepath: kubernetes-manifests.yaml
         image:
             id: gcr.io/google-samples/microservices-demo/adservice:v0.2.3
         kind: Deployment
@@ -801,6 +787,4 @@
         name: adservice
         network:
             - container_url: 9555
-        selectors:
-            - app:adservice
         serviceaccountname: default

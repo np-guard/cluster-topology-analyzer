@@ -22,37 +22,31 @@ func ScanK8sWorkloadObject(kind string, objDataBuf []byte) (common.Resource, err
 	case "ReplicaSet":
 		obj := parseReplicaSet(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.GetLabels()
-		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "ReplicationController":
 		obj := parseReplicationController(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector)
 		podSpecV1 = *obj.Spec.Template
 		metaObj = obj
 	case "Deployment":
 		obj := parseDeployment(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "DaemonSet":
 		obj := parseDaemonSet(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "StatefulSet":
 		obj := parseStatefulSet(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "Job":
 		obj := parseJob(bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		resourceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(obj.Spec.Selector.MatchLabels)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	default:

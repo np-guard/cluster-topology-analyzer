@@ -18,7 +18,6 @@ type Resource struct {
 	Resource struct {
 		Name               string            `json:"name,omitempty"`
 		Namespace          string            `json:"namespace,omitempty"`
-		Selectors          []string          `json:"selectors,omitempty"`
 		Labels             map[string]string `json:"labels,omitempty"`
 		ServiceAccountName string            `json:"serviceaccountname,omitempty"`
 		FilePath           string            `json:"filepath,omitempty"`
