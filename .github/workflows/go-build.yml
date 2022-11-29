@@ -1,4 +1,4 @@
-name: Go
+name: push-tests
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
@@ -28,3 +28,18 @@ jobs:
 
     - name: Test
       run: go test -v ./...
+  
+  test-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Build Docker image
+        uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5
+        id: build_docker
+        with:
+          context: .
+          push: false
+      - name: Check Docker image - help
+        run: docker run ${{ steps.build_docker.outputs.digest }} -h
+      - name: Check Docker image - scan
+        run: docker run ${{ steps.build_docker.outputs.digest }} -dirpath /
