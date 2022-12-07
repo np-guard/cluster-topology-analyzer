@@ -114,6 +114,11 @@
                                 "protocol": "UDP",
                                 "port": 53
                             }
+                        ],
+                        "to": [
+                            {
+                                "namespaceSelector": {}
+                            }
                         ]
                     }
                 ],
@@ -263,6 +268,11 @@
                             {
                                 "protocol": "UDP",
                                 "port": 53
+                            }
+                        ],
+                        "to": [
+                            {
+                                "namespaceSelector": {}
                             }
                         ]
                     }
@@ -532,6 +542,11 @@
                                 "protocol": "UDP",
                                 "port": 53
                             }
+                        ],
+                        "to": [
+                            {
+                                "namespaceSelector": {}
+                            }
                         ]
                     }
                 ],
@@ -577,6 +592,11 @@
                             {
                                 "protocol": "UDP",
                                 "port": 53
+                            }
+                        ],
+                        "to": [
+                            {
+                                "namespaceSelector": {}
                             }
                         ]
                     }
@@ -752,6 +772,11 @@
                             {
                                 "protocol": "UDP",
                                 "port": 53
+                            }
+                        ],
+                        "to": [
+                            {
+                                "namespaceSelector": {}
                             }
                         ]
                     }
