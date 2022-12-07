@@ -187,8 +187,9 @@ func toCoreProtocol(protocol string) core.Protocol {
 func buildNetpolPerDeployment(deployConnectivity []*deploymentConnectivity) []*network.NetworkPolicy {
 	netpols := make([]*network.NetworkPolicy, 0, len(deployConnectivity))
 	for _, deployConn := range deployConnectivity {
-		if len(deployConn.egressConns) > 0 {
-			deployConn.addEgressRule(nil, []network.NetworkPolicyPort{getDNSPort()})
+		if len(deployConn.egressConns) > 0 { // add a rule to allow egress DNS traffic (inside the cluster)
+			allClusterPeers := []network.NetworkPolicyPeer{{NamespaceSelector: &metaV1.LabelSelector{}}}
+			deployConn.addEgressRule(allClusterPeers, []network.NetworkPolicyPort{getDNSPort()})
 		}
 		netpol := network.NetworkPolicy{
 			TypeMeta: metaV1.TypeMeta{
