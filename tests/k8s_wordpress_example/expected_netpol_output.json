@@ -52,6 +52,11 @@
                                 "protocol": "UDP",
                                 "port": 53
                             }
+                        ],
+                        "to": [
+                            {
+                                "namespaceSelector": {}
+                            }
                         ]
                     }
                 ],

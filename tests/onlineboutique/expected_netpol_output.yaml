@@ -37,6 +37,8 @@ items:
             - ports:
                 - port: 53
                   protocol: UDP
+              to:
+                - namespaceSelector: {}
         ingress:
             - from:
                 - podSelector:
@@ -110,6 +112,8 @@ items:
             - ports:
                 - port: 53
                   protocol: UDP
+              to:
+                - namespaceSelector: {}
         ingress:
             - from:
                 - podSelector:
@@ -230,6 +234,8 @@ items:
             - ports:
                 - port: 53
                   protocol: UDP
+              to:
+                - namespaceSelector: {}
         ingress:
             - from:
                 - podSelector:
@@ -264,6 +270,8 @@ items:
             - ports:
                 - port: 53
                   protocol: UDP
+              to:
+                - namespaceSelector: {}
         podSelector:
             matchLabels:
                 app: loadgenerator
@@ -341,6 +349,8 @@ items:
             - ports:
                 - port: 53
                   protocol: UDP
+              to:
+                - namespaceSelector: {}
         ingress:
             - from:
                 - podSelector:

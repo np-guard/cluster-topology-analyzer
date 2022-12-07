@@ -70,6 +70,11 @@ func ExamplePoliciesSynthesizer() {
 	//                             "protocol": "UDP",
 	//                             "port": 53
 	//                         }
+	//                     ],
+	//                     "to": [
+	//                         {
+	//                             "namespaceSelector": {}
+	//                         }
 	//                     ]
 	//                 }
 	//             ],
