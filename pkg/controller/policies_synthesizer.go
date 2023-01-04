@@ -33,7 +33,7 @@ type PoliciesSynthesizer struct {
 // using Golang's Options Pattern (https://golang.cafe/blog/golang-functional-options-pattern.html).
 type PoliciesSynthesizerOption func(*PoliciesSynthesizer)
 
-// WithLogger is a functional option, allowing user to provide their own dir-scanning function.
+// WithWalkFn is a functional option, allowing user to provide their own dir-scanning function.
 // The function will be used when searching for YAML files; it must have the same signature as filepath.WalkDir.
 func WithWalkFn(walkFn WalkFunction) PoliciesSynthesizerOption {
 	return func(p *PoliciesSynthesizer) {
