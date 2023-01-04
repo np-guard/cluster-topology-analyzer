@@ -14,7 +14,7 @@ import (
 )
 
 // Walk function is a function for recursively scanning a directory, in the spirit of Go's native filepath.WalkDir()
-// See https://pkg.go.dev/path/filepath#WalkDir for full description on how such file should work
+// See https://pkg.go.dev/path/filepath#WalkDir for full description on how such a function should work
 type WalkFunction func(root string, fn fs.WalkDirFunc) error
 
 // A PoliciesSynthesizer provides API to recursively scan a directory for Kubernetes resources
@@ -33,6 +33,8 @@ type PoliciesSynthesizer struct {
 // using Golang's Options Pattern (https://golang.cafe/blog/golang-functional-options-pattern.html).
 type PoliciesSynthesizerOption func(*PoliciesSynthesizer)
 
+// WithLogger is a functional option, allowing user to provide their own dir-scanning function.
+// The function will be used when searching for YAML files; it must have the same signature as filepath.WalkDir.
 func WithWalkFn(walkFn WalkFunction) PoliciesSynthesizerOption {
 	return func(p *PoliciesSynthesizer) {
 		p.walkFn = walkFn
