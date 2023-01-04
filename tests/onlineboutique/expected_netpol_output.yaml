@@ -20,6 +20,7 @@ items:
         policyTypes:
             - Ingress
             - Egress
+      status: {}
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
@@ -60,6 +61,7 @@ items:
         policyTypes:
             - Ingress
             - Egress
+      status: {}
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
@@ -128,6 +130,7 @@ items:
         policyTypes:
             - Ingress
             - Egress
+      status: {}
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
@@ -155,6 +158,7 @@ items:
         policyTypes:
             - Ingress
             - Egress
+      status: {}
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
@@ -175,6 +179,7 @@ items:
         policyTypes:
             - Ingress
             - Egress
+      status: {}
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
@@ -253,6 +258,7 @@ items:
         policyTypes:
             - Ingress
             - Egress
+      status: {}
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
@@ -278,6 +284,7 @@ items:
         policyTypes:
             - Ingress
             - Egress
+      status: {}
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
@@ -298,6 +305,7 @@ items:
         policyTypes:
             - Ingress
             - Egress
+      status: {}
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
@@ -332,6 +340,7 @@ items:
         policyTypes:
             - Ingress
             - Egress
+      status: {}
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
@@ -365,6 +374,7 @@ items:
         policyTypes:
             - Ingress
             - Egress
+      status: {}
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
@@ -385,6 +395,7 @@ items:
         policyTypes:
             - Ingress
             - Egress
+      status: {}
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
@@ -412,6 +423,7 @@ items:
         policyTypes:
             - Ingress
             - Egress
+      status: {}
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
@@ -422,5 +434,6 @@ items:
         policyTypes:
             - Ingress
             - Egress
+      status: {}
 kind: NetworkPolicyList
 metadata: {}
