@@ -72,7 +72,7 @@ func logError(logger Logger, fpe *FileProcessingError) {
 	logMsg := fpe.Error().Error()
 	location := fpe.Location()
 	if location != "" {
-		logMsg = fmt.Sprintf("%s %s", location, logMsg)
+		logMsg = fmt.Sprintf("%s, %s", location, logMsg)
 	}
 	if fpe.IsSevere() || fpe.IsFatal() {
 		logger.Errorf(errors.New(logMsg), "")
