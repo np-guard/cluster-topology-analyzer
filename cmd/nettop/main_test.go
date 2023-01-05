@@ -124,7 +124,7 @@ func getTestsDir() string {
 
 func getTestArgs(dirPath, outFile, outFormat string, netpols, quiet, verbose bool) InArgs {
 	args := InArgs{}
-	args.DirPath = &dirPath
+	args.DirPaths = []string{dirPath}
 	args.OutputFile = &outFile
 	args.OutputFormat = &outFormat
 	args.SynthNetpols = &netpols

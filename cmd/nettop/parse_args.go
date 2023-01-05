@@ -5,13 +5,24 @@ import (
 	"fmt"
 )
 
+type PathList []string
+
+func (dp *PathList) String() string {
+	return fmt.Sprintln(*dp)
+}
+
+func (dp *PathList) Set(path string) error {
+	*dp = append(*dp, path)
+	return nil
+}
+
 const (
 	JSONFormat = "json"
 	YamlFormat = "yaml"
 )
 
 type InArgs struct {
-	DirPath      *string
+	DirPaths     PathList
 	OutputFile   *string
 	OutputFormat *string
 	SynthNetpols *bool
@@ -20,7 +31,7 @@ type InArgs struct {
 }
 
 func ParseInArgs(args *InArgs) error {
-	args.DirPath = flag.String("dirpath", "", "input directory path")
+	flag.Var(&args.DirPaths, "dirpath", "input directory path")
 	args.OutputFile = flag.String("outputfile", "", "file path to store results")
 	args.OutputFormat = flag.String("format", JSONFormat, "output format; must be either \"json\" or \"yaml\"")
 	args.SynthNetpols = flag.Bool("netpols", false, "whether to synthesize NetworkPolicies to allow only the discovered connections")
@@ -28,9 +39,9 @@ func ParseInArgs(args *InArgs) error {
 	args.Verbose = flag.Bool("v", false, "runs with more informative messages printed to log")
 	flag.Parse()
 
-	if *args.DirPath == "" {
+	if len(args.DirPaths) == 0 {
 		flag.PrintDefaults()
-		return fmt.Errorf("missing parameter: %s", *args.DirPath)
+		return fmt.Errorf("missing parameter: dirpath")
 	}
 	if *args.Quiet && *args.Verbose {
 		flag.PrintDefaults()
