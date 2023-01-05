@@ -50,8 +50,11 @@ func TestPoliciesSynthesizerAPIFatalError(t *testing.T) {
 	logger := NewDefaultLogger()
 	synthesizer := NewPoliciesSynthesizer(WithLogger(logger))
 	netpols, err := synthesizer.PoliciesFromFolderPath(dirPath)
+	badDir := &FailedAccessingDirError{}
+	require.True(t, errors.As(err, &badDir))
 	require.NotNil(t, err)
 	require.Len(t, synthesizer.Errors(), 1)
+	require.True(t, errors.As(synthesizer.Errors()[0].Error(), &badDir))
 	require.Empty(t, netpols)
 }
 
@@ -61,6 +64,8 @@ func TestPoliciesSynthesizerAPIFailFast(t *testing.T) {
 	netpols, err := synthesizer.PoliciesFromFolderPath(dirPath)
 	require.Nil(t, err)
 	require.Len(t, synthesizer.Errors(), 1)
+	badYaml := &MalformedYamlDocError{}
+	require.True(t, errors.As(synthesizer.Errors()[0].Error(), &badYaml))
 	require.Empty(t, netpols)
 }
 
@@ -69,6 +74,8 @@ func TestExtractConnectionsNoK8sResources(t *testing.T) {
 	synthesizer := NewPoliciesSynthesizer()
 	resources, conns, errs := synthesizer.extractConnections(dirPath)
 	require.Len(t, errs, 1)
+	noK8sRes := &NoK8sResourcesFoundError{}
+	require.True(t, errors.As(errs[0].Error(), &noK8sRes))
 	require.Empty(t, conns)
 	require.Empty(t, resources)
 }
@@ -87,6 +94,11 @@ func TestExtractConnectionsBadConfigMapRefs(t *testing.T) {
 	synthesizer := NewPoliciesSynthesizer()
 	resources, conns, errs := synthesizer.extractConnections(dirPath)
 	require.Len(t, errs, 3)
+	noConfigMap := &ConfigMapNotFoundError{}
+	noConfigMapKey := &ConfigMapKeyNotFoundError{}
+	for _, err := range errs {
+		require.True(t, errors.As(err.Error(), &noConfigMap) || errors.As(err.Error(), &noConfigMapKey))
+	}
 	require.Empty(t, conns)
 	require.Len(t, resources, 2) // the two deployments in this example get read
 }
@@ -96,6 +108,10 @@ func TestExtractConnectionsCustomWalk(t *testing.T) {
 	synthesizer := NewPoliciesSynthesizer(WithWalkFn(nonRecursiveWalk))
 	resources, conns, errs := synthesizer.extractConnections(dirPath)
 	require.Len(t, errs, 2) // no yaml should be found in a non-recursive scan
+	noYamls := &NoYamlsFoundError{}
+	noK8sRes := &NoK8sResourcesFoundError{}
+	require.True(t, errors.As(errs[0].Error(), &noYamls))
+	require.True(t, errors.As(errs[1].Error(), &noK8sRes))
 	require.Empty(t, conns)
 	require.Empty(t, resources)
 }
