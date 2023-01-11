@@ -1,4 +1,4 @@
-- link:
+- link:  # tests a change
     resource:
         filepath: kubernetes-manifests.yaml
         kind: Service
