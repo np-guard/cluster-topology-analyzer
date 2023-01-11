@@ -1,0 +1,40 @@
+name: Validate output netpols on a live cluster
+
+on:
+  push:
+    branches:
+    - main
+    paths:
+    - 'tests/**'
+  pull_request:
+    paths:
+    - 'tests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test-output:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
+
+    - name: Set up Go
+      uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568
+      with:
+        go-version: 1.18
+
+    - name: Build
+      env:
+        CGO_ENABLED: 0
+        GOOS: linux      
+      run: go build --tags static_all -v -o ./bin/net-top ./cmd/nettop
+
+    - name: Bring up a live cluster
+      uses: helm/kind-action@d8ccf8fb623ce1bb360ae2f45f323d9d5c5e9f00
+
+    - name: Test output on a live cluster
+      run: |
+        ./bin/net-top -dirpath tests/onlineboutique/kubernetes-manifests.yaml -outputfile netpols.yaml -netpols
+        kubectl apply -f netpols.yaml
