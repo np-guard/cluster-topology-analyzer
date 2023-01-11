@@ -1,3 +1,5 @@
+name: Validate output netpols on a live cluster
+
 on:
   push:
     branches:
@@ -8,6 +10,9 @@ on:
     paths:
     - 'tests/**'
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build-and-test-output:
