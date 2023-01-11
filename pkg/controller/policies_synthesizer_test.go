@@ -13,9 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestOutput calls controller.Start() with an example repo dir tests/onlineboutique/ ,
-// checking for the json output to match expected output at tests/expected_output.json
-
 func TestPoliciesSynthesizerAPI(t *testing.T) {
 	testsDir := getTestsDir()
 	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
@@ -45,14 +42,25 @@ func TestPoliciesSynthesizerAPI(t *testing.T) {
 	os.Remove(outFile)
 }
 
+func TestPoliciesSynthesizerAPIMultiplePaths(t *testing.T) {
+	dirPath1 := filepath.Join(getTestsDir(), "k8s_wordpress_example", "mysql-deployment.yaml")
+	dirPath2 := filepath.Join(getTestsDir(), "k8s_wordpress_example", "wordpress-deployment.yaml")
+	synthesizer := NewPoliciesSynthesizer()
+	netpols, err := synthesizer.PoliciesFromFolderPaths([]string{dirPath1, dirPath2})
+	require.Nilf(t, err, "expected no fatal errors, but got %v", err)
+	require.Empty(t, synthesizer.Errors())
+	require.Len(t, netpols, 3)
+}
+
 func TestPoliciesSynthesizerAPIFatalError(t *testing.T) {
-	dirPath := filepath.Join(getTestsDir(), "badPath")
+	dirPath1 := filepath.Join(getTestsDir(), "k8s_wordpress_example")
+	dirPath2 := filepath.Join(getTestsDir(), "badPath")
 	logger := NewDefaultLogger()
 	synthesizer := NewPoliciesSynthesizer(WithLogger(logger))
-	netpols, err := synthesizer.PoliciesFromFolderPath(dirPath)
+	netpols, err := synthesizer.PoliciesFromFolderPaths([]string{dirPath1, dirPath2})
 	badDir := &FailedAccessingDirError{}
-	require.True(t, errors.As(err, &badDir))
 	require.NotNil(t, err)
+	require.True(t, errors.As(err, &badDir))
 	require.Len(t, synthesizer.Errors(), 1)
 	require.True(t, errors.As(synthesizer.Errors()[0].Error(), &badDir))
 	require.Empty(t, netpols)

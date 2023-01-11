@@ -117,6 +117,25 @@ func TestNetpolsYamlOutput(t *testing.T) {
 	os.Remove(outFile)
 }
 
+func TestNetpolsMultiplePaths(t *testing.T) {
+	testsDir := getTestsDir()
+	dirPath1 := filepath.Join(testsDir, "k8s_wordpress_example", "mysql-deployment.yaml")
+	dirPath2 := filepath.Join(testsDir, "k8s_wordpress_example", "wordpress-deployment.yaml")
+	outFile := filepath.Join(testsDir, "k8s_wordpress_example", "netpols.yaml")
+	expectedOutput := filepath.Join(testsDir, "k8s_wordpress_example", "expected_netpol_output.json")
+	args := getTestArgs(dirPath1, outFile, JSONFormat, true, false, false)
+	args.DirPaths = append(args.DirPaths, dirPath2)
+
+	err := detectTopology(args)
+	require.Nil(t, err)
+
+	res, err := compareFiles(expectedOutput, outFile)
+	require.Nil(t, err)
+	require.True(t, res)
+
+	os.Remove(outFile)
+}
+
 func getTestsDir() string {
 	currentDir, _ := os.Getwd()
 	return filepath.Join(currentDir, "..", "..", "tests")
