@@ -8,7 +8,7 @@ This tool analyzes resource YAMLs of a Kubernetes-based application to extract t
 $ ./bin/net-top -h
 Usage of ./bin/net-top:
   -dirpath string
-    	input directory path (required)
+    	input directory path (required, can be specified multiple times with different directories)
   -outputfile string
     	file path to store results
   -format string
@@ -21,7 +21,7 @@ Usage of ./bin/net-top:
 
 ## Algorithm
 The underlying algorithm for identifying required connectivity works as follows.
-1. Scan the given directory for all YAML files.
+1. Scan the given directories for all YAML files.
 1. In each YAML file identify manifests for [workload resources](https://kubernetes.io/docs/concepts/workloads/controllers/), [Service resources](https://kubernetes.io/docs/concepts/services-networking/service/#service-resource) and [ConfigMap resources](https://kubernetes.io/docs/concepts/configuration/configmap/).
 1. In each workload resource, inline references to ConfigMaps as if they were directly defined in the container's `envs` field.
 1. For each target-workload in the list of workload resources:
@@ -48,13 +48,13 @@ The algorithm for synthesizing NetworkPolicies that only allow the required conn
 
 ## Assumptions
 
-1. All the relevant application resources (workloads, Services, ConfigMaps) are defined in YAML files under the given directory or its subdirectories
+1. All the relevant application resources (workloads, Services, ConfigMaps) are defined in YAML files under the given directories or their subdirectories
 1. All YAML files can be applied to a Kubernetes cluster as-is using `kubectl apply -f` (i.e., no helm-style templating).
 1. Every workload that needs to connect to a Service, will have the Service network address as the value of an environment variable. This can be specified directly in the containers `envs` (see example [here](tests/k8s_guestbook/frontend-deployment.yaml#L25:L28)) or via a ConfigMap (see examples [here](tests/onlineboutique/kubernetes-manifests.yaml#L105:L109) and [here](tests/onlineboutique/kubernetes-manifests.yaml#L269:L271)).
 1. The network addresses of a given Service `<svc>` in Namespace `<ns>`, exposing port `<portNum>`, must match this pattern `(http(s)?://)?<svc>(.<ns>(.svc.cluster.local)?)?(:<portNum>)?`. Examples for legal network addresses are `wordpress-mysql:3306`, `redis-follower.redis.svc.cluster.local:6379`, `redis-leader.redis`, `http://rating-service`.
 
 ## Build the project
-Make sure  you have golang 1.18+ on your platform
+Make sure you have golang 1.18+ on your platform
 
 ```shell
 git clone git@github.com:np-guard/cluster-topology-analyzer.git
@@ -168,9 +168,11 @@ git clone git@github.com:GoogleCloudPlatform/microservices-demo.git $HOME/micros
 ## Golang API
 The functionality of this tool can be consumed via a [Golang package API](https://pkg.go.dev/github.com/np-guard/cluster-topology-analyzer/pkg/controller). The relevant package to import is `github.com/np-guard/cluster-topology-analyzer/pkg/controller`.
 
-Main functionality is encapsulated under the `PoliciesSynthesizer`, which exposes two methods:
-* `func (ps *PoliciesSynthesizer) ConnectionsFromFolderPath(dirPath string) ([]*common.Connections, error)` - getting a slice of Connection objects, each representing a required connection in the scan application.
+Main functionality is encapsulated under the `PoliciesSynthesizer`, which exposes four methods:
+* `func (ps *PoliciesSynthesizer) ConnectionsFromFolderPath(dirPath string) ([]*common.Connections, error)` - getting a slice of Connection objects, each representing a required connection in the scanned application.
+* `func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]*common.Connections, error)` - same as `ConnectionsFromFolderPath()` but allows specifying multiple directories to scan.
 * `func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networking.NetworkPolicy, error)` - getting a slice of K8s NetworkPolicy objects that limit the allowed connectivity to only the required connections.
+* `func (ps *PoliciesSynthesizer) PoliciesFromFolderPaths(dirPaths []string) ([]*networking.NetworkPolicy, error)` - same as `PoliciesFromFolderPath()` but allows specifying multiple directories to scan.
 
 The example code below extracts required connections from the K8s manifests in the `/tmp/k8s_manifests` directory, and outputs appropriate K8s NetworkPolicies to standard output.
 ```golang
