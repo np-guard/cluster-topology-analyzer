@@ -80,7 +80,13 @@ func (ps *PoliciesSynthesizer) Errors() []FileProcessingError {
 // PoliciesFromFolderPath returns a slice of Kubernetes NetworkPolicies that allow only the connections discovered
 // while processing K8s resources under the provided directory or one of its subdirectories (recursively).
 func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networking.NetworkPolicy, error) {
-	resources, connections, errs := ps.extractConnections(dirPath)
+	return ps.PoliciesFromFolderPaths([]string{dirPath})
+}
+
+// PoliciesFromFolderPath returns a slice of Kubernetes NetworkPolicies that allow only the connections discovered
+// while processing K8s resources under the provided directories or one of their subdirectories (recursively).
+func (ps *PoliciesSynthesizer) PoliciesFromFolderPaths(dirPaths []string) ([]*networking.NetworkPolicy, error) {
+	resources, connections, errs := ps.extractConnections(dirPaths)
 	policies := []*networking.NetworkPolicy{}
 	if !stopProcessing(ps.stopOnError, errs) {
 		policies = synthNetpols(resources, connections)
@@ -97,7 +103,13 @@ func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networ
 // ConnectionsFromFolderPath returns a slice of Connections, listing the connections discovered
 // while processing K8s resources under the provided directory or one of its subdirectories (recursively).
 func (ps *PoliciesSynthesizer) ConnectionsFromFolderPath(dirPath string) ([]*common.Connections, error) {
-	_, connections, errs := ps.extractConnections(dirPath)
+	return ps.ConnectionsFromFolderPaths([]string{dirPath})
+}
+
+// ConnectionsFromFolderPath returns a slice of Connections, listing the connections discovered
+// while processing K8s resources under the provided directories or one of their subdirectories (recursively).
+func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]*common.Connections, error) {
+	_, connections, errs := ps.extractConnections(dirPaths)
 	ps.errors = errs
 	if err := hasFatalError(errs); err != nil {
 		return nil, err
@@ -107,21 +119,27 @@ func (ps *PoliciesSynthesizer) ConnectionsFromFolderPath(dirPath string) ([]*com
 }
 
 // Scans the given directory for YAMLs with k8s resources and extracts required connections between workloads
-func (ps *PoliciesSynthesizer) extractConnections(dirPath string) ([]common.Resource, []*common.Connections, []FileProcessingError) {
+func (ps *PoliciesSynthesizer) extractConnections(dirPaths []string) ([]common.Resource, []*common.Connections, []FileProcessingError) {
 	// 1. Get all relevant resources from the repo
 	resFinder := resourceFinder{logger: ps.logger, stopOn1stErr: ps.stopOnError, walkFn: ps.walkFn}
-	dObjs, fileErrors := resFinder.getRelevantK8sResources(dirPath)
-	if stopProcessing(ps.stopOnError, fileErrors) {
-		return nil, nil, fileErrors
+	rawResources := []rawResourcesInFile{}
+	fileErrors := []FileProcessingError{}
+	for _, dirPath := range dirPaths {
+		dObjs, errs := resFinder.getRelevantK8sResources(dirPath)
+		rawResources = append(rawResources, dObjs...)
+		fileErrors = append(fileErrors, errs...)
+		if stopProcessing(ps.stopOnError, errs) {
+			return nil, nil, fileErrors
+		}
 	}
-	if len(dObjs) == 0 {
+	if len(rawResources) == 0 {
 		fileErrors = appendAndLogNewError(fileErrors, noK8sResourcesFound(), ps.logger)
 		return []common.Resource{}, []*common.Connections{}, fileErrors
 	}
 
 	// 2. Parse them into internal structs
 	resParser := resourceParser{logger: ps.logger}
-	resources, links, parseErrors := resParser.parseResources(dObjs)
+	resources, links, parseErrors := resParser.parseResources(rawResources)
 	fileErrors = append(fileErrors, parseErrors...)
 	if stopProcessing(ps.stopOnError, fileErrors) {
 		return nil, nil, fileErrors

@@ -86,7 +86,7 @@ func detectTopology(args InArgs) error {
 
 	var content interface{}
 	if args.SynthNetpols != nil && *args.SynthNetpols {
-		policies, synthesisErr := synth.PoliciesFromFolderPath(*args.DirPath)
+		policies, synthesisErr := synth.PoliciesFromFolderPaths(args.DirPaths)
 		if synthesisErr != nil {
 			logger.Errorf(synthesisErr, "error synthesizing policies")
 			return synthesisErr
@@ -94,7 +94,7 @@ func detectTopology(args InArgs) error {
 		content = controller.NetpolListFromNetpolSlice(policies)
 	} else {
 		var err error
-		content, err = synth.ConnectionsFromFolderPath(*args.DirPath)
+		content, err = synth.ConnectionsFromFolderPaths(args.DirPaths)
 		if err != nil {
 			logger.Errorf(err, "error extracting connections")
 			return err
