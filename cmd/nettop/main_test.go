@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,138 +11,177 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConnectionsOutput(t *testing.T) {
-	testsDir := getTestsDir()
-	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
-	outFile := filepath.Join(testsDir, "onlineboutique", "output.json")
-	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_output.json")
-	args := getTestArgs(dirPath, outFile, JSONFormat, false, false, false)
-
-	err := detectTopology(args)
-	require.Nil(t, err)
-
-	res, err := compareFiles(expectedOutput, outFile)
-	require.Nil(t, err)
-	require.True(t, res)
-
-	os.Remove(outFile)
-}
-
-func TestConnectionsYamlOutput(t *testing.T) {
-	testsDir := getTestsDir()
-	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
-	outFile := filepath.Join(testsDir, "onlineboutique", "output.yaml")
-	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_output.yaml")
-	args := getTestArgs(dirPath, outFile, YamlFormat, false, false, false)
-
-	err := detectTopology(args)
-	require.Nil(t, err)
-
-	res, err := compareFiles(expectedOutput, outFile)
-	require.Nil(t, err)
-	require.True(t, res)
-
-	os.Remove(outFile)
-}
-
-func TestDirScan(t *testing.T) {
-	testsDir := getTestsDir()
-	dirPath := filepath.Join(testsDir, "onlineboutique")
-	outFile := filepath.Join(dirPath, "output.json")
-	expectedOutput := filepath.Join(dirPath, "expected_dirscan_output.json")
-	args := getTestArgs(dirPath, outFile, JSONFormat, false, true, false)
-
-	err := detectTopology(args)
-	require.Nil(t, err)
-
-	res, err := compareFiles(expectedOutput, outFile)
-	require.Nil(t, err)
-	require.True(t, res)
-
-	os.Remove(outFile)
-}
-
 type TestDetails struct {
-	dirPath        string
-	outFile        string
-	expectedOutput string
+	name           string
+	dirPath        [][]string
+	outputFormat   string
+	synthNetpols   bool
+	quiet          bool
+	verbose        bool
+	expectError    bool
+	expectedOutput []string
 }
 
-func TestNetpolsJsonOutput(t *testing.T) {
-	testsDir := getTestsDir()
-	tests := map[string]TestDetails{} // map from test name to test details
-	tests["onlineboutique"] = TestDetails{dirPath: filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml"),
-		outFile:        filepath.Join(testsDir, "onlineboutique", "output.json"),
-		expectedOutput: filepath.Join(testsDir, "onlineboutique", "expected_netpol_output.json")}
-	tests["sockshop"] = TestDetails{dirPath: filepath.Join(testsDir, "sockshop", "manifests"),
-		outFile:        filepath.Join(testsDir, "sockshop", "output.json"),
-		expectedOutput: filepath.Join(testsDir, "sockshop", "expected_netpol_output.json")}
-	tests["wordpress"] = TestDetails{dirPath: filepath.Join(testsDir, "k8s_wordpress_example"),
-		outFile:        filepath.Join(testsDir, "k8s_wordpress_example", "output.json"),
-		expectedOutput: filepath.Join(testsDir, "k8s_wordpress_example", "expected_netpol_output.json")}
-	tests["guestbook"] = TestDetails{dirPath: filepath.Join(testsDir, "k8s_guestbook"),
-		outFile:        filepath.Join(testsDir, "k8s_guestbook", "output.json"),
-		expectedOutput: filepath.Join(testsDir, "k8s_guestbook", "expected_netpol_output.json")}
-	tests["bookinfo"] = TestDetails{dirPath: filepath.Join(testsDir, "bookinfo"),
-		outFile:        filepath.Join(testsDir, "bookinfo", "output.json"),
-		expectedOutput: filepath.Join(testsDir, "bookinfo", "expected_netpol_output.json")}
+var (
+	testCaseScenarios = []TestDetails{
+		{
+			"ConnectionsOutputJSON",
+			[][]string{{"onlineboutique", "kubernetes-manifests.yaml"}},
+			JSONFormat,
+			false,
+			false,
+			false,
+			false,
+			[]string{"onlineboutique", "expected_output.json"},
+		},
+		{
+			"ConnectionsOutputYAML",
+			[][]string{{"onlineboutique", "kubernetes-manifests.yaml"}},
+			YamlFormat,
+			false,
+			false,
+			false,
+			false,
+			[]string{"onlineboutique", "expected_output.yaml"},
+		},
+		{
+			"DirScan",
+			[][]string{{"onlineboutique"}},
+			JSONFormat,
+			false,
+			true,
+			false,
+			false,
+			[]string{"onlineboutique", "expected_dirscan_output.json"},
+		},
+		{
+			"NetpolsOnlineBoutiqueYAML",
+			[][]string{{"onlineboutique", "kubernetes-manifests.yaml"}},
+			YamlFormat,
+			true,
+			false,
+			false,
+			false,
+			[]string{"onlineboutique", "expected_netpol_output.yaml"},
+		},
+		{
+			"NetpolsMultiplePaths",
+			[][]string{{"k8s_wordpress_example", "mysql-deployment.yaml"}, {"k8s_wordpress_example", "wordpress-deployment.yaml"}},
+			JSONFormat,
+			true,
+			false,
+			false,
+			false,
+			[]string{"k8s_wordpress_example", "expected_netpol_output.json"},
+		},
+		{
+			"NetpolsOnlineBoutiqueJson",
+			[][]string{{"onlineboutique", "kubernetes-manifests.yaml"}},
+			JSONFormat,
+			true,
+			false,
+			false,
+			false,
+			[]string{"onlineboutique", "expected_netpol_output.json"},
+		},
+		{
+			"NetpolsSockshop",
+			[][]string{{"sockshop", "manifests"}},
+			JSONFormat,
+			true,
+			false,
+			true,
+			false,
+			[]string{"sockshop", "expected_netpol_output.json"},
+		},
+		{
+			"NetpolsK8sWordpress",
+			[][]string{{"k8s_wordpress_example"}},
+			JSONFormat,
+			true,
+			false,
+			true,
+			false,
+			[]string{"k8s_wordpress_example", "expected_netpol_output.json"},
+		},
+		{
+			"NetpolsK8sGuestbook",
+			[][]string{{"k8s_guestbook"}},
+			JSONFormat,
+			true,
+			false,
+			true,
+			false,
+			[]string{"k8s_guestbook", "expected_netpol_output.json"},
+		},
+		{
+			"NetpolsBookInfo",
+			[][]string{{"bookinfo"}},
+			JSONFormat,
+			true,
+			false,
+			true,
+			false,
+			[]string{"bookinfo", "expected_netpol_output.json"},
+		},
+	}
 
-	for testName, testDetails := range tests {
-		args := getTestArgs(testDetails.dirPath, testDetails.outFile, JSONFormat, true, false, true)
-		err := detectTopology(args)
-		require.Nilf(t, err, "on test %s", testName)
+	currentDir, _ = os.Getwd()
+	testsDir      = filepath.Join(currentDir, "..", "..", "tests")
+)
 
-		res, err := compareFiles(testDetails.expectedOutput, testDetails.outFile)
-		require.Nilf(t, err, "on test %s", testName)
-		require.Truef(t, res, "on test %s", testName)
-		os.Remove(testDetails.outFile)
+func (td *TestDetails) runTest(t *testing.T) {
+	t.Logf("Running test %s", td.name)
+	outFileName, err := getTempOutputFile()
+	require.Nil(t, err)
+
+	args := getTestArgs(td.dirPath, outFileName, td.outputFormat, td.synthNetpols, td.quiet, td.verbose)
+	err = detectTopology(args)
+
+	if td.expectError {
+		require.NotNil(t, err)
+	} else {
+		require.Nil(t, err)
+		if td.expectedOutput != nil {
+			res, err := compareFiles(pathInTestsDir(td.expectedOutput), outFileName)
+			require.Nil(t, err)
+			require.True(t, res)
+
+			os.Remove(outFileName)
+		}
 	}
 }
 
-func TestNetpolsYamlOutput(t *testing.T) {
-	testsDir := getTestsDir()
-	dirPath := filepath.Join(testsDir, "onlineboutique", "kubernetes-manifests.yaml")
-	outFile := filepath.Join(testsDir, "onlineboutique", "output.yaml")
-	expectedOutput := filepath.Join(testsDir, "onlineboutique", "expected_netpol_output.yaml")
-	args := getTestArgs(dirPath, outFile, YamlFormat, true, false, false)
-
-	err := detectTopology(args)
-	require.Nil(t, err)
-
-	res, err := compareFiles(expectedOutput, outFile)
-	require.Nil(t, err)
-	require.True(t, res)
-
-	os.Remove(outFile)
+func TestAll(t *testing.T) {
+	for testIdx := range testCaseScenarios {
+		tc := &testCaseScenarios[testIdx] // rebind tc into this lexical scope to support reentrancy
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			tc.runTest(t)
+		})
+	}
 }
 
-func TestNetpolsMultiplePaths(t *testing.T) {
-	testsDir := getTestsDir()
-	dirPath1 := filepath.Join(testsDir, "k8s_wordpress_example", "mysql-deployment.yaml")
-	dirPath2 := filepath.Join(testsDir, "k8s_wordpress_example", "wordpress-deployment.yaml")
-	outFile := filepath.Join(testsDir, "k8s_wordpress_example", "netpols.yaml")
-	expectedOutput := filepath.Join(testsDir, "k8s_wordpress_example", "expected_netpol_output.json")
-	args := getTestArgs(dirPath1, outFile, JSONFormat, true, false, false)
-	args.DirPaths = append(args.DirPaths, dirPath2)
-
-	err := detectTopology(args)
-	require.Nil(t, err)
-
-	res, err := compareFiles(expectedOutput, outFile)
-	require.Nil(t, err)
-	require.True(t, res)
-
-	os.Remove(outFile)
+func getTempOutputFile() (string, error) {
+	outFile, err := os.CreateTemp(os.TempDir(), "cta_temp")
+	if err != nil {
+		return "", err
+	}
+	outFileName := outFile.Name()
+	err = outFile.Close()
+	return outFileName, err
 }
 
-func getTestsDir() string {
-	currentDir, _ := os.Getwd()
-	return filepath.Join(currentDir, "..", "..", "tests")
+func pathInTestsDir(pathElements []string) string {
+	return filepath.Join(testsDir, filepath.Join(pathElements...))
 }
 
-func getTestArgs(dirPath, outFile, outFormat string, netpols, quiet, verbose bool) InArgs {
+func getTestArgs(dirPaths [][]string, outFile, outFormat string, netpols, quiet, verbose bool) InArgs {
 	args := InArgs{}
-	args.DirPaths = []string{dirPath}
+	args.DirPaths = []string{}
+	for idx := range dirPaths {
+		args.DirPaths = append(args.DirPaths, pathInTestsDir(dirPaths[idx]))
+	}
 	args.OutputFile = &outFile
 	args.OutputFormat = &outFormat
 	args.SynthNetpols = &netpols
@@ -169,9 +207,12 @@ func readLines(path string) ([]string, error) {
 
 func compareFiles(expectedFile, actualFile string) (bool, error) {
 	expectedLines, err1 := readLines(expectedFile)
+	if err1 != nil {
+		return false, fmt.Errorf("error reading lines from file %v", err1)
+	}
 	actualLines, err2 := readLines(actualFile)
-	if err1 != nil || err2 != nil {
-		return false, errors.New("error reading lines from file")
+	if err2 != nil {
+		return false, fmt.Errorf("error reading lines from file %v", err2)
 	}
 	if len(expectedLines) != len(actualLines) {
 		fmt.Printf("Files line count is different: expected(%s): %d, actual(%s): %d",
