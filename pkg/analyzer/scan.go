@@ -135,6 +135,11 @@ func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourc
 				resourceCtx.Resource.ConfigMapRefs = append(resourceCtx.Resource.ConfigMapRefs, envFrom.ConfigMapRef.Name)
 			}
 		}
+		for _, arg := range container.Args {
+			if IsNetworkAddressValue(arg) {
+				resourceCtx.Resource.NetworkAddrs = append(resourceCtx.Resource.NetworkAddrs, arg)
+			}
+		}
 	}
 }
 
