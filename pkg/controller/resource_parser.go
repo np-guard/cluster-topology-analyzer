@@ -89,7 +89,7 @@ func (rp *resourceParser) inlineConfigMapRefsAsEnvs(resources []common.Resource,
 			if cfgMap, ok := cfgMaps[configmapFullName]; ok {
 				for _, v := range cfgMap.Data {
 					if analyzer.IsNetworkAddressValue(v) {
-						res.Resource.Envs = append(res.Resource.Envs, v)
+						res.Resource.NetworkAddrs = append(res.Resource.NetworkAddrs, v)
 					}
 				}
 			} else {
@@ -103,7 +103,7 @@ func (rp *resourceParser) inlineConfigMapRefsAsEnvs(resources []common.Resource,
 			if cfgMap, ok := cfgMaps[configmapFullName]; ok {
 				if val, ok := cfgMap.Data[cfgMapKeyRef.Key]; ok {
 					if analyzer.IsNetworkAddressValue(val) {
-						res.Resource.Envs = append(res.Resource.Envs, val)
+						res.Resource.NetworkAddrs = append(res.Resource.NetworkAddrs, val)
 					}
 				} else {
 					err := configMapKeyNotFound(cfgMapKeyRef.Name, cfgMapKeyRef.Key, res.Resource.Name)

@@ -11,7 +11,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - paymentservice:50051
             - emailservice:5000
@@ -28,12 +28,10 @@
         labels:
             app: checkoutservice
         name: checkoutservice
-        network:
-            - container_url: 5050
         serviceaccountname: default
   target:
     resource:
-        Envs: null
+        NetworkAddrs: null
         UsedPorts: null
         filepath: kubernetes-manifests.yaml
         image:
@@ -42,8 +40,6 @@
         labels:
             app: emailservice
         name: emailservice
-        network:
-            - container_url: 8080
         serviceaccountname: default
 - link:
     resource:
@@ -58,7 +54,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - currencyservice:7000
             - cartservice:7070
@@ -76,12 +72,10 @@
         labels:
             app: frontend
         name: frontend
-        network:
-            - container_url: 8080
         serviceaccountname: default
   target:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - paymentservice:50051
             - emailservice:5000
@@ -96,8 +90,6 @@
         labels:
             app: checkoutservice
         name: checkoutservice
-        network:
-            - container_url: 5050
         serviceaccountname: default
 - link:
     resource:
@@ -112,7 +104,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - currencyservice:7000
             - cartservice:7070
@@ -130,12 +122,10 @@
         labels:
             app: frontend
         name: frontend
-        network:
-            - container_url: 8080
         serviceaccountname: default
   target:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
         UsedPorts: null
         filepath: kubernetes-manifests.yaml
@@ -145,8 +135,6 @@
         labels:
             app: recommendationservice
         name: recommendationservice
-        network:
-            - container_url: 8080
         serviceaccountname: default
 - link:
     resource:
@@ -161,7 +149,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - frontend:80
         UsedPorts:
             - port: 80
@@ -173,11 +161,10 @@
         labels:
             app: loadgenerator
         name: loadgenerator
-        network: null
         serviceaccountname: default
   target:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - currencyservice:7000
             - cartservice:7070
@@ -193,8 +180,6 @@
         labels:
             app: frontend
         name: frontend
-        network:
-            - container_url: 8080
         serviceaccountname: default
 - link:
     resource:
@@ -209,7 +194,7 @@
         type: LoadBalancer
   target:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - currencyservice:7000
             - cartservice:7070
@@ -225,8 +210,6 @@
         labels:
             app: frontend
         name: frontend
-        network:
-            - container_url: 8080
         serviceaccountname: default
 - link:
     resource:
@@ -241,7 +224,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - paymentservice:50051
             - emailservice:5000
@@ -258,12 +241,10 @@
         labels:
             app: checkoutservice
         name: checkoutservice
-        network:
-            - container_url: 5050
         serviceaccountname: default
   target:
     resource:
-        Envs: null
+        NetworkAddrs: null
         UsedPorts: null
         filepath: kubernetes-manifests.yaml
         image:
@@ -272,8 +253,6 @@
         labels:
             app: paymentservice
         name: paymentservice
-        network:
-            - container_url: 50051
         serviceaccountname: default
 - link:
     resource:
@@ -288,7 +267,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - paymentservice:50051
             - emailservice:5000
@@ -305,12 +284,10 @@
         labels:
             app: checkoutservice
         name: checkoutservice
-        network:
-            - container_url: 5050
         serviceaccountname: default
   target:
     resource:
-        Envs: null
+        NetworkAddrs: null
         UsedPorts: null
         filepath: kubernetes-manifests.yaml
         image:
@@ -319,8 +296,6 @@
         labels:
             app: productcatalogservice
         name: productcatalogservice
-        network:
-            - container_url: 3550
         serviceaccountname: default
 - link:
     resource:
@@ -335,7 +310,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
         UsedPorts:
             - port: 3550
@@ -347,12 +322,10 @@
         labels:
             app: recommendationservice
         name: recommendationservice
-        network:
-            - container_url: 8080
         serviceaccountname: default
   target:
     resource:
-        Envs: null
+        NetworkAddrs: null
         UsedPorts: null
         filepath: kubernetes-manifests.yaml
         image:
@@ -361,8 +334,6 @@
         labels:
             app: productcatalogservice
         name: productcatalogservice
-        network:
-            - container_url: 3550
         serviceaccountname: default
 - link:
     resource:
@@ -377,7 +348,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - currencyservice:7000
             - cartservice:7070
@@ -395,12 +366,10 @@
         labels:
             app: frontend
         name: frontend
-        network:
-            - container_url: 8080
         serviceaccountname: default
   target:
     resource:
-        Envs: null
+        NetworkAddrs: null
         UsedPorts: null
         filepath: kubernetes-manifests.yaml
         image:
@@ -409,8 +378,6 @@
         labels:
             app: productcatalogservice
         name: productcatalogservice
-        network:
-            - container_url: 3550
         serviceaccountname: default
 - link:
     resource:
@@ -425,7 +392,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - paymentservice:50051
             - emailservice:5000
@@ -442,12 +409,10 @@
         labels:
             app: checkoutservice
         name: checkoutservice
-        network:
-            - container_url: 5050
         serviceaccountname: default
   target:
     resource:
-        Envs:
+        NetworkAddrs:
             - redis-cart:6379
         UsedPorts: null
         filepath: kubernetes-manifests.yaml
@@ -457,8 +422,6 @@
         labels:
             app: cartservice
         name: cartservice
-        network:
-            - container_url: 7070
         serviceaccountname: default
 - link:
     resource:
@@ -473,7 +436,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - currencyservice:7000
             - cartservice:7070
@@ -491,12 +454,10 @@
         labels:
             app: frontend
         name: frontend
-        network:
-            - container_url: 8080
         serviceaccountname: default
   target:
     resource:
-        Envs:
+        NetworkAddrs:
             - redis-cart:6379
         UsedPorts: null
         filepath: kubernetes-manifests.yaml
@@ -506,8 +467,6 @@
         labels:
             app: cartservice
         name: cartservice
-        network:
-            - container_url: 7070
         serviceaccountname: default
 - link:
     resource:
@@ -522,7 +481,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - paymentservice:50051
             - emailservice:5000
@@ -539,12 +498,10 @@
         labels:
             app: checkoutservice
         name: checkoutservice
-        network:
-            - container_url: 5050
         serviceaccountname: default
   target:
     resource:
-        Envs: null
+        NetworkAddrs: null
         UsedPorts: null
         filepath: kubernetes-manifests.yaml
         image:
@@ -553,8 +510,6 @@
         labels:
             app: currencyservice
         name: currencyservice
-        network:
-            - container_url: 7000
         serviceaccountname: default
 - link:
     resource:
@@ -569,7 +524,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - currencyservice:7000
             - cartservice:7070
@@ -587,12 +542,10 @@
         labels:
             app: frontend
         name: frontend
-        network:
-            - container_url: 8080
         serviceaccountname: default
   target:
     resource:
-        Envs: null
+        NetworkAddrs: null
         UsedPorts: null
         filepath: kubernetes-manifests.yaml
         image:
@@ -601,8 +554,6 @@
         labels:
             app: currencyservice
         name: currencyservice
-        network:
-            - container_url: 7000
         serviceaccountname: default
 - link:
     resource:
@@ -617,7 +568,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - paymentservice:50051
             - emailservice:5000
@@ -634,12 +585,10 @@
         labels:
             app: checkoutservice
         name: checkoutservice
-        network:
-            - container_url: 5050
         serviceaccountname: default
   target:
     resource:
-        Envs: null
+        NetworkAddrs: null
         UsedPorts: null
         filepath: kubernetes-manifests.yaml
         image:
@@ -648,8 +597,6 @@
         labels:
             app: shippingservice
         name: shippingservice
-        network:
-            - container_url: 50051
         serviceaccountname: default
 - link:
     resource:
@@ -664,7 +611,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - currencyservice:7000
             - cartservice:7070
@@ -682,12 +629,10 @@
         labels:
             app: frontend
         name: frontend
-        network:
-            - container_url: 8080
         serviceaccountname: default
   target:
     resource:
-        Envs: null
+        NetworkAddrs: null
         UsedPorts: null
         filepath: kubernetes-manifests.yaml
         image:
@@ -696,8 +641,6 @@
         labels:
             app: shippingservice
         name: shippingservice
-        network:
-            - container_url: 50051
         serviceaccountname: default
 - link:
     resource:
@@ -712,7 +655,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - redis-cart:6379
         UsedPorts:
             - port: 6379
@@ -724,12 +667,10 @@
         labels:
             app: cartservice
         name: cartservice
-        network:
-            - container_url: 7070
         serviceaccountname: default
   target:
     resource:
-        Envs: null
+        NetworkAddrs: null
         UsedPorts: null
         filepath: kubernetes-manifests.yaml
         image:
@@ -738,8 +679,6 @@
         labels:
             app: redis-cart
         name: redis-cart
-        network:
-            - container_url: 6379
 - link:
     resource:
         filepath: kubernetes-manifests.yaml
@@ -753,7 +692,7 @@
         type: ClusterIP
   source:
     resource:
-        Envs:
+        NetworkAddrs:
             - productcatalogservice:3550
             - currencyservice:7000
             - cartservice:7070
@@ -771,12 +710,10 @@
         labels:
             app: frontend
         name: frontend
-        network:
-            - container_url: 8080
         serviceaccountname: default
   target:
     resource:
-        Envs: null
+        NetworkAddrs: null
         UsedPorts: null
         filepath: kubernetes-manifests.yaml
         image:
@@ -785,6 +722,4 @@
         labels:
             app: adservice
         name: adservice
-        network:
-            - container_url: 9555
         serviceaccountname: default

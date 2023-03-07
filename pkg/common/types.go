@@ -25,18 +25,11 @@ type Resource struct {
 		Image              struct {
 			ID string `json:"id,omitempty"`
 		} `json:"image"`
-		Network          []NetworkAttr `json:"network"`
-		Envs             []string
+		NetworkAddrs     []string
 		ConfigMapRefs    []string       `json:"-"`
 		ConfigMapKeyRefs []CfgMapKeyRef `json:"-"`
 		UsedPorts        []SvcNetworkAttr
 	} `json:"resource,omitempty"`
-}
-
-type NetworkAttr struct {
-	HostPort      int    `json:"host_port,omitempty"`
-	ContainerPort int    `json:"container_url,omitempty"`
-	Protocol      string `json:"protocol,omitempty"`
 }
 
 type SvcNetworkAttr struct {
