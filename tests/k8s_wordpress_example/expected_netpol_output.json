@@ -64,7 +64,8 @@
                     "Ingress",
                     "Egress"
                 ]
-            }
+            },
+            "status": {}
         },
         {
             "kind": "NetworkPolicy",
@@ -104,7 +105,8 @@
                     "Ingress",
                     "Egress"
                 ]
-            }
+            },
+            "status": {}
         },
         {
             "kind": "NetworkPolicy",
@@ -119,7 +121,8 @@
                     "Ingress",
                     "Egress"
                 ]
-            }
+            },
+            "status": {}
         }
     ]
 }
