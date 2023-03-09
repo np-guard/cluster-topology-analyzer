@@ -82,31 +82,23 @@ git clone git@github.com:GoogleCloudPlatform/microservices-demo.git $HOME/micros
         "source": {
             "resource": {
                 "name": "frontend",
-                "selectors": [
-                    "app:frontend"
-                ],
                 "labels": {
                     "app": "frontend"
                 },
                 "serviceaccountname": "default",
-                "filepath": "/release/kubernetes-manifests.yaml",
+                "filepath": "kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
-                    "id": "gcr.io/google-samples/microservices-demo/frontend:v0.3.9"
+                    "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 8080
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "currencyservice:7000",
                     "cartservice:7070",
                     "recommendationservice:8080",
-                    "shippingservice:50051",
                     "checkoutservice:5050",
-                    "adservice:9555"
+                    "adservice:9555",
+                    "shippingservice:50051"
                 ],
                 "UsedPorts": [
                     {
@@ -119,24 +111,16 @@ git clone git@github.com:GoogleCloudPlatform/microservices-demo.git $HOME/micros
         "target": {
             "resource": {
                 "name": "adservice",
-                "selectors": [
-                    "app:adservice"
-                ],
                 "labels": {
                     "app": "adservice"
                 },
                 "serviceaccountname": "default",
-                "filepath": "/release/kubernetes-manifests.yaml",
+                "filepath": "kubernetes-manifests.yaml",
                 "kind": "Deployment",
                 "image": {
-                    "id": "gcr.io/google-samples/microservices-demo/adservice:v0.3.9"
+                    "id": "gcr.io/google-samples/microservices-demo/adservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 9555
-                    }
-                ],
-                "Envs": null,
+                "NetworkAddrs": null,
                 "UsedPorts": null
             }
         },
@@ -147,7 +131,7 @@ git clone git@github.com:GoogleCloudPlatform/microservices-demo.git $HOME/micros
                     "app:adservice"
                 ],
                 "type": "ClusterIP",
-                "filepath": "/release/kubernetes-manifests.yaml",
+                "filepath": "kubernetes-manifests.yaml",
                 "kind": "Service",
                 "network": [
                     {
