@@ -117,17 +117,10 @@ func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourc
 	for containerIdx := range podSpec.Spec.Containers {
 		container := &podSpec.Spec.Containers[containerIdx]
 		resourceCtx.Resource.Image.ID = container.Image
-		for _, p := range container.Ports {
-			n := common.NetworkAttr{}
-			n.ContainerPort = int(p.ContainerPort)
-			n.HostPort = int(p.HostPort)
-			n.Protocol = string(p.Protocol)
-			resourceCtx.Resource.Network = append(resourceCtx.Resource.Network, n)
-		}
 		for _, e := range container.Env {
 			if e.Value != "" {
 				if IsNetworkAddressValue(e.Value) {
-					resourceCtx.Resource.Envs = append(resourceCtx.Resource.Envs, e.Value)
+					resourceCtx.Resource.NetworkAddrs = append(resourceCtx.Resource.NetworkAddrs, e.Value)
 				}
 			} else if e.ValueFrom != nil && e.ValueFrom.ConfigMapKeyRef != nil {
 				keyRef := e.ValueFrom.ConfigMapKeyRef
@@ -140,6 +133,11 @@ func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourc
 		for _, envFrom := range container.EnvFrom {
 			if envFrom.ConfigMapRef != nil { // just store ref for now - check later if the config map values contain a network address
 				resourceCtx.Resource.ConfigMapRefs = append(resourceCtx.Resource.ConfigMapRefs, envFrom.ConfigMapRef.Name)
+			}
+		}
+		for _, arg := range container.Args {
+			if IsNetworkAddressValue(arg) {
+				resourceCtx.Resource.NetworkAddrs = append(resourceCtx.Resource.NetworkAddrs, arg)
 			}
 		}
 	}

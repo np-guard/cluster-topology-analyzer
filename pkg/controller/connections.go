@@ -73,7 +73,7 @@ func findSource(resources []common.Resource, service *common.Service) []*common.
 		serviceAddresses := getPossibleServiceAddresses(service, resource)
 		foundSrc := *resource // We copy the resource so we can specify the ports used by the source found
 		matched := false
-		for _, envVal := range resource.Resource.Envs {
+		for _, envVal := range resource.Resource.NetworkAddrs {
 			match, port := envValueMatchesService(envVal, service, serviceAddresses)
 			if match {
 				matched = true

@@ -12,12 +12,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 5050
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "paymentservice:50051",
                     "emailservice:5000",
@@ -45,12 +40,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/emailservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 8080
-                    }
-                ],
-                "Envs": null,
+                "NetworkAddrs": null,
                 "UsedPorts": null
             }
         },
@@ -85,12 +75,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 8080
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "currencyservice:7000",
                     "cartservice:7070",
@@ -119,12 +104,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 5050
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "paymentservice:50051",
                     "emailservice:5000",
@@ -166,12 +146,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 8080
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "currencyservice:7000",
                     "cartservice:7070",
@@ -200,12 +175,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/recommendationservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 8080
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550"
                 ],
                 "UsedPorts": null
@@ -242,8 +212,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/loadgenerator:v0.2.3"
                 },
-                "network": null,
-                "Envs": [
+                "NetworkAddrs": [
                     "frontend:80"
                 ],
                 "UsedPorts": [
@@ -266,12 +235,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 8080
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "currencyservice:7000",
                     "cartservice:7070",
@@ -314,12 +278,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 8080
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "currencyservice:7000",
                     "cartservice:7070",
@@ -362,12 +321,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 5050
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "paymentservice:50051",
                     "emailservice:5000",
@@ -395,12 +349,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/paymentservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 50051
-                    }
-                ],
-                "Envs": null,
+                "NetworkAddrs": null,
                 "UsedPorts": null
             }
         },
@@ -435,12 +384,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 5050
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "paymentservice:50051",
                     "emailservice:5000",
@@ -468,12 +412,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 3550
-                    }
-                ],
-                "Envs": null,
+                "NetworkAddrs": null,
                 "UsedPorts": null
             }
         },
@@ -508,12 +447,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/recommendationservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 8080
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550"
                 ],
                 "UsedPorts": [
@@ -536,12 +470,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 3550
-                    }
-                ],
-                "Envs": null,
+                "NetworkAddrs": null,
                 "UsedPorts": null
             }
         },
@@ -576,12 +505,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 8080
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "currencyservice:7000",
                     "cartservice:7070",
@@ -610,12 +534,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 3550
-                    }
-                ],
-                "Envs": null,
+                "NetworkAddrs": null,
                 "UsedPorts": null
             }
         },
@@ -650,12 +569,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 5050
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "paymentservice:50051",
                     "emailservice:5000",
@@ -683,12 +597,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/cartservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 7070
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "redis-cart:6379"
                 ],
                 "UsedPorts": null
@@ -725,12 +634,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 8080
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "currencyservice:7000",
                     "cartservice:7070",
@@ -759,12 +663,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/cartservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 7070
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "redis-cart:6379"
                 ],
                 "UsedPorts": null
@@ -801,12 +700,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 5050
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "paymentservice:50051",
                     "emailservice:5000",
@@ -834,12 +728,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/currencyservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 7000
-                    }
-                ],
-                "Envs": null,
+                "NetworkAddrs": null,
                 "UsedPorts": null
             }
         },
@@ -874,12 +763,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 8080
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "currencyservice:7000",
                     "cartservice:7070",
@@ -908,12 +792,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/currencyservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 7000
-                    }
-                ],
-                "Envs": null,
+                "NetworkAddrs": null,
                 "UsedPorts": null
             }
         },
@@ -948,12 +827,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 5050
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "paymentservice:50051",
                     "emailservice:5000",
@@ -981,12 +855,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/shippingservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 50051
-                    }
-                ],
-                "Envs": null,
+                "NetworkAddrs": null,
                 "UsedPorts": null
             }
         },
@@ -1021,12 +890,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 8080
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "currencyservice:7000",
                     "cartservice:7070",
@@ -1055,12 +919,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/shippingservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 50051
-                    }
-                ],
-                "Envs": null,
+                "NetworkAddrs": null,
                 "UsedPorts": null
             }
         },
@@ -1095,12 +954,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/cartservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 7070
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "redis-cart:6379"
                 ],
                 "UsedPorts": [
@@ -1122,12 +976,7 @@
                 "image": {
                     "id": "redis:alpine"
                 },
-                "network": [
-                    {
-                        "container_url": 6379
-                    }
-                ],
-                "Envs": null,
+                "NetworkAddrs": null,
                 "UsedPorts": null
             }
         },
@@ -1162,12 +1011,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/frontend:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 8080
-                    }
-                ],
-                "Envs": [
+                "NetworkAddrs": [
                     "productcatalogservice:3550",
                     "currencyservice:7000",
                     "cartservice:7070",
@@ -1196,12 +1040,7 @@
                 "image": {
                     "id": "gcr.io/google-samples/microservices-demo/adservice:v0.2.3"
                 },
-                "network": [
-                    {
-                        "container_url": 9555
-                    }
-                ],
-                "Envs": null,
+                "NetworkAddrs": null,
                 "UsedPorts": null
             }
         },

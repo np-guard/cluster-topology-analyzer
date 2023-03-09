@@ -19,6 +19,11 @@ spec:
       containers:
       - name: orders
         image: weaveworksdemos/orders:0.4.7
+        args:
+        - --cart_svc
+        - carts             # existing service, without specifying port number - such a connection should be allowed
+        - no_such_svc:4040  # non-existing service
+        - orders-db:271     # existing service, but with wrong port number - such a connection should NOT be allowed
         env:
          - name: JAVA_OPTS
            value: -Xms64m -Xmx128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom -Dspring.zipkin.enabled=false

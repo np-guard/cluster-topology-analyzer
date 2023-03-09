@@ -19,9 +19,12 @@ spec:
       containers:
       - name: carts
         image: weaveworksdemos/carts:0.4.8
+        args:
+        - --carts_db_addr
+        - carts-db:27017
         env:
-         - name: JAVA_OPTS
-           value: -Xms64m -Xmx128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom -Dspring.zipkin.enabled=false
+        - name: JAVA_OPTS
+          value: -Xms64m -Xmx128m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom -Dspring.zipkin.enabled=false
         resources:
           limits:
             cpu: 300m

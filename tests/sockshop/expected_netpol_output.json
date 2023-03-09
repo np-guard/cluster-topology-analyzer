@@ -17,6 +17,57 @@
                         "name": "carts"
                     }
                 },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 80
+                            }
+                        ],
+                        "from": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "name": "orders"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "egress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 27017
+                            }
+                        ],
+                        "to": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "name": "carts-db"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "UDP",
+                                "port": 53
+                            }
+                        ],
+                        "to": [
+                            {
+                                "namespaceSelector": {}
+                            }
+                        ]
+                    }
+                ],
                 "policyTypes": [
                     "Ingress",
                     "Egress"
@@ -38,6 +89,25 @@
                         "name": "carts-db"
                     }
                 },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 27017
+                            }
+                        ],
+                        "from": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "name": "carts"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
                 "policyTypes": [
                     "Ingress",
                     "Egress"
@@ -132,6 +202,38 @@
                         "name": "orders"
                     }
                 },
+                "egress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 80
+                            }
+                        ],
+                        "to": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "name": "carts"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "UDP",
+                                "port": 53
+                            }
+                        ],
+                        "to": [
+                            {
+                                "namespaceSelector": {}
+                            }
+                        ]
+                    }
+                ],
                 "policyTypes": [
                     "Ingress",
                     "Egress"
