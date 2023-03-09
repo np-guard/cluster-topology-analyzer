@@ -85,7 +85,7 @@ func (rp *resourceParser) inlineConfigMapRefsAsEnvs(resources []common.Resource,
 
 		// inline the envFrom field in PodSpec->containers
 		for _, cfgMapRef := range res.Resource.ConfigMapRefs {
-			configmapFullName := namespacedName(res.Resource.Namespace, cfgMapRef)
+			configmapFullName := res.Resource.Namespace + "/" + cfgMapRef
 			if cfgMap, ok := cfgMaps[configmapFullName]; ok {
 				for _, v := range cfgMap.Data {
 					if analyzer.IsNetworkAddressValue(v) {
@@ -99,7 +99,7 @@ func (rp *resourceParser) inlineConfigMapRefsAsEnvs(resources []common.Resource,
 
 		// inline PodSpec->container->env->valueFrom->configMapKeyRef
 		for _, cfgMapKeyRef := range res.Resource.ConfigMapKeyRefs {
-			configmapFullName := namespacedName(res.Resource.Namespace, cfgMapKeyRef.Name)
+			configmapFullName := res.Resource.Namespace + "/" + cfgMapKeyRef.Name
 			if cfgMap, ok := cfgMaps[configmapFullName]; ok {
 				if val, ok := cfgMap.Data[cfgMapKeyRef.Key]; ok {
 					if analyzer.IsNetworkAddressValue(val) {
