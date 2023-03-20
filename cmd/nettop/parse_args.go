@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+
+	"github.com/np-guard/cluster-topology-analyzer/pkg/controller"
 )
 
 type PathList []string
@@ -25,6 +27,7 @@ type InArgs struct {
 	DirPaths     PathList
 	OutputFile   *string
 	OutputFormat *string
+	DNSPort      *int
 	SynthNetpols *bool
 	Quiet        *bool
 	Verbose      *bool
@@ -35,6 +38,7 @@ func ParseInArgs(args *InArgs) error {
 	args.OutputFile = flag.String("outputfile", "", "file path to store results")
 	args.OutputFormat = flag.String("format", JSONFormat, "output format; must be either \"json\" or \"yaml\"")
 	args.SynthNetpols = flag.Bool("netpols", false, "whether to synthesize NetworkPolicies to allow only the discovered connections")
+	args.DNSPort = flag.Int("dnsport", controller.DefaultDNSPort, "specify DNS port to be used in egress rules of synthesized NetworkPolicies")
 	args.Quiet = flag.Bool("q", false, "runs quietly, reports only severe errors and results")
 	args.Verbose = flag.Bool("v", false, "runs with more informative messages printed to log")
 	flag.Parse()

@@ -82,7 +82,7 @@ func getVerbosity(args InArgs) controller.Verbosity {
 // (or NetworkPolicies to allow only this connectivity)
 func detectTopology(args InArgs) error {
 	logger := controller.NewDefaultLoggerWithVerbosity(getVerbosity(args))
-	synth := controller.NewPoliciesSynthesizer(controller.WithLogger(logger))
+	synth := controller.NewPoliciesSynthesizer(controller.WithLogger(logger), controller.WithDNSPort(*args.DNSPort))
 
 	var content interface{}
 	if args.SynthNetpols != nil && *args.SynthNetpols {
