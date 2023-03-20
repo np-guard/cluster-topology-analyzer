@@ -13,6 +13,10 @@ import (
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
+const (
+	DefaultDNSPort = 53
+)
+
 // Walk function is a function for recursively scanning a directory, in the spirit of Go's native filepath.WalkDir()
 // See https://pkg.go.dev/path/filepath#WalkDir for full description on how such a function should work
 type WalkFunction func(root string, fn fs.WalkDirFunc) error
@@ -25,6 +29,7 @@ type PoliciesSynthesizer struct {
 	logger      Logger
 	stopOnError bool
 	walkFn      WalkFunction
+	dnsPort     int
 
 	errors []FileProcessingError
 }
@@ -57,6 +62,12 @@ func WithStopOnError() PoliciesSynthesizerOption {
 	}
 }
 
+func WithDNSPort(dnsPort int) PoliciesSynthesizerOption {
+	return func(p *PoliciesSynthesizer) {
+		p.dnsPort = dnsPort
+	}
+}
+
 // NewPoliciesSynthesizer creates a new instance of PoliciesSynthesizer, and applies the provided functional options.
 func NewPoliciesSynthesizer(options ...PoliciesSynthesizerOption) *PoliciesSynthesizer {
 	// object with default behavior options
@@ -64,6 +75,7 @@ func NewPoliciesSynthesizer(options ...PoliciesSynthesizerOption) *PoliciesSynth
 		logger:      NewDefaultLogger(),
 		stopOnError: false,
 		walkFn:      filepath.WalkDir,
+		dnsPort:     DefaultDNSPort,
 		errors:      []FileProcessingError{},
 	}
 	for _, o := range options {
@@ -89,7 +101,7 @@ func (ps *PoliciesSynthesizer) PoliciesFromFolderPaths(dirPaths []string) ([]*ne
 	resources, connections, errs := ps.extractConnections(dirPaths)
 	policies := []*networking.NetworkPolicy{}
 	if !stopProcessing(ps.stopOnError, errs) {
-		policies = synthNetpols(resources, connections)
+		policies = ps.synthNetpols(resources, connections)
 	}
 
 	ps.errors = errs

@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	core "k8s.io/api/core/v1"
 )
 
 func TestPoliciesSynthesizerAPI(t *testing.T) {
@@ -50,6 +51,26 @@ func TestPoliciesSynthesizerAPIMultiplePaths(t *testing.T) {
 	require.Nilf(t, err, "expected no fatal errors, but got %v", err)
 	require.Empty(t, synthesizer.Errors())
 	require.Len(t, netpols, 3)
+}
+
+func TestPoliciesSynthesizerAPIDnsPort(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "acs-security-demos")
+	synthesizer := NewPoliciesSynthesizer(WithDNSPort(5353))
+	netpols, err := synthesizer.PoliciesFromFolderPaths([]string{dirPath})
+	require.Nilf(t, err, "expected no fatal errors, but got %v", err)
+	require.Len(t, synthesizer.Errors(), 2) // two OpenShift routes are not K8s native resources
+	require.Len(t, netpols, 14)
+	for _, netpol := range netpols {
+		for r := range netpol.Spec.Egress {
+			eRule := &netpol.Spec.Egress[r]
+			for p := range eRule.Ports {
+				port := &eRule.Ports[p]
+				if *port.Protocol == core.ProtocolUDP {
+					require.Equal(t, int32(5353), port.Port.IntVal)
+				}
+			}
+		}
+	}
 }
 
 func TestPoliciesSynthesizerAPIFatalError(t *testing.T) {

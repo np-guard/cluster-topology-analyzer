@@ -13,7 +13,6 @@ import (
 )
 
 const (
-	dnsPort           = 53
 	networkAPIVersion = "networking.k8s.io/v1"
 	networkPolicyKind = "NetworkPolicy"
 )
@@ -84,9 +83,9 @@ func getNsDefaultDenyPolicies(resources []common.Resource) []*network.NetworkPol
 	return denyNetpols
 }
 
-func synthNetpols(resources []common.Resource, connections []*common.Connections) []*network.NetworkPolicy {
+func (ps *PoliciesSynthesizer) synthNetpols(resources []common.Resource, connections []*common.Connections) []*network.NetworkPolicy {
 	deployConnectivity := determineConnectivityPerDeployment(connections)
-	netpols := buildNetpolPerDeployment(deployConnectivity)
+	netpols := ps.buildNetpolPerDeployment(deployConnectivity)
 	netpols = append(netpols, getNsDefaultDenyPolicies(resources)...)
 	return netpols
 }
@@ -184,12 +183,12 @@ func toCoreProtocol(protocol string) core.Protocol {
 	}
 }
 
-func buildNetpolPerDeployment(deployConnectivity []*deploymentConnectivity) []*network.NetworkPolicy {
+func (ps *PoliciesSynthesizer) buildNetpolPerDeployment(deployConnectivity []*deploymentConnectivity) []*network.NetworkPolicy {
 	netpols := make([]*network.NetworkPolicy, 0, len(deployConnectivity))
 	for _, deployConn := range deployConnectivity {
 		if len(deployConn.egressConns) > 0 { // add a rule to allow egress DNS traffic (inside the cluster)
 			allClusterPeers := []network.NetworkPolicyPeer{{NamespaceSelector: &metaV1.LabelSelector{}}}
-			deployConn.addEgressRule(allClusterPeers, []network.NetworkPolicyPort{getDNSPort()})
+			deployConn.addEgressRule(allClusterPeers, []network.NetworkPolicyPort{getDNSPort(ps.dnsPort)})
 		}
 		netpol := network.NetworkPolicy{
 			TypeMeta: metaV1.TypeMeta{
@@ -212,12 +211,12 @@ func buildNetpolPerDeployment(deployConnectivity []*deploymentConnectivity) []*n
 	return netpols
 }
 
-func getDNSPort() network.NetworkPolicyPort {
+func getDNSPort(portNum int) network.NetworkPolicyPort {
 	udp := core.ProtocolUDP
-	port53 := intstr.FromInt(dnsPort)
+	port := intstr.FromInt(portNum)
 	return network.NetworkPolicyPort{
 		Protocol: &udp,
-		Port:     &port53,
+		Port:     &port,
 	}
 }
 
