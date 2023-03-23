@@ -15,6 +15,8 @@ Usage of ./bin/net-top:
         output format; must be either "json" or "yaml" (default "json")
   -netpols
         whether to synthesize NetworkPolicies to allow only the discovered connections
+  -dnsport int
+        specify DNS port to be used in egress rules of synthesized NetworkPolicies (default 53)
   -q    runs quietly, reports only severe errors and results
   -v    runs with more informative messages printed to log
 ```
