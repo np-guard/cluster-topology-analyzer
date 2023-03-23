@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/np-guard/cluster-topology-analyzer/pkg/controller"
 )
 
 type TestDetails struct {
@@ -187,6 +189,8 @@ func getTestArgs(dirPaths [][]string, outFile, outFormat string, netpols, quiet,
 	args.SynthNetpols = &netpols
 	args.Quiet = &quiet
 	args.Verbose = &verbose
+	defaultDNSPortNum := controller.DefaultDNSPort
+	args.DNSPort = &defaultDNSPortNum
 	return args
 }
 
