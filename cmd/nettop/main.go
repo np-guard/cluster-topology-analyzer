@@ -109,16 +109,25 @@ func detectTopology(args *InArgs) error {
 	return nil
 }
 
-func main() {
-	inArgs, err := ParseInArgs()
+// The actual main function
+// Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
+func _main(cmdlineArgs []string) error {
+	inArgs, err := ParseInArgs(cmdlineArgs)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error parsing arguments: %v. exiting...\n", err)
-		os.Exit(1)
+		return fmt.Errorf("error parsing arguments: %w", err)
 	}
 
 	err = detectTopology(inArgs)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error running topology analysis: %v. exiting...", err)
+		return fmt.Errorf("error running topology analysis: %w", err)
+	}
+	return nil
+}
+
+func main() {
+	err := _main(os.Args[1:])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v. exiting...", err)
 		os.Exit(1)
 	}
 }

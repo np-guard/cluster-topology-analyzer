@@ -33,16 +33,20 @@ type InArgs struct {
 	Verbose      *bool
 }
 
-func ParseInArgs() (*InArgs, error) {
+func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args := InArgs{}
-	flag.Var(&args.DirPaths, "dirpath", "input directory path")
-	args.OutputFile = flag.String("outputfile", "", "file path to store results")
-	args.OutputFormat = flag.String("format", JSONFormat, "output format; must be either \"json\" or \"yaml\"")
-	args.SynthNetpols = flag.Bool("netpols", false, "whether to synthesize NetworkPolicies to allow only the discovered connections")
-	args.DNSPort = flag.Int("dnsport", controller.DefaultDNSPort, "specify DNS port to be used in egress rules of synthesized NetworkPolicies")
-	args.Quiet = flag.Bool("q", false, "runs quietly, reports only severe errors and results")
-	args.Verbose = flag.Bool("v", false, "runs with more informative messages printed to log")
-	flag.Parse()
+	flagset := flag.NewFlagSet("cluster-topology-analyzer", flag.ContinueOnError)
+	flagset.Var(&args.DirPaths, "dirpath", "input directory path")
+	args.OutputFile = flagset.String("outputfile", "", "file path to store results")
+	args.OutputFormat = flagset.String("format", JSONFormat, "output format; must be either \"json\" or \"yaml\"")
+	args.SynthNetpols = flagset.Bool("netpols", false, "whether to synthesize NetworkPolicies to allow only the discovered connections")
+	args.DNSPort = flagset.Int("dnsport", controller.DefaultDNSPort, "DNS port to be used in egress rules of synthesized NetworkPolicies")
+	args.Quiet = flagset.Bool("q", false, "runs quietly, reports only severe errors and results")
+	args.Verbose = flagset.Bool("v", false, "runs with more informative messages printed to log")
+	err := flagset.Parse(cmdlineArgs)
+	if err != nil {
+		return nil, err
+	}
 
 	if len(args.DirPaths) == 0 {
 		flag.PrintDefaults()
