@@ -33,7 +33,8 @@ type InArgs struct {
 	Verbose      *bool
 }
 
-func ParseInArgs(args *InArgs) error {
+func ParseInArgs() (*InArgs, error) {
+	args := InArgs{}
 	flag.Var(&args.DirPaths, "dirpath", "input directory path")
 	args.OutputFile = flag.String("outputfile", "", "file path to store results")
 	args.OutputFormat = flag.String("format", JSONFormat, "output format; must be either \"json\" or \"yaml\"")
@@ -45,16 +46,16 @@ func ParseInArgs(args *InArgs) error {
 
 	if len(args.DirPaths) == 0 {
 		flag.PrintDefaults()
-		return fmt.Errorf("missing parameter: dirpath")
+		return nil, fmt.Errorf("missing parameter: dirpath")
 	}
 	if *args.Quiet && *args.Verbose {
 		flag.PrintDefaults()
-		return fmt.Errorf("-q and -v cannot be specified together")
+		return nil, fmt.Errorf("-q and -v cannot be specified together")
 	}
 	if *args.OutputFormat != JSONFormat && *args.OutputFormat != YamlFormat {
 		flag.PrintDefaults()
-		return fmt.Errorf("wrong output format %s; must be either json or yaml", *args.OutputFormat)
+		return nil, fmt.Errorf("wrong output format %s; must be either json or yaml", *args.OutputFormat)
 	}
 
-	return nil
+	return &args, nil
 }

@@ -67,7 +67,7 @@ func writeContent(outputFile, outputFormat string, content interface{}) error {
 }
 
 // returns verbosity level based on the -q and -v switches
-func getVerbosity(args InArgs) controller.Verbosity {
+func getVerbosity(args *InArgs) controller.Verbosity {
 	verbosity := controller.MediumVerbosity
 	if *args.Quiet {
 		verbosity = controller.LowVerbosity
@@ -80,7 +80,7 @@ func getVerbosity(args InArgs) controller.Verbosity {
 // Based on the arguments it is given, scans all YAML files,
 // detects all required connection between resources and outputs a json connectivity report
 // (or NetworkPolicies to allow only this connectivity)
-func detectTopology(args InArgs) error {
+func detectTopology(args *InArgs) error {
 	logger := controller.NewDefaultLoggerWithVerbosity(getVerbosity(args))
 	synth := controller.NewPoliciesSynthesizer(controller.WithLogger(logger), controller.WithDNSPort(*args.DNSPort))
 
@@ -110,8 +110,7 @@ func detectTopology(args InArgs) error {
 }
 
 func main() {
-	var inArgs InArgs
-	err := ParseInArgs(&inArgs)
+	inArgs, err := ParseInArgs()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error parsing arguments: %v. exiting...\n", err)
 		os.Exit(1)

@@ -138,7 +138,7 @@ func (td *TestDetails) runTest(t *testing.T) {
 	require.Nil(t, err)
 
 	args := getTestArgs(td.dirPath, outFileName, td.outputFormat, td.synthNetpols, td.quiet, td.verbose)
-	err = detectTopology(args)
+	err = detectTopology(&args)
 
 	if td.expectError {
 		require.NotNil(t, err)
