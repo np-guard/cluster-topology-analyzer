@@ -114,6 +114,15 @@ var (
 			[]string{"bookinfo", "expected_netpol_output.json"},
 		},
 		{
+			"SpecifyDNSPort",
+			[][]string{{"acs-security-demos"}},
+			YamlFormat,
+			true,
+			[]string{"-v", "-dnsport", "5353"},
+			false,
+			[]string{"acs-security-demos", "expected_netpol_output.yaml"},
+		},
+		{
 			"HelpFlag",
 			nil,
 			JSONFormat,
