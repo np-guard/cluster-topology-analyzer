@@ -114,6 +114,15 @@ var (
 			[]string{"bookinfo", "expected_netpol_output.json"},
 		},
 		{
+			"HelpFlag",
+			nil,
+			JSONFormat,
+			true,
+			[]string{"-h"},
+			false,
+			nil,
+		},
+		{
 			"BadFlag",
 			[][]string{{"bookinfo"}},
 			JSONFormat,

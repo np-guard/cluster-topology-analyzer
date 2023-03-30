@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 
@@ -113,6 +114,9 @@ func detectTopology(args *InArgs) error {
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
 	inArgs, err := ParseInArgs(cmdlineArgs)
+	if err == flag.ErrHelp {
+		return nil
+	}
 	if err != nil {
 		return fmt.Errorf("error parsing arguments: %w", err)
 	}
