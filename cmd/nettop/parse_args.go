@@ -49,15 +49,15 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	}
 
 	if len(args.DirPaths) == 0 {
-		flag.PrintDefaults()
+		flagset.PrintDefaults()
 		return nil, fmt.Errorf("missing parameter: dirpath")
 	}
 	if *args.Quiet && *args.Verbose {
-		flag.PrintDefaults()
+		flagset.PrintDefaults()
 		return nil, fmt.Errorf("-q and -v cannot be specified together")
 	}
 	if *args.OutputFormat != JSONFormat && *args.OutputFormat != YamlFormat {
-		flag.PrintDefaults()
+		flagset.PrintDefaults()
 		return nil, fmt.Errorf("wrong output format %s; must be either json or yaml", *args.OutputFormat)
 	}
 
