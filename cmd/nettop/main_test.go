@@ -9,8 +9,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/np-guard/cluster-topology-analyzer/pkg/controller"
 )
 
 type TestDetails struct {
@@ -18,8 +16,7 @@ type TestDetails struct {
 	dirPath        [][]string
 	outputFormat   string
 	synthNetpols   bool
-	quiet          bool
-	verbose        bool
+	extraFlags     []string
 	expectError    bool
 	expectedOutput []string
 }
@@ -31,8 +28,7 @@ var (
 			[][]string{{"onlineboutique", "kubernetes-manifests.yaml"}},
 			JSONFormat,
 			false,
-			false,
-			false,
+			nil,
 			false,
 			[]string{"onlineboutique", "expected_output.json"},
 		},
@@ -41,8 +37,7 @@ var (
 			[][]string{{"onlineboutique", "kubernetes-manifests.yaml"}},
 			YamlFormat,
 			false,
-			false,
-			false,
+			nil,
 			false,
 			[]string{"onlineboutique", "expected_output.yaml"},
 		},
@@ -51,8 +46,7 @@ var (
 			[][]string{{"onlineboutique"}},
 			JSONFormat,
 			false,
-			true,
-			false,
+			[]string{"-q"},
 			false,
 			[]string{"onlineboutique", "expected_dirscan_output.json"},
 		},
@@ -61,8 +55,7 @@ var (
 			[][]string{{"onlineboutique", "kubernetes-manifests.yaml"}},
 			YamlFormat,
 			true,
-			false,
-			false,
+			nil,
 			false,
 			[]string{"onlineboutique", "expected_netpol_output.yaml"},
 		},
@@ -71,8 +64,7 @@ var (
 			[][]string{{"k8s_wordpress_example", "mysql-deployment.yaml"}, {"k8s_wordpress_example", "wordpress-deployment.yaml"}},
 			JSONFormat,
 			true,
-			false,
-			false,
+			nil,
 			false,
 			[]string{"k8s_wordpress_example", "expected_netpol_output.json"},
 		},
@@ -81,8 +73,7 @@ var (
 			[][]string{{"onlineboutique", "kubernetes-manifests.yaml"}},
 			JSONFormat,
 			true,
-			false,
-			false,
+			nil,
 			false,
 			[]string{"onlineboutique", "expected_netpol_output.json"},
 		},
@@ -91,8 +82,7 @@ var (
 			[][]string{{"sockshop", "manifests"}},
 			JSONFormat,
 			true,
-			false,
-			true,
+			[]string{"-v"},
 			false,
 			[]string{"sockshop", "expected_netpol_output.json"},
 		},
@@ -101,8 +91,7 @@ var (
 			[][]string{{"k8s_wordpress_example"}},
 			JSONFormat,
 			true,
-			false,
-			true,
+			[]string{"-v"},
 			false,
 			[]string{"k8s_wordpress_example", "expected_netpol_output.json"},
 		},
@@ -111,8 +100,7 @@ var (
 			[][]string{{"k8s_guestbook"}},
 			JSONFormat,
 			true,
-			false,
-			true,
+			[]string{"-v"},
 			false,
 			[]string{"k8s_guestbook", "expected_netpol_output.json"},
 		},
@@ -121,10 +109,81 @@ var (
 			[][]string{{"bookinfo"}},
 			JSONFormat,
 			true,
-			false,
-			true,
+			[]string{"-v"},
 			false,
 			[]string{"bookinfo", "expected_netpol_output.json"},
+		},
+		{
+			"SpecifyDNSPort",
+			[][]string{{"acs-security-demos"}},
+			YamlFormat,
+			true,
+			[]string{"-v", "-dnsport", "5353"},
+			false,
+			[]string{"acs-security-demos", "expected_netpol_output.yaml"},
+		},
+		{
+			"HelpFlag",
+			nil,
+			JSONFormat,
+			true,
+			[]string{"-h"},
+			false,
+			nil,
+		},
+		{
+			"BadFlag",
+			[][]string{{"bookinfo"}},
+			JSONFormat,
+			true,
+			[]string{"-no_such_flag"},
+			true,
+			nil,
+		},
+		{
+			"QuietAndVerbose",
+			[][]string{{"bookinfo"}},
+			JSONFormat,
+			true,
+			[]string{"-q", "-v"},
+			true,
+			nil,
+		},
+		{
+			"BadOutputFormat",
+			[][]string{{"bookinfo"}},
+			"StrangeFormat",
+			true,
+			nil,
+			true,
+			nil,
+		},
+		{
+			"noDirPath",
+			nil,
+			JSONFormat,
+			true,
+			nil,
+			true,
+			nil,
+		},
+		{
+			"badDirPathConnections",
+			[][]string{{"no-such-path"}},
+			JSONFormat,
+			false,
+			nil,
+			true,
+			nil,
+		},
+		{
+			"badDirPathNetpols",
+			[][]string{{"no-such-path"}},
+			JSONFormat,
+			true,
+			nil,
+			true,
+			nil,
 		},
 	}
 
@@ -137,8 +196,7 @@ func (td *TestDetails) runTest(t *testing.T) {
 	outFileName, err := getTempOutputFile()
 	require.Nil(t, err)
 
-	args := getTestArgs(td.dirPath, outFileName, td.outputFormat, td.synthNetpols, td.quiet, td.verbose)
-	err = detectTopology(args)
+	err = _main(getTestArgs(td, outFileName))
 
 	if td.expectError {
 		require.NotNil(t, err)
@@ -178,20 +236,16 @@ func pathInTestsDir(pathElements []string) string {
 	return filepath.Join(testsDir, filepath.Join(pathElements...))
 }
 
-func getTestArgs(dirPaths [][]string, outFile, outFormat string, netpols, quiet, verbose bool) InArgs {
-	args := InArgs{}
-	args.DirPaths = []string{}
-	for idx := range dirPaths {
-		args.DirPaths = append(args.DirPaths, pathInTestsDir(dirPaths[idx]))
+func getTestArgs(td *TestDetails, outFile string) []string {
+	res := []string{"-outputfile", outFile, "-format", td.outputFormat}
+	if td.synthNetpols {
+		res = append(res, "-netpols")
 	}
-	args.OutputFile = &outFile
-	args.OutputFormat = &outFormat
-	args.SynthNetpols = &netpols
-	args.Quiet = &quiet
-	args.Verbose = &verbose
-	defaultDNSPortNum := controller.DefaultDNSPort
-	args.DNSPort = &defaultDNSPortNum
-	return args
+	for idx := range td.dirPath {
+		res = append(res, "-dirpath", pathInTestsDir(td.dirPath[idx]))
+	}
+	res = append(res, td.extraFlags...)
+	return res
 }
 
 func readLines(path string) ([]string, error) {

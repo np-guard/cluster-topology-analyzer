@@ -33,28 +33,33 @@ type InArgs struct {
 	Verbose      *bool
 }
 
-func ParseInArgs(args *InArgs) error {
-	flag.Var(&args.DirPaths, "dirpath", "input directory path")
-	args.OutputFile = flag.String("outputfile", "", "file path to store results")
-	args.OutputFormat = flag.String("format", JSONFormat, "output format; must be either \"json\" or \"yaml\"")
-	args.SynthNetpols = flag.Bool("netpols", false, "whether to synthesize NetworkPolicies to allow only the discovered connections")
-	args.DNSPort = flag.Int("dnsport", controller.DefaultDNSPort, "specify DNS port to be used in egress rules of synthesized NetworkPolicies")
-	args.Quiet = flag.Bool("q", false, "runs quietly, reports only severe errors and results")
-	args.Verbose = flag.Bool("v", false, "runs with more informative messages printed to log")
-	flag.Parse()
+func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
+	args := InArgs{}
+	flagset := flag.NewFlagSet("cluster-topology-analyzer", flag.ContinueOnError)
+	flagset.Var(&args.DirPaths, "dirpath", "input directory path")
+	args.OutputFile = flagset.String("outputfile", "", "file path to store results")
+	args.OutputFormat = flagset.String("format", JSONFormat, "output format; must be either \"json\" or \"yaml\"")
+	args.SynthNetpols = flagset.Bool("netpols", false, "whether to synthesize NetworkPolicies to allow only the discovered connections")
+	args.DNSPort = flagset.Int("dnsport", controller.DefaultDNSPort, "DNS port to be used in egress rules of synthesized NetworkPolicies")
+	args.Quiet = flagset.Bool("q", false, "runs quietly, reports only severe errors and results")
+	args.Verbose = flagset.Bool("v", false, "runs with more informative messages printed to log")
+	err := flagset.Parse(cmdlineArgs)
+	if err != nil {
+		return nil, err
+	}
 
 	if len(args.DirPaths) == 0 {
-		flag.PrintDefaults()
-		return fmt.Errorf("missing parameter: dirpath")
+		flagset.PrintDefaults()
+		return nil, fmt.Errorf("missing parameter: dirpath")
 	}
 	if *args.Quiet && *args.Verbose {
-		flag.PrintDefaults()
-		return fmt.Errorf("-q and -v cannot be specified together")
+		flagset.PrintDefaults()
+		return nil, fmt.Errorf("-q and -v cannot be specified together")
 	}
 	if *args.OutputFormat != JSONFormat && *args.OutputFormat != YamlFormat {
-		flag.PrintDefaults()
-		return fmt.Errorf("wrong output format %s; must be either json or yaml", *args.OutputFormat)
+		flagset.PrintDefaults()
+		return nil, fmt.Errorf("wrong output format %s; must be either json or yaml", *args.OutputFormat)
 	}
 
-	return nil
+	return &args, nil
 }

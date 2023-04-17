@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 
@@ -67,7 +68,7 @@ func writeContent(outputFile, outputFormat string, content interface{}) error {
 }
 
 // returns verbosity level based on the -q and -v switches
-func getVerbosity(args InArgs) controller.Verbosity {
+func getVerbosity(args *InArgs) controller.Verbosity {
 	verbosity := controller.MediumVerbosity
 	if *args.Quiet {
 		verbosity = controller.LowVerbosity
@@ -80,7 +81,7 @@ func getVerbosity(args InArgs) controller.Verbosity {
 // Based on the arguments it is given, scans all YAML files,
 // detects all required connection between resources and outputs a json connectivity report
 // (or NetworkPolicies to allow only this connectivity)
-func detectTopology(args InArgs) error {
+func detectTopology(args *InArgs) error {
 	logger := controller.NewDefaultLoggerWithVerbosity(getVerbosity(args))
 	synth := controller.NewPoliciesSynthesizer(controller.WithLogger(logger), controller.WithDNSPort(*args.DNSPort))
 
@@ -109,17 +110,28 @@ func detectTopology(args InArgs) error {
 	return nil
 }
 
-func main() {
-	var inArgs InArgs
-	err := ParseInArgs(&inArgs)
+// The actual main function
+// Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
+func _main(cmdlineArgs []string) error {
+	inArgs, err := ParseInArgs(cmdlineArgs)
+	if err == flag.ErrHelp {
+		return nil
+	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error parsing arguments: %v. exiting...\n", err)
-		os.Exit(1)
+		return fmt.Errorf("error parsing arguments: %w", err)
 	}
 
 	err = detectTopology(inArgs)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error running topology analysis: %v. exiting...", err)
+		return fmt.Errorf("error running topology analysis: %w", err)
+	}
+	return nil
+}
+
+func main() {
+	err := _main(os.Args[1:])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v. exiting...", err)
 		os.Exit(1)
 	}
 }
