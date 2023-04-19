@@ -56,7 +56,7 @@ func (err *NoYamlsFoundError) Error() string {
 }
 
 func (err *NoK8sResourcesFoundError) Error() string {
-	return "no relevant Kubernetes resources found"
+	return "could not find any Kubernetes workload resources"
 }
 
 func (err *ConfigMapNotFoundError) Error() string {
