@@ -44,6 +44,7 @@ type rawK8sResource struct {
 }
 
 // resourceFinder is used to locate all relevant K8s resources in a given file-system directory
+// and to convert them into the internal structs, used for later processing.
 type resourceFinder struct {
 	logger       Logger
 	stopOn1stErr bool
@@ -57,7 +58,7 @@ type resourceFinder struct {
 // getRelevantK8sResources is the main function of resourceFinder.
 // It scans a given directory using walkFn, looking for all yaml files. It then breaks each yaml into its documents
 // and extracts all K8s resources that are relevant for connectivity analysis.
-// The resources are returned separated to workloads, services and configmaps
+// The resources are stored in the struct, separated to workloads, services and configmaps
 func (rf *resourceFinder) getRelevantK8sResources(repoDir string) []FileProcessingError {
 	manifestFiles, fileScanErrors := rf.searchForManifests(repoDir)
 	if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
@@ -162,8 +163,8 @@ func (rf *resourceFinder) parseK8sYaml(mfp string) ([]rawK8sResource, []FileProc
 	return dObjs, fileProcessingErrors
 }
 
-// parseResources takes raw K8s resources in a file and breaks them into 3 separate slices:
-// a slice with workload resources, a slice with Service resources, and a slice with ConfigMaps resources
+// parseResources takes raw K8s resources in a given yaml file and puts each parsed resource into one of the 3 struct slices:
+// the workload resource slice, the Service resource slice, and the ConfigMaps resource slice
 func (rf *resourceFinder) parseResources(rawK8sResources []rawK8sResource, manifestFilePath string) []FileProcessingError {
 	parseErrors := []FileProcessingError{}
 	for _, p := range rawK8sResources {
