@@ -10,6 +10,9 @@ import (
 
 	"gopkg.in/yaml.v3"
 	"k8s.io/client-go/kubernetes/scheme"
+
+	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
+	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
 // K8s resources that are relevant for connectivity analysis
@@ -18,8 +21,8 @@ const (
 	replicaSet            string = "ReplicaSet"
 	replicationController string = "ReplicationController"
 	deployment            string = "Deployment"
-	statefulset           string = "StatefulSet"
-	daemonset             string = "DaemonSet"
+	statefulSet           string = "StatefulSet"
+	daemonSet             string = "DaemonSet"
 	job                   string = "Job"
 	cronJob               string = "CronTab"
 	service               string = "Service"
@@ -28,17 +31,11 @@ const (
 
 var (
 	acceptedK8sTypesRegex = fmt.Sprintf("(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)",
-		pod, replicaSet, replicationController, deployment, daemonset, statefulset, job, cronJob, service, configmap)
+		pod, replicaSet, replicationController, deployment, daemonSet, statefulSet, job, cronJob, service, configmap)
 	acceptedK8sTypes = regexp.MustCompile(acceptedK8sTypesRegex)
 	yamlSuffix       = regexp.MustCompile(".ya?ml$")
 	decoder          = scheme.Codecs.UniversalDeserializer()
 )
-
-// rawResourcesInFile represents a single YAML file with multiple K8s resources
-type rawResourcesInFile struct {
-	ManifestFilepath string
-	rawK8sResources  []rawK8sResource
-}
 
 // rawK8sResource stores a raw K8s resource and its kind for later parsing
 type rawK8sResource struct {
@@ -56,30 +53,43 @@ type resourceFinder struct {
 // getRelevantK8sResources is the main function of resourceFinder.
 // It scans a given directory using walkFn, looking for all yaml files. It then breaks each yaml into its documents
 // and extracts all K8s resources that are relevant for connectivity analysis.
-// The result is stored in a slice of rawResourcesInFile (one per yaml file), each containing a slice of rawK8sResource
-func (rf *resourceFinder) getRelevantK8sResources(repoDir string) ([]rawResourcesInFile, []FileProcessingError) {
+// The resources are returned separated to workloads, services and configmaps
+func (rf *resourceFinder) getRelevantK8sResources(repoDir string) (
+	[]common.Resource,
+	[]common.Service,
+	[]common.CfgMap,
+	[]FileProcessingError,
+) {
 	manifestFiles, fileScanErrors := rf.searchForManifests(repoDir)
 	if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
-		return nil, fileScanErrors
+		return nil, nil, nil, fileScanErrors
 	}
 	if len(manifestFiles) == 0 {
 		fileScanErrors = appendAndLogNewError(fileScanErrors, noYamlsFound(), rf.logger)
-		return nil, fileScanErrors
+		return nil, nil, nil, fileScanErrors
 	}
 
-	parsedObjs := []rawResourcesInFile{}
+	resources := []common.Resource{}
+	links := []common.Service{}
+	configmaps := []common.CfgMap{}
 	for _, mfp := range manifestFiles {
 		rawK8sResources, err := rf.parseK8sYaml(mfp)
 		fileScanErrors = append(fileScanErrors, err...)
 		if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
-			return nil, fileScanErrors
+			return nil, nil, nil, fileScanErrors
 		}
-		if len(rawK8sResources) > 0 {
-			manifestFilePath := pathWithoutBaseDir(mfp, repoDir)
-			parsedObjs = append(parsedObjs, rawResourcesInFile{rawK8sResources: rawK8sResources, ManifestFilepath: manifestFilePath})
+		manifestFilePath := pathWithoutBaseDir(mfp, repoDir)
+		r, l, c, errs := rf.parseResources(rawK8sResources, manifestFilePath)
+		resources = append(resources, r...)
+		links = append(links, l...)
+		configmaps = append(configmaps, c...)
+		fileScanErrors = append(fileScanErrors, errs...)
+		if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
+			return nil, nil, nil, fileScanErrors
 		}
 	}
-	return parsedObjs, fileScanErrors
+
+	return resources, links, configmaps, fileScanErrors
 }
 
 // searchForManifests returns a list of YAML files under a given directory (recursively)
@@ -157,6 +167,50 @@ func (rf *resourceFinder) parseK8sYaml(mfp string) ([]rawK8sResource, []FileProc
 		}
 	}
 	return dObjs, fileProcessingErrors
+}
+
+// parseResources takes raw K8s resources in a file and breaks them into 3 separate slices:
+// a slice with workload resources, a slice with Service resources, and a slice with ConfigMaps resources
+func (rf *resourceFinder) parseResources(rawK8sResources []rawK8sResource, manifestFilePath string) (
+	[]common.Resource,
+	[]common.Service,
+	[]common.CfgMap,
+	[]FileProcessingError,
+) {
+	links := []common.Service{}
+	deployments := []common.Resource{}
+	configMaps := []common.CfgMap{}
+	parseErrors := []FileProcessingError{}
+
+	for _, p := range rawK8sResources {
+		switch p.GroupKind {
+		case service:
+			res, err := analyzer.ScanK8sServiceObject(p.GroupKind, p.RuntimeObject)
+			if err != nil {
+				parseErrors = appendAndLogNewError(parseErrors, failedScanningResource(p.GroupKind, manifestFilePath, err), rf.logger)
+				continue
+			}
+			res.Resource.FilePath = manifestFilePath
+			links = append(links, res)
+		case configmap:
+			res, err := analyzer.ScanK8sConfigmapObject(p.GroupKind, p.RuntimeObject)
+			if err != nil {
+				parseErrors = appendAndLogNewError(parseErrors, failedScanningResource(p.GroupKind, manifestFilePath, err), rf.logger)
+				continue
+			}
+			configMaps = append(configMaps, res)
+		default:
+			res, err := analyzer.ScanK8sWorkloadObject(p.GroupKind, p.RuntimeObject)
+			if err != nil {
+				parseErrors = appendAndLogNewError(parseErrors, failedScanningResource(p.GroupKind, manifestFilePath, err), rf.logger)
+				continue
+			}
+			res.Resource.FilePath = manifestFilePath
+			deployments = append(deployments, res)
+		}
+	}
+
+	return deployments, links, configMaps, parseErrors
 }
 
 // returns a file path without its prefix base dir

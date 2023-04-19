@@ -134,25 +134,28 @@ func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]
 func (ps *PoliciesSynthesizer) extractConnections(dirPaths []string) ([]common.Resource, []*common.Connections, []FileProcessingError) {
 	// 1. Get all relevant resources from the repo
 	resFinder := resourceFinder{logger: ps.logger, stopOn1stErr: ps.stopOnError, walkFn: ps.walkFn}
-	rawResources := []rawResourcesInFile{}
+	resources := []common.Resource{}
+	links := []common.Service{}
+	configmaps := []common.CfgMap{}
 	fileErrors := []FileProcessingError{}
 	for _, dirPath := range dirPaths {
-		dObjs, errs := resFinder.getRelevantK8sResources(dirPath)
-		rawResources = append(rawResources, dObjs...)
+		r, l, c, errs := resFinder.getRelevantK8sResources(dirPath)
+		resources = append(resources, r...)
+		links = append(links, l...)
+		configmaps = append(configmaps, c...)
 		fileErrors = append(fileErrors, errs...)
 		if stopProcessing(ps.stopOnError, errs) {
 			return nil, nil, fileErrors
 		}
 	}
-	if len(rawResources) == 0 {
+	if len(resources) == 0 {
 		fileErrors = appendAndLogNewError(fileErrors, noK8sResourcesFound(), ps.logger)
 		return []common.Resource{}, []*common.Connections{}, fileErrors
 	}
 
-	// 2. Parse them into internal structs
-	resParser := resourceParser{logger: ps.logger}
-	resources, links, parseErrors := resParser.parseResources(rawResources)
-	fileErrors = append(fileErrors, parseErrors...)
+	// 2. Inline configmaps values as workload envs
+	errs := inlineConfigMapRefsAsEnvs(resources, configmaps, ps.logger)
+	fileErrors = append(fileErrors, errs...)
 	if stopProcessing(ps.stopOnError, fileErrors) {
 		return nil, nil, fileErrors
 	}
