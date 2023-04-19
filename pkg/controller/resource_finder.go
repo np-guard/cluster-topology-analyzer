@@ -75,10 +75,7 @@ func (rf *resourceFinder) getRelevantK8sResources(repoDir string) []FileProcessi
 			return fileScanErrors
 		}
 		manifestFilePath := pathWithoutBaseDir(mfp, repoDir)
-		r, l, c, errs := rf.parseResources(rawK8sResources, manifestFilePath)
-		rf.workloads = append(rf.workloads, r...)
-		rf.services = append(rf.services, l...)
-		rf.configmaps = append(rf.configmaps, c...)
+		errs := rf.parseResources(rawK8sResources, manifestFilePath)
 		fileScanErrors = append(fileScanErrors, errs...)
 		if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
 			return fileScanErrors
@@ -167,17 +164,8 @@ func (rf *resourceFinder) parseK8sYaml(mfp string) ([]rawK8sResource, []FileProc
 
 // parseResources takes raw K8s resources in a file and breaks them into 3 separate slices:
 // a slice with workload resources, a slice with Service resources, and a slice with ConfigMaps resources
-func (rf *resourceFinder) parseResources(rawK8sResources []rawK8sResource, manifestFilePath string) (
-	[]common.Resource,
-	[]common.Service,
-	[]common.CfgMap,
-	[]FileProcessingError,
-) {
-	links := []common.Service{}
-	deployments := []common.Resource{}
-	configMaps := []common.CfgMap{}
+func (rf *resourceFinder) parseResources(rawK8sResources []rawK8sResource, manifestFilePath string) []FileProcessingError {
 	parseErrors := []FileProcessingError{}
-
 	for _, p := range rawK8sResources {
 		switch p.GroupKind {
 		case service:
@@ -187,14 +175,14 @@ func (rf *resourceFinder) parseResources(rawK8sResources []rawK8sResource, manif
 				continue
 			}
 			res.Resource.FilePath = manifestFilePath
-			links = append(links, res)
+			rf.services = append(rf.services, res)
 		case configmap:
 			res, err := analyzer.ScanK8sConfigmapObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
 				parseErrors = appendAndLogNewError(parseErrors, failedScanningResource(p.GroupKind, manifestFilePath, err), rf.logger)
 				continue
 			}
-			configMaps = append(configMaps, res)
+			rf.configmaps = append(rf.configmaps, res)
 		default:
 			res, err := analyzer.ScanK8sWorkloadObject(p.GroupKind, p.RuntimeObject)
 			if err != nil {
@@ -202,11 +190,11 @@ func (rf *resourceFinder) parseResources(rawK8sResources []rawK8sResource, manif
 				continue
 			}
 			res.Resource.FilePath = manifestFilePath
-			deployments = append(deployments, res)
+			rf.workloads = append(rf.workloads, res)
 		}
 	}
 
-	return deployments, links, configMaps, parseErrors
+	return parseErrors
 }
 
 // returns a file path without its prefix base dir
