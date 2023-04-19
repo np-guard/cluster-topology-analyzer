@@ -48,48 +48,44 @@ type resourceFinder struct {
 	logger       Logger
 	stopOn1stErr bool
 	walkFn       WalkFunction // for customizing directory scan
+
+	workloads  []common.Resource
+	services   []common.Service
+	configmaps []common.CfgMap
 }
 
 // getRelevantK8sResources is the main function of resourceFinder.
 // It scans a given directory using walkFn, looking for all yaml files. It then breaks each yaml into its documents
 // and extracts all K8s resources that are relevant for connectivity analysis.
 // The resources are returned separated to workloads, services and configmaps
-func (rf *resourceFinder) getRelevantK8sResources(repoDir string) (
-	[]common.Resource,
-	[]common.Service,
-	[]common.CfgMap,
-	[]FileProcessingError,
-) {
+func (rf *resourceFinder) getRelevantK8sResources(repoDir string) []FileProcessingError {
 	manifestFiles, fileScanErrors := rf.searchForManifests(repoDir)
 	if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
-		return nil, nil, nil, fileScanErrors
+		return fileScanErrors
 	}
 	if len(manifestFiles) == 0 {
 		fileScanErrors = appendAndLogNewError(fileScanErrors, noYamlsFound(), rf.logger)
-		return nil, nil, nil, fileScanErrors
+		return fileScanErrors
 	}
 
-	resources := []common.Resource{}
-	links := []common.Service{}
-	configmaps := []common.CfgMap{}
 	for _, mfp := range manifestFiles {
 		rawK8sResources, err := rf.parseK8sYaml(mfp)
 		fileScanErrors = append(fileScanErrors, err...)
 		if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
-			return nil, nil, nil, fileScanErrors
+			return fileScanErrors
 		}
 		manifestFilePath := pathWithoutBaseDir(mfp, repoDir)
 		r, l, c, errs := rf.parseResources(rawK8sResources, manifestFilePath)
-		resources = append(resources, r...)
-		links = append(links, l...)
-		configmaps = append(configmaps, c...)
+		rf.workloads = append(rf.workloads, r...)
+		rf.services = append(rf.services, l...)
+		rf.configmaps = append(rf.configmaps, c...)
 		fileScanErrors = append(fileScanErrors, errs...)
 		if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
-			return nil, nil, nil, fileScanErrors
+			return fileScanErrors
 		}
 	}
 
-	return resources, links, configmaps, fileScanErrors
+	return fileScanErrors
 }
 
 // searchForManifests returns a list of YAML files under a given directory (recursively)
