@@ -31,6 +31,7 @@ var (
 		pod, replicaSet, replicationController, deployment, daemonset, statefulset, job, cronJob, service, configmap)
 	acceptedK8sTypes = regexp.MustCompile(acceptedK8sTypesRegex)
 	yamlSuffix       = regexp.MustCompile(".ya?ml$")
+	decoder          = scheme.Codecs.UniversalDeserializer()
 )
 
 // rawResourcesInFile represents a single YAML file with multiple K8s resources
@@ -138,14 +139,13 @@ func (rf *resourceFinder) splitByYamlDocuments(mfp string) ([]string, []FileProc
 // If yes, it puts it into a rawK8sResource and appends it to the result.
 func (rf *resourceFinder) parseK8sYaml(mfp string) ([]rawK8sResource, []FileProcessingError) {
 	dObjs := []rawK8sResource{}
-	sepYamlFiles, fileProcessingErrors := rf.splitByYamlDocuments(mfp)
+	yamlDocs, fileProcessingErrors := rf.splitByYamlDocuments(mfp)
 	if stopProcessing(rf.stopOn1stErr, fileProcessingErrors) {
 		return nil, fileProcessingErrors
 	}
 
-	for docID, doc := range sepYamlFiles {
-		decode := scheme.Codecs.UniversalDeserializer().Decode
-		_, groupVersionKind, err := decode([]byte(doc), nil, nil)
+	for docID, doc := range yamlDocs {
+		_, groupVersionKind, err := decoder.Decode([]byte(doc), nil, nil)
 		if err != nil {
 			fileProcessingErrors = appendAndLogNewError(fileProcessingErrors, notK8sResource(mfp, docID, err), rf.logger)
 			continue
@@ -153,10 +153,7 @@ func (rf *resourceFinder) parseK8sYaml(mfp string) ([]rawK8sResource, []FileProc
 		if !acceptedK8sTypes.MatchString(groupVersionKind.Kind) {
 			rf.logger.Infof("in file: %s, document: %d, skipping object with type: %s", mfp, docID, groupVersionKind.Kind)
 		} else {
-			d := rawK8sResource{}
-			d.GroupKind = groupVersionKind.Kind
-			d.RuntimeObject = []byte(doc)
-			dObjs = append(dObjs, d)
+			dObjs = append(dObjs, rawK8sResource{GroupKind: groupVersionKind.Kind, RuntimeObject: []byte(doc)})
 		}
 	}
 	return dObjs, fileProcessingErrors
