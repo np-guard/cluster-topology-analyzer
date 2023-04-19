@@ -209,3 +209,49 @@ func pathWithoutBaseDir(path, baseDir string) string {
 	}
 	return relPath
 }
+
+// inlineConfigMapRefsAsEnvs appends to the Envs of each given resource the ConfigMap values it is referring to
+// It should only be called after ALL calls to getRelevantK8sResources successfully returned
+func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
+	cfgMapsByName := map[string]*common.CfgMap{}
+	for cm := range rf.configmaps {
+		cfgMapsByName[rf.configmaps[cm].FullName] = &rf.configmaps[cm]
+	}
+
+	parseErrors := []FileProcessingError{}
+	for idx := range rf.workloads {
+		res := &rf.workloads[idx]
+
+		// inline the envFrom field in PodSpec->containers
+		for _, cfgMapRef := range res.Resource.ConfigMapRefs {
+			configmapFullName := res.Resource.Namespace + "/" + cfgMapRef
+			if cfgMap, ok := cfgMapsByName[configmapFullName]; ok {
+				for _, v := range cfgMap.Data {
+					if analyzer.IsNetworkAddressValue(v) {
+						res.Resource.NetworkAddrs = append(res.Resource.NetworkAddrs, v)
+					}
+				}
+			} else {
+				parseErrors = appendAndLogNewError(parseErrors, configMapNotFound(configmapFullName, res.Resource.Name), rf.logger)
+			}
+		}
+
+		// inline PodSpec->container->env->valueFrom->configMapKeyRef
+		for _, cfgMapKeyRef := range res.Resource.ConfigMapKeyRefs {
+			configmapFullName := res.Resource.Namespace + "/" + cfgMapKeyRef.Name
+			if cfgMap, ok := cfgMapsByName[configmapFullName]; ok {
+				if val, ok := cfgMap.Data[cfgMapKeyRef.Key]; ok {
+					if analyzer.IsNetworkAddressValue(val) {
+						res.Resource.NetworkAddrs = append(res.Resource.NetworkAddrs, val)
+					}
+				} else {
+					err := configMapKeyNotFound(cfgMapKeyRef.Name, cfgMapKeyRef.Key, res.Resource.Name)
+					parseErrors = appendAndLogNewError(parseErrors, err, rf.logger)
+				}
+			} else {
+				parseErrors = appendAndLogNewError(parseErrors, configMapNotFound(configmapFullName, res.Resource.Name), rf.logger)
+			}
+		}
+	}
+	return parseErrors
+}

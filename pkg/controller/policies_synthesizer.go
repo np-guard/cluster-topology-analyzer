@@ -148,7 +148,7 @@ func (ps *PoliciesSynthesizer) extractConnections(dirPaths []string) ([]common.R
 	}
 
 	// 2. Inline configmaps values as workload envs
-	errs := inlineConfigMapRefsAsEnvs(resFinder.workloads, resFinder.configmaps, ps.logger)
+	errs := resFinder.inlineConfigMapRefsAsEnvs()
 	fileErrors = append(fileErrors, errs...)
 	if stopProcessing(ps.stopOnError, fileErrors) {
 		return nil, nil, fileErrors
