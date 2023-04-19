@@ -110,14 +110,14 @@ func (rf *resourceFinder) searchForManifests(repoDir string) ([]string, []FilePr
 }
 
 // splitByYamlDocuments takes a YAML file and returns a slice containing its documents as raw text
-func (rf *resourceFinder) splitByYamlDocuments(mfp string) ([]string, []FileProcessingError) {
+func (rf *resourceFinder) splitByYamlDocuments(mfp string) ([][]byte, []FileProcessingError) {
 	fileBuf, err := os.ReadFile(mfp)
 	if err != nil {
-		return []string{}, appendAndLogNewError(nil, failedReadingFile(mfp, err), rf.logger)
+		return nil, appendAndLogNewError(nil, failedReadingFile(mfp, err), rf.logger)
 	}
 
 	decoder := yaml.NewDecoder(bytes.NewBuffer(fileBuf))
-	documents := []string{}
+	documents := [][]byte{}
 	documentID := 0
 	for {
 		var doc yaml.Node
@@ -132,7 +132,7 @@ func (rf *resourceFinder) splitByYamlDocuments(mfp string) ([]string, []FileProc
 			if err != nil {
 				return documents, appendAndLogNewError(nil, malformedYamlDoc(mfp, doc.Line, documentID, err), rf.logger)
 			}
-			documents = append(documents, string(out))
+			documents = append(documents, out)
 		}
 		documentID += 1
 	}
@@ -149,7 +149,7 @@ func (rf *resourceFinder) parseK8sYaml(mfp string) ([]rawK8sResource, []FileProc
 	}
 
 	for docID, doc := range yamlDocs {
-		_, groupVersionKind, err := decoder.Decode([]byte(doc), nil, nil)
+		_, groupVersionKind, err := decoder.Decode(doc, nil, nil)
 		if err != nil {
 			fileProcessingErrors = appendAndLogNewError(fileProcessingErrors, notK8sResource(mfp, docID, err), rf.logger)
 			continue
@@ -157,7 +157,7 @@ func (rf *resourceFinder) parseK8sYaml(mfp string) ([]rawK8sResource, []FileProc
 		if !acceptedK8sTypes.MatchString(groupVersionKind.Kind) {
 			rf.logger.Infof("in file: %s, document: %d, skipping object with type: %s", mfp, docID, groupVersionKind.Kind)
 		} else {
-			dObjs = append(dObjs, rawK8sResource{GroupKind: groupVersionKind.Kind, RuntimeObject: []byte(doc)})
+			dObjs = append(dObjs, rawK8sResource{GroupKind: groupVersionKind.Kind, RuntimeObject: doc})
 		}
 	}
 	return dObjs, fileProcessingErrors
