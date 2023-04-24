@@ -134,32 +134,29 @@ func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]
 func (ps *PoliciesSynthesizer) extractConnections(dirPaths []string) ([]common.Resource, []*common.Connections, []FileProcessingError) {
 	// 1. Get all relevant resources from the repo
 	resFinder := resourceFinder{logger: ps.logger, stopOn1stErr: ps.stopOnError, walkFn: ps.walkFn}
-	rawResources := []rawResourcesInFile{}
 	fileErrors := []FileProcessingError{}
 	for _, dirPath := range dirPaths {
-		dObjs, errs := resFinder.getRelevantK8sResources(dirPath)
-		rawResources = append(rawResources, dObjs...)
+		errs := resFinder.getRelevantK8sResources(dirPath)
 		fileErrors = append(fileErrors, errs...)
 		if stopProcessing(ps.stopOnError, errs) {
 			return nil, nil, fileErrors
 		}
 	}
-	if len(rawResources) == 0 {
+	if len(resFinder.workloads) == 0 {
 		fileErrors = appendAndLogNewError(fileErrors, noK8sResourcesFound(), ps.logger)
 		return []common.Resource{}, []*common.Connections{}, fileErrors
 	}
 
-	// 2. Parse them into internal structs
-	resParser := resourceParser{logger: ps.logger}
-	resources, links, parseErrors := resParser.parseResources(rawResources)
-	fileErrors = append(fileErrors, parseErrors...)
+	// 2. Inline configmaps values as workload envs
+	errs := resFinder.inlineConfigMapRefsAsEnvs()
+	fileErrors = append(fileErrors, errs...)
 	if stopProcessing(ps.stopOnError, fileErrors) {
 		return nil, nil, fileErrors
 	}
 
 	// 3. Discover all connections between resources
-	connections := discoverConnections(resources, links, ps.logger)
-	return resources, connections, fileErrors
+	connections := discoverConnections(resFinder.workloads, resFinder.services, ps.logger)
+	return resFinder.workloads, connections, fileErrors
 }
 
 func hasFatalError(errs []FileProcessingError) error {
