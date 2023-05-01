@@ -1,5 +1,5 @@
 # FROM golang:1.19-alpine
-FROM golang@sha256:d171aa333fb386089206252503bc6ab545072670e0286e3d1bbc644362825c6e
+FROM golang@sha256:1a444aca58a76ddde335f566b80c31dab081dffd52f3c60367cc3744bd323079
 
 RUN apk update && apk upgrade && apk --no-cache add make
 
@@ -7,10 +7,7 @@ WORKDIR /go/src/github.ibm.com/gitsecure-net-top/
 
 COPY pkg/    pkg/
 COPY cmd/    cmd/
-
-COPY go.mod go.mod
-COPY go.sum go.sum
-COPY Makefile Makefile
+COPY go.mod go.sum Makefile ./
 
 RUN make
 
