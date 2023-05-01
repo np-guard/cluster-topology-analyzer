@@ -26,10 +26,7 @@ jobs:
         go-version: 1.18
 
     - name: Build
-      env:
-        CGO_ENABLED: 0
-        GOOS: linux      
-      run: go build --tags static_all -v -o ./bin/net-top ./cmd/nettop
+      run: make
 
     - name: Bring up a live cluster
       uses: helm/kind-action@d8ccf8fb623ce1bb360ae2f45f323d9d5c5e9f00
