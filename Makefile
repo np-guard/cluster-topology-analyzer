@@ -1,62 +1,28 @@
-.PHONY: all
-all: setup dep test cover fmt lint ci build
-    
-.PHONY: setup
-setup: ## Install all the build and lint dependencies
-	go get -u github.com/alecthomas/gometalinter
-	go get -u golang.org/x/tools/cmd/cover
-	go get -u github.com/golang/dep/cmd/dep
-	gometalinter --install --update
-	@$(MAKE) dep
+REPOSITORY := github.com/np-guard/cluster-topology-analyzer
+EXE:=net-top
 
-.PHONY: dep
-dep: ## Run dep ensure and prune
-	dep ensure
-	dep prune
+mod: go.mod
+	@echo -- $@ --
+	go mod tidy
+	go mod download
 
-.PHONY: test
-test: ## Run all the tests
-	echo 'mode: atomic' > coverage.txt && go test -covermode=atomic -coverprofile=coverage.txt -v -race -timeout=30s ./...
+fmt:
+	@echo -- $@ --
+	goimports -local $(REPOSITORY) -w .
 
+lint:
+	@echo -- $@ --
+	CGO_ENABLED=0 go vet ./...
+	golangci-lint run
 
-.PHONY: cover
-cover: test ## Run all the tests and opens the coverage report
-	go tool cover -html=coverage.txt
+precommit: mod fmt lint
 
-.PHONY: fmt
-fmt: ## Run goimports on all go files
-	find . -name '*.go' -not -wholename './vendor/*' | while read -r file; do goimports -w "$$file"; done
+build:
+	@echo -- $@ --
+	CGO_ENABLED=0 go build -o ./bin/$(EXE) ./cmd/nettop
 
-.PHONY: lint
-lint: ## Run all the linters
-	gometalinter --vendor --disable-all \
-		--enable=deadcode \
-		--enable=ineffassign \
-		--enable=gosimple \
-		--enable=staticcheck \
-		--enable=gofmt \
-		--enable=goimports \
-		--enable=misspell \
-		--enable=errcheck \
-		--enable=vet \
-		--enable=vetshadow \
-		--deadline=10m \
-		./...
-
-.PHONY: ci
-ci: lint test ## Run all the tests and code checks
-
-.PHONY: build
-build: ## Build a version
-	go build -o ./bin/net-top ./cmd/nettop
-
-.PHONY: clean
-clean: ## Remove temporary files
-	go clean
-
-# Absolutely awesome: http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
-.PHONY: help
-help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-
+test:
+	@echo -- $@ --
+	go test ./... -v -cover -coverprofile net-top.coverprofile
+	
 .DEFAULT_GOAL := build

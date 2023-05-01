@@ -24,10 +24,10 @@ jobs:
       env:
         CGO_ENABLED: 0
         GOOS: linux      
-      run: go build --tags static_all -v -o ./bin/net-top ./cmd/nettop
+      run: make
 
     - name: Test
-      run: go test -v ./...
+      run: make test
   
   test-docker:
     runs-on: ubuntu-latest
