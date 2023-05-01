@@ -21,9 +21,6 @@ jobs:
         go-version: 1.18
 
     - name: Build
-      env:
-        CGO_ENABLED: 0
-        GOOS: linux      
       run: make
 
     - name: Test
