@@ -69,9 +69,9 @@ Please feel free to email each one of the [maintainers](MAINTAINERS.md).
 See [here](README.md#build-the-project).
 
 ## Testing
-Test any change you make before submitting by running `go test ./...` at the project's root directory.
+Test any change you make before submitting by running `make test` at the project's root directory.
 
 ## Coding style guidelines
 We use [golangci-lint](https://golangci-lint.run/) to enforce style.
-Make sure your changes are style compliant by running `golangci-lint run` at the project's root directory.
+Make sure your changes are style compliant by running `make lint` at the project's root directory.
 

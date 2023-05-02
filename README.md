@@ -61,7 +61,6 @@ Make sure you have golang 1.18+ on your platform
 ```shell
 git clone git@github.com:np-guard/cluster-topology-analyzer.git
 cd cluster-topology-analyzer
-go mod download
 make
 ```
 
