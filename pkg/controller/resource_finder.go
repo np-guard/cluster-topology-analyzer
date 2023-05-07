@@ -8,8 +8,10 @@ import (
 	"path/filepath"
 	"regexp"
 
+	ocapiv1 "github.com/openshift/api"
 	"gopkg.in/yaml.v3"
-	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
@@ -32,9 +34,8 @@ const (
 var (
 	acceptedK8sTypesRegex = fmt.Sprintf("(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)",
 		pod, replicaSet, replicationController, deployment, daemonSet, statefulSet, job, cronJob, service, configmap)
-	acceptedK8sTypes   = regexp.MustCompile(acceptedK8sTypesRegex)
-	yamlSuffix         = regexp.MustCompile(".ya?ml$")
-	k8sResourceDecoder = scheme.Codecs.UniversalDeserializer()
+	acceptedK8sTypes = regexp.MustCompile(acceptedK8sTypesRegex)
+	yamlSuffix       = regexp.MustCompile(".ya?ml$")
 )
 
 // resourceFinder is used to locate all relevant K8s resources in given file-system directories
@@ -44,9 +45,23 @@ type resourceFinder struct {
 	stopOn1stErr bool
 	walkFn       WalkFunction // for customizing directory scan
 
+	resourceDecoder runtime.Decoder
+
 	workloads  []common.Resource // accumulates all workload resources found
 	services   []common.Service  // accumulates all service resources found
 	configmaps []common.CfgMap   // accumulates all ConfigMap resources found
+}
+
+func newResourceFinder(logger Logger, failFast bool, walkFn WalkFunction) *resourceFinder {
+	res := resourceFinder{logger: logger, stopOn1stErr: failFast, walkFn: walkFn}
+
+	scheme := runtime.NewScheme()
+	Codecs := serializer.NewCodecFactory(scheme)
+	_ = ocapiv1.InstallKube(scheme) // returned error is ignored - seems to be always nil
+	_ = ocapiv1.Install(scheme)     // returned error is ignored - seems to be always nil
+	res.resourceDecoder = Codecs.UniversalDeserializer()
+
+	return &res
 }
 
 // getRelevantK8sResources is the main function of resourceFinder.
@@ -137,7 +152,7 @@ func (rf *resourceFinder) parseK8sYaml(mfp, relMfp string) []FileProcessingError
 	}
 
 	for docID, doc := range yamlDocs {
-		_, groupVersionKind, err := k8sResourceDecoder.Decode(doc, nil, nil)
+		_, groupVersionKind, err := rf.resourceDecoder.Decode(doc, nil, nil)
 		if err != nil {
 			fileProcessingErrors = appendAndLogNewError(fileProcessingErrors, notK8sResource(relMfp, docID, err), rf.logger)
 			continue

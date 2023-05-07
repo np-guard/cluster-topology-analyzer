@@ -58,7 +58,7 @@ func TestPoliciesSynthesizerAPIDnsPort(t *testing.T) {
 	synthesizer := NewPoliciesSynthesizer(WithDNSPort(5353))
 	netpols, err := synthesizer.PoliciesFromFolderPaths([]string{dirPath})
 	require.Nilf(t, err, "expected no fatal errors, but got %v", err)
-	require.Len(t, synthesizer.Errors(), 2) // two OpenShift routes are not K8s native resources
+	require.Empty(t, synthesizer.Errors())
 	require.Len(t, netpols, 14)
 	for _, netpol := range netpols {
 		for r := range netpol.Spec.Egress {
