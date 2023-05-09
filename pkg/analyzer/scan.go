@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
+	ocroutev1 "github.com/openshift/api/route/v1"
 	v1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -96,7 +97,7 @@ func ScanK8sServiceObject(kind string, objDataBuf []byte) (common.Service, error
 	serviceCtx.Resource.Name = svcObj.GetName()
 	serviceCtx.Resource.Namespace = svcObj.Namespace
 	serviceCtx.Resource.Kind = kind
-	serviceCtx.Resource.Type = string(svcObj.Spec.Type)
+	serviceCtx.Resource.Type = svcObj.Spec.Type
 	serviceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(svcObj.Spec.Selector)
 
 	for _, p := range svcObj.Spec.Ports {
@@ -108,6 +109,19 @@ func ScanK8sServiceObject(kind string, objDataBuf []byte) (common.Service, error
 	}
 
 	return serviceCtx, nil
+}
+
+// Create an OpenShift Route object from a buffer
+func ScanOCRouteObject(kind string, objDataBuf []byte) (*ocroutev1.Route, error) {
+	if kind != "Route" {
+		return &ocroutev1.Route{}, fmt.Errorf("expected parsing a Route resource, but got `%s`", kind)
+	}
+
+	routeObj := parseRoute(bytes.NewReader(objDataBuf))
+	if routeObj == nil {
+		return &ocroutev1.Route{}, fmt.Errorf("failed to parse Route resource")
+	}
+	return routeObj, nil
 }
 
 func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourceCtx *common.Resource) {

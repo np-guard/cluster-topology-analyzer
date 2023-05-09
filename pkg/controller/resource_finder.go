@@ -9,7 +9,9 @@ import (
 	"regexp"
 
 	ocapiv1 "github.com/openshift/api"
+	ocroute "github.com/openshift/api/route/v1"
 	"gopkg.in/yaml.v3"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 
@@ -29,11 +31,12 @@ const (
 	cronJob               string = "CronTab"
 	service               string = "Service"
 	configmap             string = "ConfigMap"
+	route                 string = "Route"
 )
 
 var (
-	acceptedK8sTypesRegex = fmt.Sprintf("(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)",
-		pod, replicaSet, replicationController, deployment, daemonSet, statefulSet, job, cronJob, service, configmap)
+	acceptedK8sTypesRegex = fmt.Sprintf("(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)",
+		pod, replicaSet, replicationController, deployment, daemonSet, statefulSet, job, cronJob, service, configmap, route)
 	acceptedK8sTypes = regexp.MustCompile(acceptedK8sTypesRegex)
 	yamlSuffix       = regexp.MustCompile(".ya?ml$")
 )
@@ -50,6 +53,7 @@ type resourceFinder struct {
 	workloads  []common.Resource // accumulates all workload resources found
 	services   []common.Service  // accumulates all service resources found
 	configmaps []common.CfgMap   // accumulates all ConfigMap resources found
+	routes     []*ocroute.Route
 }
 
 func newResourceFinder(logger Logger, failFast bool, walkFn WalkFunction) *resourceFinder {
@@ -181,6 +185,12 @@ func (rf *resourceFinder) parseResource(kind string, yamlDoc []byte, manifestFil
 		}
 		res.Resource.FilePath = manifestFilePath
 		rf.services = append(rf.services, res)
+	case route:
+		res, err := analyzer.ScanOCRouteObject(kind, yamlDoc)
+		if err != nil {
+			return err
+		}
+		rf.routes = append(rf.routes, res)
 	case configmap:
 		res, err := analyzer.ScanK8sConfigmapObject(kind, yamlDoc)
 		if err != nil {
@@ -256,4 +266,35 @@ func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
 		}
 	}
 	return parseErrors
+}
+
+// exposeServicesWithRoutes changes the type of services pointed by a Route resource to "LoadBalancer".
+// This will ensure that the network policy for their workloads will allow ingress from the outside internet.
+// It should only be called after ALL calls to getRelevantK8sResources successfully returned
+func (rf *resourceFinder) exposeServicesWithRoutes() {
+	// First, build a map from namespace name to a set of service names exposed by routes in this namespace
+	servicesExposedByRoutes := map[string]map[string]bool{}
+	for _, route := range rf.routes {
+		exposedServicesInNamespace, ok := servicesExposedByRoutes[route.Namespace]
+		if !ok {
+			servicesExposedByRoutes[route.Namespace] = map[string]bool{}
+			exposedServicesInNamespace = servicesExposedByRoutes[route.Namespace]
+		}
+		exposedServicesInNamespace[route.Spec.To.Name] = true
+		for _, backend := range route.Spec.AlternateBackends {
+			exposedServicesInNamespace[backend.Name] = true
+		}
+	}
+
+	// Now, change the type of all services that appear in this map to "LoadBalancer"
+	for svcIdx := range rf.services {
+		svc := &rf.services[svcIdx]
+		exposedServicesInNamespace, ok := servicesExposedByRoutes[svc.Resource.Namespace]
+		if !ok {
+			continue
+		}
+		if _, ok = exposedServicesInNamespace[svc.Resource.Name]; ok {
+			svc.Resource.Type = corev1.ServiceTypeLoadBalancer
+		}
+	}
 }

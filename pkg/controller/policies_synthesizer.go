@@ -153,6 +153,7 @@ func (ps *PoliciesSynthesizer) extractConnections(dirPaths []string) ([]common.R
 	if stopProcessing(ps.stopOnError, fileErrors) {
 		return nil, nil, fileErrors
 	}
+	resFinder.exposeServicesWithRoutes()
 
 	// 3. Discover all connections between resources
 	connections := discoverConnections(resFinder.workloads, resFinder.services, ps.logger)

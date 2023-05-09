@@ -7,6 +7,10 @@ items:
         name: asset-cache-netpol
         namespace: frontend
       spec:
+        ingress:
+            - ports:
+                - port: 8080
+                  protocol: TCP
         podSelector:
             matchLabels:
                 app: asset-cache
@@ -384,6 +388,10 @@ items:
                   protocol: UDP
               to:
                 - namespaceSelector: {}
+        ingress:
+            - ports:
+                - port: 8080
+                  protocol: TCP
         podSelector:
             matchLabels:
                 app: webapp

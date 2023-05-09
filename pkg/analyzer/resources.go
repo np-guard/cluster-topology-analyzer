@@ -3,6 +3,7 @@ package analyzer
 import (
 	"io"
 
+	ocroutev1 "github.com/openshift/api/route/v1"
 	"k8s.io/apimachinery/pkg/util/yaml"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -100,6 +101,19 @@ func parseService(r io.Reader) *v1.Service {
 		return nil
 	}
 	rc := v1.Service{}
+	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
+	if err != nil {
+		return nil
+	}
+	return &rc
+}
+
+// parseRoute parses an OpenShift Route resource
+func parseRoute(r io.Reader) *ocroutev1.Route {
+	if r == nil {
+		return nil
+	}
+	rc := ocroutev1.Route{}
 	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
 	if err != nil {
 		return nil
