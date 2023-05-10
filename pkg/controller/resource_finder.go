@@ -71,7 +71,7 @@ func newResourceFinder(logger Logger, failFast bool, walkFn WalkFunction) *resou
 // getRelevantK8sResources is the main function of resourceFinder.
 // It scans a given directory using walkFn, looking for all yaml files. It then breaks each yaml into its documents
 // and extracts all K8s resources that are relevant for connectivity analysis.
-// The resources are stored in the struct, separated to workloads, services and configmaps
+// The resources are stored in the struct, separated to workloads, services, configmaps and routes
 func (rf *resourceFinder) getRelevantK8sResources(repoDir string) []FileProcessingError {
 	manifestFiles, fileScanErrors := rf.searchForManifests(repoDir)
 	if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
@@ -174,8 +174,8 @@ func (rf *resourceFinder) parseK8sYaml(mfp, relMfp string) []FileProcessingError
 	return fileProcessingErrors
 }
 
-// parseResource takes a yaml document, parses it into a K8s resource and puts it into one of the 3 struct slices:
-// the workload resource slice, the Service resource slice, and the ConfigMaps resource slice
+// parseResource takes a yaml document, parses it into a K8s resource and puts it into one of the 4 struct slices:
+// the workload resource slice, the Service resource slice, the Route resource slice and the ConfigMaps resource slice
 func (rf *resourceFinder) parseResource(kind string, yamlDoc []byte, manifestFilePath string) error {
 	switch kind {
 	case service:
