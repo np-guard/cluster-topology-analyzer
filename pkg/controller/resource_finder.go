@@ -226,8 +226,8 @@ func pathWithoutBaseDir(path, baseDir string) string {
 // It should only be called after ALL calls to getRelevantK8sResources successfully returned
 func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
 	cfgMapsByName := map[string]*common.CfgMap{}
-	for cm := range rf.configmaps {
-		cfgMapsByName[rf.configmaps[cm].FullName] = rf.configmaps[cm]
+	for _, cm := range rf.configmaps {
+		cfgMapsByName[cm.FullName] = cm
 	}
 
 	parseErrors := []FileProcessingError{}
