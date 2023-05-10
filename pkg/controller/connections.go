@@ -9,14 +9,12 @@ import (
 
 // This function is at the core of the topology analysis
 // For each resource, it finds other resources that may use it and compiles a list of connections holding these dependencies
-func discoverConnections(resources []common.Resource, links []common.Service, logger Logger) []*common.Connections {
+func discoverConnections(resources []*common.Resource, links []*common.Service, logger Logger) []*common.Connections {
 	connections := []*common.Connections{}
-	for destResIdx := range resources {
-		destRes := &resources[destResIdx]
+	for _, destRes := range resources {
 		deploymentServices := findServices(destRes, links)
 		logger.Debugf("services matched to %v: %v", destRes.Resource.Name, deploymentServices)
-		for svcIdx := range deploymentServices {
-			svc := &deploymentServices[svcIdx]
+		for _, svc := range deploymentServices {
 			srcRes := findSource(resources, svc)
 			if len(srcRes) > 0 {
 				for _, r := range srcRes {
@@ -48,17 +46,16 @@ func areSelectorsContained(selectors1 map[string]string, selectors2 []string) bo
 }
 
 // findServices returns a list of services that may be in front of a given workload resource
-func findServices(resource *common.Resource, links []common.Service) []common.Service {
-	var matchedSvc []common.Service
-	for linkIdx := range links {
-		link := &links[linkIdx]
+func findServices(resource *common.Resource, links []*common.Service) []*common.Service {
+	var matchedSvc []*common.Service
+	for _, link := range links {
 		if link.Resource.Namespace != resource.Resource.Namespace {
 			continue
 		}
 		// all service selector values should be contained in the input selectors of the deployment
 		res := areSelectorsContained(resource.Resource.Labels, link.Resource.Selectors)
 		if res {
-			matchedSvc = append(matchedSvc, *link)
+			matchedSvc = append(matchedSvc, link)
 		}
 	}
 
@@ -66,10 +63,9 @@ func findServices(resource *common.Resource, links []common.Service) []common.Se
 }
 
 // findSource returns a list of resources that are likely trying to connect to the given service
-func findSource(resources []common.Resource, service *common.Service) []*common.Resource {
+func findSource(resources []*common.Resource, service *common.Service) []*common.Resource {
 	tRes := []*common.Resource{}
-	for resIdx := range resources {
-		resource := &resources[resIdx]
+	for _, resource := range resources {
 		serviceAddresses := getPossibleServiceAddresses(service, resource)
 		foundSrc := *resource // We copy the resource so we can specify the ports used by the source found
 		matched := false

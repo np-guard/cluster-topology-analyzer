@@ -14,7 +14,7 @@ import (
 )
 
 // Create a common.Resource object from a k8s Workload object
-func ScanK8sWorkloadObject(kind string, objDataBuf []byte) (common.Resource, error) {
+func ScanK8sWorkloadObject(kind string, objDataBuf []byte) (*common.Resource, error) {
 	var podSpecV1 v1.PodTemplateSpec
 	var resourceCtx common.Resource
 	var metaObj metaV1.Object
@@ -51,11 +51,11 @@ func ScanK8sWorkloadObject(kind string, objDataBuf []byte) (common.Resource, err
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	default:
-		return resourceCtx, fmt.Errorf("unsupported object type: `%s`", kind)
+		return nil, fmt.Errorf("unsupported object type: `%s`", kind)
 	}
 
 	parseDeployResource(&podSpecV1, metaObj, &resourceCtx)
-	return resourceCtx, nil
+	return &resourceCtx, nil
 }
 
 func matchLabelSelectorToStrLabels(labels map[string]string) []string {
@@ -66,10 +66,10 @@ func matchLabelSelectorToStrLabels(labels map[string]string) []string {
 	return res
 }
 
-func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMap, error) {
+func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (*common.CfgMap, error) {
 	obj := parseConfigMap(bytes.NewReader(objDataBuf))
 	if obj == nil {
-		return common.CfgMap{}, fmt.Errorf("unable to parse configmap")
+		return nil, fmt.Errorf("unable to parse configmap")
 	}
 
 	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
@@ -80,20 +80,20 @@ func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (common.CfgMap, erro
 			data[k] = v
 		}
 	}
-	return common.CfgMap{FullName: fullName, Data: data}, nil
+	return &common.CfgMap{FullName: fullName, Data: data}, nil
 }
 
 // Create a common.Service object from a k8s Service object
-func ScanK8sServiceObject(kind string, objDataBuf []byte) (common.Service, error) {
+func ScanK8sServiceObject(kind string, objDataBuf []byte) (*common.Service, error) {
 	if kind != "Service" {
-		return common.Service{}, fmt.Errorf("expected parsing a Service resource, but got `%s`", kind)
+		return nil, fmt.Errorf("expected parsing a Service resource, but got `%s`", kind)
 	}
 
-	var serviceCtx common.Service
 	svcObj := parseService(bytes.NewReader(objDataBuf))
 	if svcObj == nil {
-		return common.Service{}, fmt.Errorf("failed to parse Service resource")
+		return nil, fmt.Errorf("failed to parse Service resource")
 	}
+	var serviceCtx common.Service
 	serviceCtx.Resource.Name = svcObj.GetName()
 	serviceCtx.Resource.Namespace = svcObj.Namespace
 	serviceCtx.Resource.Kind = kind
@@ -101,25 +101,22 @@ func ScanK8sServiceObject(kind string, objDataBuf []byte) (common.Service, error
 	serviceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(svcObj.Spec.Selector)
 
 	for _, p := range svcObj.Spec.Ports {
-		n := common.SvcNetworkAttr{}
-		n.Port = int(p.Port)
-		n.TargetPort = p.TargetPort
-		n.Protocol = string(p.Protocol)
+		n := common.SvcNetworkAttr{Port: int(p.Port), TargetPort: p.TargetPort, Protocol: p.Protocol}
 		serviceCtx.Resource.Network = append(serviceCtx.Resource.Network, n)
 	}
 
-	return serviceCtx, nil
+	return &serviceCtx, nil
 }
 
 // Create an OpenShift Route object from a buffer
 func ScanOCRouteObject(kind string, objDataBuf []byte) (*ocroutev1.Route, error) {
 	if kind != "Route" {
-		return &ocroutev1.Route{}, fmt.Errorf("expected parsing a Route resource, but got `%s`", kind)
+		return nil, fmt.Errorf("expected parsing a Route resource, but got `%s`", kind)
 	}
 
 	routeObj := parseRoute(bytes.NewReader(objDataBuf))
 	if routeObj == nil {
-		return &ocroutev1.Route{}, fmt.Errorf("failed to parse Route resource")
+		return nil, fmt.Errorf("failed to parse Route resource")
 	}
 	return routeObj, nil
 }

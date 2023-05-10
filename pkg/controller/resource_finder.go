@@ -50,10 +50,10 @@ type resourceFinder struct {
 
 	resourceDecoder runtime.Decoder
 
-	workloads  []common.Resource // accumulates all workload resources found
-	services   []common.Service  // accumulates all service resources found
-	configmaps []common.CfgMap   // accumulates all ConfigMap resources found
-	routes     []*ocroute.Route
+	workloads  []*common.Resource // accumulates all workload resources found
+	services   []*common.Service  // accumulates all service resources found
+	configmaps []*common.CfgMap   // accumulates all ConfigMap resources found
+	routes     []*ocroute.Route   // accumulates all Route resources found
 }
 
 func newResourceFinder(logger Logger, failFast bool, walkFn WalkFunction) *resourceFinder {
@@ -227,13 +227,11 @@ func pathWithoutBaseDir(path, baseDir string) string {
 func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
 	cfgMapsByName := map[string]*common.CfgMap{}
 	for cm := range rf.configmaps {
-		cfgMapsByName[rf.configmaps[cm].FullName] = &rf.configmaps[cm]
+		cfgMapsByName[rf.configmaps[cm].FullName] = rf.configmaps[cm]
 	}
 
 	parseErrors := []FileProcessingError{}
-	for idx := range rf.workloads {
-		res := &rf.workloads[idx]
-
+	for _, res := range rf.workloads {
 		// inline the envFrom field in PodSpec->containers
 		for _, cfgMapRef := range res.Resource.ConfigMapRefs {
 			configmapFullName := res.Resource.Namespace + "/" + cfgMapRef
@@ -287,8 +285,7 @@ func (rf *resourceFinder) exposeServicesWithRoutes() {
 	}
 
 	// Now, change the type of all services that appear in this map to "LoadBalancer"
-	for svcIdx := range rf.services {
-		svc := &rf.services[svcIdx]
+	for _, svc := range rf.services {
 		exposedServicesInNamespace, ok := servicesExposedByRoutes[svc.Resource.Namespace]
 		if !ok {
 			continue

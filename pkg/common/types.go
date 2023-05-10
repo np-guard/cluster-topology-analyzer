@@ -36,7 +36,7 @@ type Resource struct {
 type SvcNetworkAttr struct {
 	Port       int                `json:"port,omitempty"`
 	TargetPort intstr.IntOrString `json:"target_port,omitempty"`
-	Protocol   string             `json:"protocol,omitempty"`
+	Protocol   corev1.Protocol    `json:"protocol,omitempty"`
 }
 
 type Service struct {
