@@ -131,7 +131,7 @@ func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]
 }
 
 // Scans the given directory for YAMLs with k8s resources and extracts required connections between workloads
-func (ps *PoliciesSynthesizer) extractConnections(dirPaths []string) ([]common.Resource, []*common.Connections, []FileProcessingError) {
+func (ps *PoliciesSynthesizer) extractConnections(dirPaths []string) ([]*common.Resource, []*common.Connections, []FileProcessingError) {
 	// 1. Get all relevant resources from the repo
 	resFinder := newResourceFinder(ps.logger, ps.stopOnError, ps.walkFn)
 	fileErrors := []FileProcessingError{}
@@ -144,7 +144,7 @@ func (ps *PoliciesSynthesizer) extractConnections(dirPaths []string) ([]common.R
 	}
 	if len(resFinder.workloads) == 0 {
 		fileErrors = appendAndLogNewError(fileErrors, noK8sResourcesFound(), ps.logger)
-		return []common.Resource{}, []*common.Connections{}, fileErrors
+		return nil, nil, fileErrors
 	}
 
 	// 2. Inline configmaps values as workload envs
@@ -153,6 +153,7 @@ func (ps *PoliciesSynthesizer) extractConnections(dirPaths []string) ([]common.R
 	if stopProcessing(ps.stopOnError, fileErrors) {
 		return nil, nil, fileErrors
 	}
+	resFinder.exposeServicesWithRoutes()
 
 	// 3. Discover all connections between resources
 	connections := discoverConnections(resFinder.workloads, resFinder.services, ps.logger)

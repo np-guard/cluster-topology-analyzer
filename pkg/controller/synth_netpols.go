@@ -70,11 +70,11 @@ func getNsDefaultDenyPolicy(namespace string) *network.NetworkPolicy {
 }
 
 // Generate default-deny NetworkPolicy for each namespace of the given resources
-func getNsDefaultDenyPolicies(resources []common.Resource) []*network.NetworkPolicy {
+func getNsDefaultDenyPolicies(resources []*common.Resource) []*network.NetworkPolicy {
 	denyNetpols := []*network.NetworkPolicy{}
 	namespaces := map[string]bool{}
-	for resIdx := range resources {
-		namespace := resources[resIdx].Resource.Namespace
+	for _, res := range resources {
+		namespace := res.Resource.Namespace
 		if _, ok := namespaces[namespace]; !ok {
 			namespaces[namespace] = true
 			denyNetpols = append(denyNetpols, getNsDefaultDenyPolicy(namespace))
@@ -83,7 +83,7 @@ func getNsDefaultDenyPolicies(resources []common.Resource) []*network.NetworkPol
 	return denyNetpols
 }
 
-func (ps *PoliciesSynthesizer) synthNetpols(resources []common.Resource, connections []*common.Connections) []*network.NetworkPolicy {
+func (ps *PoliciesSynthesizer) synthNetpols(resources []*common.Resource, connections []*common.Connections) []*network.NetworkPolicy {
 	deployConnectivity := determineConnectivityPerDeployment(connections)
 	netpols := ps.buildNetpolPerDeployment(deployConnectivity)
 	netpols = append(netpols, getNsDefaultDenyPolicies(resources)...)
@@ -105,7 +105,7 @@ func determineConnectivityPerDeployment(connections []*common.Connections) []*de
 			srcDeploy.addEgressRule([]network.NetworkPolicyPeer{netpolPeer}, targetPorts)
 		}
 
-		if conn.Link.Resource.Type == "LoadBalancer" || conn.Link.Resource.Type == "NodePort" {
+		if conn.Link.Resource.Type == core.ServiceTypeLoadBalancer || conn.Link.Resource.Type == core.ServiceTypeNodePort {
 			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{}, targetPorts) // in these cases we want to allow traffic from all sources
 		} else if conn.Source != nil {
 			netpolPeer := getNetpolPeer(dstDeploy, srcDeploy)
@@ -156,7 +156,10 @@ func getDeployConnSelector(deployConn *deploymentConnectivity) *metaV1.LabelSele
 func toNetpolPorts(ports []common.SvcNetworkAttr) []network.NetworkPolicyPort {
 	netpolPorts := make([]network.NetworkPolicyPort, 0, len(ports))
 	for _, port := range ports {
-		protocol := toCoreProtocol(port.Protocol)
+		protocol := port.Protocol
+		if protocol == "" {
+			protocol = core.ProtocolTCP
+		}
 		portNum := port.TargetPort
 		if portNum.Type == intstr.Int && portNum.IntVal == 0 {
 			portNum = intstr.FromInt(port.Port)
@@ -168,19 +171,6 @@ func toNetpolPorts(ports []common.SvcNetworkAttr) []network.NetworkPolicyPort {
 		netpolPorts = append(netpolPorts, netpolPort)
 	}
 	return netpolPorts
-}
-
-func toCoreProtocol(protocol string) core.Protocol {
-	switch protocol {
-	case "TCP":
-		return core.ProtocolTCP
-	case "UDP":
-		return core.ProtocolUDP
-	case "SCTP":
-		return core.ProtocolSCTP
-	default:
-		return core.ProtocolTCP
-	}
 }
 
 func (ps *PoliciesSynthesizer) buildNetpolPerDeployment(deployConnectivity []*deploymentConnectivity) []*network.NetworkPolicy {

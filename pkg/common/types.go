@@ -1,6 +1,7 @@
 package common
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -35,19 +36,18 @@ type Resource struct {
 type SvcNetworkAttr struct {
 	Port       int                `json:"port,omitempty"`
 	TargetPort intstr.IntOrString `json:"target_port,omitempty"`
-	Protocol   string             `json:"protocol,omitempty"`
+	Protocol   corev1.Protocol    `json:"protocol,omitempty"`
 }
 
 type Service struct {
 	Resource struct {
-		Name      string   `json:"name,omitempty"`
-		Namespace string   `json:"namespace,omitempty"`
-		Selectors []string `json:"selectors,omitempty"`
-		// Labels    map[string]string `json:"labels, omitempty"`
-		Type     string           `json:"type,omitempty"`
-		FilePath string           `json:"filepath,omitempty"`
-		Kind     string           `json:"kind,omitempty"`
-		Network  []SvcNetworkAttr `json:"network,omitempty"`
+		Name      string             `json:"name,omitempty"`
+		Namespace string             `json:"namespace,omitempty"`
+		Selectors []string           `json:"selectors,omitempty"`
+		Type      corev1.ServiceType `json:"type,omitempty"`
+		FilePath  string             `json:"filepath,omitempty"`
+		Kind      string             `json:"kind,omitempty"`
+		Network   []SvcNetworkAttr   `json:"network,omitempty"`
 	} `json:"resource,omitempty"`
 }
 
