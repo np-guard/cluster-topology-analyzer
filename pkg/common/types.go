@@ -41,13 +41,15 @@ type SvcNetworkAttr struct {
 
 type Service struct {
 	Resource struct {
-		Name      string             `json:"name,omitempty"`
-		Namespace string             `json:"namespace,omitempty"`
-		Selectors []string           `json:"selectors,omitempty"`
-		Type      corev1.ServiceType `json:"type,omitempty"`
-		FilePath  string             `json:"filepath,omitempty"`
-		Kind      string             `json:"kind,omitempty"`
-		Network   []SvcNetworkAttr   `json:"network,omitempty"`
+		Name             string             `json:"name,omitempty"`
+		Namespace        string             `json:"namespace,omitempty"`
+		Selectors        []string           `json:"selectors,omitempty"`
+		Type             corev1.ServiceType `json:"type,omitempty"`
+		FilePath         string             `json:"filepath,omitempty"`
+		Kind             string             `json:"kind,omitempty"`
+		Network          []SvcNetworkAttr   `json:"network,omitempty"`
+		ExposeToCluster  bool               `json:"-"`
+		ExposeExternally bool               `json:"-"`
 	} `json:"resource,omitempty"`
 }
 

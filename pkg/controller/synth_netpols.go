@@ -105,9 +105,13 @@ func determineConnectivityPerDeployment(connections []*common.Connections) []*de
 			srcDeploy.addEgressRule([]network.NetworkPolicyPeer{netpolPeer}, targetPorts)
 		}
 
-		if conn.Link.Resource.Type == core.ServiceTypeLoadBalancer || conn.Link.Resource.Type == core.ServiceTypeNodePort {
-			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{}, targetPorts) // in these cases we want to allow traffic from all sources
-		} else if conn.Source != nil {
+		switch {
+		case conn.Link.Resource.ExposeExternally:
+			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{}, targetPorts) // allowing traffic from all sources
+		case conn.Link.Resource.ExposeToCluster:
+			peer := network.NetworkPolicyPeer{NamespaceSelector: &metaV1.LabelSelector{}}
+			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{peer}, targetPorts) // allowing traffic from all cluster sources
+		case conn.Source != nil:
 			netpolPeer := getNetpolPeer(dstDeploy, srcDeploy)
 			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{netpolPeer}, targetPorts) // allow traffic only from this specific source
 		}

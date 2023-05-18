@@ -8,7 +8,9 @@ items:
         namespace: frontend
       spec:
         ingress:
-            - ports:
+            - from:
+                - namespaceSelector: {}
+              ports:
                 - port: 8080
                   protocol: TCP
         podSelector:
@@ -389,7 +391,9 @@ items:
               to:
                 - namespaceSelector: {}
         ingress:
-            - ports:
+            - from:
+                - namespaceSelector: {}
+              ports:
                 - port: 8080
                   protocol: TCP
         podSelector:
