@@ -29,7 +29,7 @@ jobs:
       run: make
 
     - name: Bring up a live cluster
-      uses: helm/kind-action@d8ccf8fb623ce1bb360ae2f45f323d9d5c5e9f00
+      uses: helm/kind-action@fa81e57adff234b2908110485695db0f181f3c67
 
     - name: Test output on a live cluster
       run: |
