@@ -11,7 +11,6 @@ import (
 	ocapiv1 "github.com/openshift/api"
 	ocroute "github.com/openshift/api/route/v1"
 	"gopkg.in/yaml.v3"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 
@@ -291,7 +290,7 @@ func (rf *resourceFinder) exposeServicesWithRoutes() {
 			continue
 		}
 		if _, ok = exposedServicesInNamespace[svc.Resource.Name]; ok {
-			svc.Resource.Type = corev1.ServiceTypeLoadBalancer
+			svc.Resource.ExposeToCluster = true
 		}
 	}
 }

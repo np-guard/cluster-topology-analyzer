@@ -99,6 +99,8 @@ func ScanK8sServiceObject(kind string, objDataBuf []byte) (*common.Service, erro
 	serviceCtx.Resource.Kind = kind
 	serviceCtx.Resource.Type = svcObj.Spec.Type
 	serviceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(svcObj.Spec.Selector)
+	serviceCtx.Resource.ExposeExternally = (svcObj.Spec.Type == v1.ServiceTypeLoadBalancer || svcObj.Spec.Type == v1.ServiceTypeNodePort)
+	serviceCtx.Resource.ExposeToCluster = false
 
 	for _, p := range svcObj.Spec.Ports {
 		n := common.SvcNetworkAttr{Port: int(p.Port), TargetPort: p.TargetPort, Protocol: p.Protocol}
