@@ -9,6 +9,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
+	networkv1 "k8s.io/api/networking/v1"
 )
 
 const yamlParseBufferSize = 200
@@ -114,6 +115,19 @@ func parseRoute(r io.Reader) *ocroutev1.Route {
 		return nil
 	}
 	rc := ocroutev1.Route{}
+	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
+	if err != nil {
+		return nil
+	}
+	return &rc
+}
+
+// parseIngress parses an Ingress resource
+func parseIngress(r io.Reader) *networkv1.Ingress {
+	if r == nil {
+		return nil
+	}
+	rc := networkv1.Ingress{}
 	err := yaml.NewYAMLOrJSONDecoder(r, yamlParseBufferSize).Decode(&rc)
 	if err != nil {
 		return nil

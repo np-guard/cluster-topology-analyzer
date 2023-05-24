@@ -9,7 +9,6 @@ import (
 	"regexp"
 
 	ocapiv1 "github.com/openshift/api"
-	ocroute "github.com/openshift/api/route/v1"
 	"gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -31,11 +30,12 @@ const (
 	service               string = "Service"
 	configmap             string = "ConfigMap"
 	route                 string = "Route"
+	ingress               string = "Ingress"
 )
 
 var (
-	acceptedK8sTypesRegex = fmt.Sprintf("(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)",
-		pod, replicaSet, replicationController, deployment, daemonSet, statefulSet, job, cronJob, service, configmap, route)
+	acceptedK8sTypesRegex = fmt.Sprintf("(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)",
+		pod, replicaSet, replicationController, deployment, daemonSet, statefulSet, job, cronJob, service, configmap, route, ingress)
 	acceptedK8sTypes = regexp.MustCompile(acceptedK8sTypesRegex)
 	yamlSuffix       = regexp.MustCompile(".ya?ml$")
 )
@@ -49,10 +49,10 @@ type resourceFinder struct {
 
 	resourceDecoder runtime.Decoder
 
-	workloads  []*common.Resource // accumulates all workload resources found
-	services   []*common.Service  // accumulates all service resources found
-	configmaps []*common.CfgMap   // accumulates all ConfigMap resources found
-	routes     []*ocroute.Route   // accumulates all Route resources found
+	workloads        []*common.Resource      // accumulates all workload resources found
+	services         []*common.Service       // accumulates all service resources found
+	configmaps       []*common.CfgMap        // accumulates all ConfigMap resources found
+	servicesToExpose common.ServicesToExpose // stores which services should be later exposed
 }
 
 func newResourceFinder(logger Logger, failFast bool, walkFn WalkFunction) *resourceFinder {
@@ -63,6 +63,7 @@ func newResourceFinder(logger Logger, failFast bool, walkFn WalkFunction) *resou
 	_ = ocapiv1.InstallKube(scheme) // returned error is ignored - seems to be always nil
 	_ = ocapiv1.Install(scheme)     // returned error is ignored - seems to be always nil
 	res.resourceDecoder = Codecs.UniversalDeserializer()
+	res.servicesToExpose = common.ServicesToExpose{}
 
 	return &res
 }
@@ -70,7 +71,7 @@ func newResourceFinder(logger Logger, failFast bool, walkFn WalkFunction) *resou
 // getRelevantK8sResources is the main function of resourceFinder.
 // It scans a given directory using walkFn, looking for all yaml files. It then breaks each yaml into its documents
 // and extracts all K8s resources that are relevant for connectivity analysis.
-// The resources are stored in the struct, separated to workloads, services, configmaps and routes
+// The resources are stored in the struct, separated to workloads, services and configmaps
 func (rf *resourceFinder) getRelevantK8sResources(repoDir string) []FileProcessingError {
 	manifestFiles, fileScanErrors := rf.searchForManifests(repoDir)
 	if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
@@ -173,8 +174,9 @@ func (rf *resourceFinder) parseK8sYaml(mfp, relMfp string) []FileProcessingError
 	return fileProcessingErrors
 }
 
-// parseResource takes a yaml document, parses it into a K8s resource and puts it into one of the 4 struct slices:
-// the workload resource slice, the Service resource slice, the Route resource slice and the ConfigMaps resource slice
+// parseResource takes a yaml document, parses it into a K8s resource and puts it into one of the 3 struct slices:
+// the workload resource slice, the Service resource slice and the ConfigMaps resource slice
+// It also updates the set of services to be exposed when parsing Ingress or OpenShift Routes
 func (rf *resourceFinder) parseResource(kind string, yamlDoc []byte, manifestFilePath string) error {
 	switch kind {
 	case service:
@@ -185,11 +187,15 @@ func (rf *resourceFinder) parseResource(kind string, yamlDoc []byte, manifestFil
 		res.Resource.FilePath = manifestFilePath
 		rf.services = append(rf.services, res)
 	case route:
-		res, err := analyzer.ScanOCRouteObject(kind, yamlDoc)
+		err := analyzer.ScanOCRouteObject(kind, yamlDoc, rf.servicesToExpose)
 		if err != nil {
 			return err
 		}
-		rf.routes = append(rf.routes, res)
+	case ingress:
+		err := analyzer.ScanIngressObject(kind, yamlDoc, rf.servicesToExpose)
+		if err != nil {
+			return err
+		}
 	case configmap:
 		res, err := analyzer.ScanK8sConfigmapObject(kind, yamlDoc)
 		if err != nil {
@@ -265,32 +271,21 @@ func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
 	return parseErrors
 }
 
-// exposeServicesWithRoutes changes the type of services pointed by a Route resource to "LoadBalancer".
-// This will ensure that the network policy for their workloads will allow ingress from the outside internet.
+// exposeServices changes the exposure of services pointed by resources such as Route or Ingress.
+// This will ensure that the network policy for their workloads will allow ingress from all the cluster or from the outside internet.
 // It should only be called after ALL calls to getRelevantK8sResources successfully returned
-func (rf *resourceFinder) exposeServicesWithRoutes() {
-	// First, build a map from namespace name to a set of service names exposed by routes in this namespace
-	servicesExposedByRoutes := map[string]map[string]bool{}
-	for _, route := range rf.routes {
-		exposedServicesInNamespace, ok := servicesExposedByRoutes[route.Namespace]
-		if !ok {
-			servicesExposedByRoutes[route.Namespace] = map[string]bool{}
-			exposedServicesInNamespace = servicesExposedByRoutes[route.Namespace]
-		}
-		exposedServicesInNamespace[route.Spec.To.Name] = true
-		for _, backend := range route.Spec.AlternateBackends {
-			exposedServicesInNamespace[backend.Name] = true
-		}
-	}
-
-	// Now, change the type of all services that appear in this map to "LoadBalancer"
+func (rf *resourceFinder) exposeServices() {
 	for _, svc := range rf.services {
-		exposedServicesInNamespace, ok := servicesExposedByRoutes[svc.Resource.Namespace]
+		exposedServicesInNamespace, ok := rf.servicesToExpose[svc.Resource.Namespace]
 		if !ok {
 			continue
 		}
-		if _, ok = exposedServicesInNamespace[svc.Resource.Name]; ok {
-			svc.Resource.ExposeToCluster = true
+		if exposeExternally, ok := exposedServicesInNamespace[svc.Resource.Name]; ok {
+			if exposeExternally {
+				svc.Resource.ExposeExternally = true
+			} else {
+				svc.Resource.ExposeToCluster = true
+			}
 		}
 	}
 }

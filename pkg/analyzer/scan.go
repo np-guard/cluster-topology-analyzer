@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strconv"
 
-	ocroutev1 "github.com/openshift/api/route/v1"
 	v1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -110,17 +109,65 @@ func ScanK8sServiceObject(kind string, objDataBuf []byte) (*common.Service, erro
 	return &serviceCtx, nil
 }
 
-// Create an OpenShift Route object from a buffer
-func ScanOCRouteObject(kind string, objDataBuf []byte) (*ocroutev1.Route, error) {
+// Scan an OpenShift Route object and mark the services it uses to be exposed inside the cluster
+func ScanOCRouteObject(kind string, objDataBuf []byte, servicesToExpose common.ServicesToExpose) error {
 	if kind != "Route" {
-		return nil, fmt.Errorf("expected parsing a Route resource, but got `%s`", kind)
+		return fmt.Errorf("expected parsing a Route resource, but got `%s`", kind)
 	}
 
 	routeObj := parseRoute(bytes.NewReader(objDataBuf))
 	if routeObj == nil {
-		return nil, fmt.Errorf("failed to parse Route resource")
+		return fmt.Errorf("failed to parse Route resource")
 	}
-	return routeObj, nil
+
+	exposedServicesInNamespace, ok := servicesToExpose[routeObj.Namespace]
+	if !ok {
+		servicesToExpose[routeObj.Namespace] = map[string]bool{}
+		exposedServicesInNamespace = servicesToExpose[routeObj.Namespace]
+	}
+	exposedServicesInNamespace[routeObj.Spec.To.Name] = false
+	for _, backend := range routeObj.Spec.AlternateBackends {
+		exposedServicesInNamespace[backend.Name] = false
+	}
+
+	return nil
+}
+
+// Scan an Ingress object and mark the services it uses to be exposed inside the cluster
+func ScanIngressObject(kind string, objDataBuf []byte, servicesToExpose common.ServicesToExpose) error {
+	if kind != "Ingress" {
+		return fmt.Errorf("expected parsing a Ingress resource, but got `%s`", kind)
+	}
+
+	ingressObj := parseIngress(bytes.NewReader(objDataBuf))
+	if ingressObj == nil {
+		return fmt.Errorf("failed to parse Ingress resource")
+	}
+
+	exposedServicesInNamespace, ok := servicesToExpose[ingressObj.Namespace]
+	if !ok {
+		servicesToExpose[ingressObj.Namespace] = map[string]bool{}
+		exposedServicesInNamespace = servicesToExpose[ingressObj.Namespace]
+	}
+
+	defaultBackend := ingressObj.Spec.DefaultBackend
+	if defaultBackend != nil && defaultBackend.Service != nil {
+		exposedServicesInNamespace[defaultBackend.Service.Name] = false
+	}
+
+	for ruleIdx := range ingressObj.Spec.Rules {
+		rule := &ingressObj.Spec.Rules[ruleIdx]
+		if rule.HTTP != nil {
+			for pathIdx := range rule.HTTP.Paths {
+				svc := rule.HTTP.Paths[pathIdx].Backend.Service
+				if svc != nil {
+					exposedServicesInNamespace[svc.Name] = false
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourceCtx *common.Resource) {
