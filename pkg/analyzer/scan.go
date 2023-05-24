@@ -6,7 +6,11 @@ import (
 	"net/url"
 	"strconv"
 
+	ocroutev1 "github.com/openshift/api/route/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
+	networkv1 "k8s.io/api/networking/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
@@ -20,32 +24,32 @@ func ScanK8sWorkloadObject(kind string, objDataBuf []byte) (*common.Resource, er
 	resourceCtx.Resource.Kind = kind
 	switch kind { // TODO: handle Pod
 	case "ReplicaSet":
-		obj := parseReplicaSet(bytes.NewReader(objDataBuf))
+		obj := parseResource[appsv1.ReplicaSet](bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.GetLabels()
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "ReplicationController":
-		obj := parseReplicationController(bytes.NewReader(objDataBuf))
+		obj := parseResource[v1.ReplicationController](bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		podSpecV1 = *obj.Spec.Template
 		metaObj = obj
 	case "Deployment":
-		obj := parseDeployment(bytes.NewReader(objDataBuf))
+		obj := parseResource[appsv1.Deployment](bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "DaemonSet":
-		obj := parseDaemonSet(bytes.NewReader(objDataBuf))
+		obj := parseResource[appsv1.DaemonSet](bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "StatefulSet":
-		obj := parseStatefulSet(bytes.NewReader(objDataBuf))
+		obj := parseResource[appsv1.StatefulSet](bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "Job":
-		obj := parseJob(bytes.NewReader(objDataBuf))
+		obj := parseResource[batchv1.Job](bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
@@ -66,7 +70,7 @@ func matchLabelSelectorToStrLabels(labels map[string]string) []string {
 }
 
 func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (*common.CfgMap, error) {
-	obj := parseConfigMap(bytes.NewReader(objDataBuf))
+	obj := parseResource[v1.ConfigMap](bytes.NewReader(objDataBuf))
 	if obj == nil {
 		return nil, fmt.Errorf("unable to parse configmap")
 	}
@@ -88,7 +92,7 @@ func ScanK8sServiceObject(kind string, objDataBuf []byte) (*common.Service, erro
 		return nil, fmt.Errorf("expected parsing a Service resource, but got `%s`", kind)
 	}
 
-	svcObj := parseService(bytes.NewReader(objDataBuf))
+	svcObj := parseResource[v1.Service](bytes.NewReader(objDataBuf))
 	if svcObj == nil {
 		return nil, fmt.Errorf("failed to parse Service resource")
 	}
@@ -115,7 +119,7 @@ func ScanOCRouteObject(kind string, objDataBuf []byte, servicesToExpose common.S
 		return fmt.Errorf("expected parsing a Route resource, but got `%s`", kind)
 	}
 
-	routeObj := parseRoute(bytes.NewReader(objDataBuf))
+	routeObj := parseResource[ocroutev1.Route](bytes.NewReader(objDataBuf))
 	if routeObj == nil {
 		return fmt.Errorf("failed to parse Route resource")
 	}
@@ -139,7 +143,7 @@ func ScanIngressObject(kind string, objDataBuf []byte, servicesToExpose common.S
 		return fmt.Errorf("expected parsing a Ingress resource, but got `%s`", kind)
 	}
 
-	ingressObj := parseIngress(bytes.NewReader(objDataBuf))
+	ingressObj := parseResource[networkv1.Ingress](bytes.NewReader(objDataBuf))
 	if ingressObj == nil {
 		return fmt.Errorf("failed to parse Ingress resource")
 	}
