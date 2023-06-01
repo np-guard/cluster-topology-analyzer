@@ -7,7 +7,10 @@ import (
 	"strconv"
 
 	ocroutev1 "github.com/openshift/api/route/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
+	networkv1 "k8s.io/api/networking/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
@@ -21,32 +24,32 @@ func ScanK8sWorkloadObject(kind string, objDataBuf []byte) (*common.Resource, er
 	resourceCtx.Resource.Kind = kind
 	switch kind { // TODO: handle Pod
 	case "ReplicaSet":
-		obj := parseReplicaSet(bytes.NewReader(objDataBuf))
+		obj := parseResource[appsv1.ReplicaSet](bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.GetLabels()
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "ReplicationController":
-		obj := parseReplicationController(bytes.NewReader(objDataBuf))
+		obj := parseResource[v1.ReplicationController](bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		podSpecV1 = *obj.Spec.Template
 		metaObj = obj
 	case "Deployment":
-		obj := parseDeployment(bytes.NewReader(objDataBuf))
+		obj := parseResource[appsv1.Deployment](bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "DaemonSet":
-		obj := parseDaemonSet(bytes.NewReader(objDataBuf))
+		obj := parseResource[appsv1.DaemonSet](bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "StatefulSet":
-		obj := parseStatefulSet(bytes.NewReader(objDataBuf))
+		obj := parseResource[appsv1.StatefulSet](bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "Job":
-		obj := parseJob(bytes.NewReader(objDataBuf))
+		obj := parseResource[batchv1.Job](bytes.NewReader(objDataBuf))
 		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
@@ -67,7 +70,7 @@ func matchLabelSelectorToStrLabels(labels map[string]string) []string {
 }
 
 func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (*common.CfgMap, error) {
-	obj := parseConfigMap(bytes.NewReader(objDataBuf))
+	obj := parseResource[v1.ConfigMap](bytes.NewReader(objDataBuf))
 	if obj == nil {
 		return nil, fmt.Errorf("unable to parse configmap")
 	}
@@ -89,7 +92,7 @@ func ScanK8sServiceObject(kind string, objDataBuf []byte) (*common.Service, erro
 		return nil, fmt.Errorf("expected parsing a Service resource, but got `%s`", kind)
 	}
 
-	svcObj := parseService(bytes.NewReader(objDataBuf))
+	svcObj := parseResource[v1.Service](bytes.NewReader(objDataBuf))
 	if svcObj == nil {
 		return nil, fmt.Errorf("failed to parse Service resource")
 	}
@@ -110,17 +113,65 @@ func ScanK8sServiceObject(kind string, objDataBuf []byte) (*common.Service, erro
 	return &serviceCtx, nil
 }
 
-// Create an OpenShift Route object from a buffer
-func ScanOCRouteObject(kind string, objDataBuf []byte) (*ocroutev1.Route, error) {
+// Scan an OpenShift Route object and mark the services it uses to be exposed inside the cluster
+func ScanOCRouteObject(kind string, objDataBuf []byte, servicesToExpose common.ServicesToExpose) error {
 	if kind != "Route" {
-		return nil, fmt.Errorf("expected parsing a Route resource, but got `%s`", kind)
+		return fmt.Errorf("expected parsing a Route resource, but got `%s`", kind)
 	}
 
-	routeObj := parseRoute(bytes.NewReader(objDataBuf))
+	routeObj := parseResource[ocroutev1.Route](bytes.NewReader(objDataBuf))
 	if routeObj == nil {
-		return nil, fmt.Errorf("failed to parse Route resource")
+		return fmt.Errorf("failed to parse Route resource")
 	}
-	return routeObj, nil
+
+	exposedServicesInNamespace, ok := servicesToExpose[routeObj.Namespace]
+	if !ok {
+		servicesToExpose[routeObj.Namespace] = map[string]bool{}
+		exposedServicesInNamespace = servicesToExpose[routeObj.Namespace]
+	}
+	exposedServicesInNamespace[routeObj.Spec.To.Name] = false
+	for _, backend := range routeObj.Spec.AlternateBackends {
+		exposedServicesInNamespace[backend.Name] = false
+	}
+
+	return nil
+}
+
+// Scan an Ingress object and mark the services it uses to be exposed inside the cluster
+func ScanIngressObject(kind string, objDataBuf []byte, servicesToExpose common.ServicesToExpose) error {
+	if kind != "Ingress" {
+		return fmt.Errorf("expected parsing a Ingress resource, but got `%s`", kind)
+	}
+
+	ingressObj := parseResource[networkv1.Ingress](bytes.NewReader(objDataBuf))
+	if ingressObj == nil {
+		return fmt.Errorf("failed to parse Ingress resource")
+	}
+
+	exposedServicesInNamespace, ok := servicesToExpose[ingressObj.Namespace]
+	if !ok {
+		servicesToExpose[ingressObj.Namespace] = map[string]bool{}
+		exposedServicesInNamespace = servicesToExpose[ingressObj.Namespace]
+	}
+
+	defaultBackend := ingressObj.Spec.DefaultBackend
+	if defaultBackend != nil && defaultBackend.Service != nil {
+		exposedServicesInNamespace[defaultBackend.Service.Name] = false
+	}
+
+	for ruleIdx := range ingressObj.Spec.Rules {
+		rule := &ingressObj.Spec.Rules[ruleIdx]
+		if rule.HTTP != nil {
+			for pathIdx := range rule.HTTP.Paths {
+				svc := rule.HTTP.Paths[pathIdx].Backend.Service
+				if svc != nil {
+					exposedServicesInNamespace[svc.Name] = false
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourceCtx *common.Resource) {

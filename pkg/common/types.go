@@ -58,3 +58,7 @@ type Connections struct {
 	Target *Resource `json:"target"`
 	Link   *Service  `json:"link"`
 }
+
+// A map from namespaces to a map of service names in each namespaces.
+// For each service we also hold whether they should be exposed externally (true) or just globally inside the cluster (false)
+type ServicesToExpose map[string]map[string]bool
