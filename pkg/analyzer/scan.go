@@ -216,32 +216,31 @@ func appendNetworkAddresses(networkAddresses, values []string) []string {
 
 // NetworkAddressValue tries to extract a network address from the given string.
 // This is a critical step in identifying which service talks to which,
-// because it identifies the evidence for a potentially required connectivity.
+// because it decides if the given string is an evidence for a potentially required connectivity.
 // If it succeeds, a "cleaned" network address is returned as a string, together with the value true.
 // Otherwise (there does not seem to be a network address in "value"), it returns "" with the value false.
 func NetworkAddressValue(value string) (string, bool) {
-	hostname, err := getHostFromURL(value)
+	host, err := getHostFromURL(value)
 	if err != nil {
 		return "", false // value cannot be interpreted as a URL
 	}
 
-	// chop port number (if exists)
-	hostnameNoPort := hostname
-	colonPos := strings.Index(hostname, ":")
+	hostNoPort := host
+	colonPos := strings.Index(host, ":")
 	if colonPos >= 0 {
-		hostnameNoPort = hostname[:colonPos]
+		hostNoPort = host[:colonPos]
 	}
 
-	errs := validation.IsDNS1123Subdomain(hostnameNoPort)
+	errs := validation.IsDNS1123Subdomain(hostNoPort)
 	if len(errs) > 0 {
 		return "", false // host part of the URL is not really a network address
 	}
 
-	_, err = strconv.Atoi(hostnameNoPort)
+	_, err = strconv.Atoi(hostNoPort)
 	if err == nil {
 		return "", false // we do not accept integers as network addresses
 	}
-	return hostname, true
+	return host, true
 }
 
 // Attempts to parse the given string as a URL, and extract its Host part.
@@ -252,10 +251,10 @@ func getHostFromURL(urlStr string) (string, error) {
 		return "", err
 	}
 
-	if parsedURL.Host == "" {
+	if parsedURL.Host == "" { // URL looks like scheme:opaque[?query][#fragment]
 		parsedURL.Fragment = ""
 		parsedURL.RawQuery = ""
-		return parsedURL.String(), nil // URL looks like scheme:opaque[?query][#fragment]
+		return parsedURL.String(), nil
 	}
 
 	// URL looks like [scheme:][//[userinfo@]host][/]path[?query][#fragment]
