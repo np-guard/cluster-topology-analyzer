@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 
 	ocroutev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -12,6 +13,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	networkv1 "k8s.io/api/networking/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
@@ -76,14 +78,7 @@ func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (*common.CfgMap, err
 	}
 
 	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
-	data := map[string]string{}
-	for k, v := range obj.Data {
-		isPotentialAddress := IsNetworkAddressValue(v)
-		if isPotentialAddress {
-			data[k] = v
-		}
-	}
-	return &common.CfgMap{FullName: fullName, Data: data}, nil
+	return &common.CfgMap{FullName: fullName, Data: obj.Data}, nil
 }
 
 // Create a common.Service object from a k8s Service object
@@ -183,8 +178,8 @@ func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourc
 		resourceCtx.Resource.Image.ID = container.Image
 		for _, e := range container.Env {
 			if e.Value != "" {
-				if IsNetworkAddressValue(e.Value) {
-					resourceCtx.Resource.NetworkAddrs = append(resourceCtx.Resource.NetworkAddrs, e.Value)
+				if netAddr, ok := NetworkAddressValue(e.Value); ok {
+					resourceCtx.Resource.NetworkAddrs = append(resourceCtx.Resource.NetworkAddrs, netAddr)
 				}
 			} else if e.ValueFrom != nil && e.ValueFrom.ConfigMapKeyRef != nil {
 				keyRef := e.ValueFrom.ConfigMapKeyRef
@@ -199,20 +194,70 @@ func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourc
 				resourceCtx.Resource.ConfigMapRefs = append(resourceCtx.Resource.ConfigMapRefs, envFrom.ConfigMapRef.Name)
 			}
 		}
-		for _, arg := range container.Args {
-			if IsNetworkAddressValue(arg) {
-				resourceCtx.Resource.NetworkAddrs = append(resourceCtx.Resource.NetworkAddrs, arg)
-			}
+		resourceCtx.Resource.NetworkAddrs = appendNetworkAddresses(resourceCtx.Resource.NetworkAddrs, container.Args)
+		resourceCtx.Resource.NetworkAddrs = appendNetworkAddresses(resourceCtx.Resource.NetworkAddrs, container.Command)
+	}
+	for volIdx := range podSpec.Spec.Volumes {
+		volume := &podSpec.Spec.Volumes[volIdx]
+		if volume.ConfigMap != nil {
+			resourceCtx.Resource.ConfigMapRefs = append(resourceCtx.Resource.ConfigMapRefs, volume.ConfigMap.Name)
 		}
 	}
 }
 
-// IsNetworkAddressValue checks if a given string is a potential network address
-func IsNetworkAddressValue(value string) bool {
-	_, err := url.Parse(value)
-	if err != nil {
-		return false
+func appendNetworkAddresses(networkAddresses, values []string) []string {
+	for _, val := range values {
+		if netAddr, ok := NetworkAddressValue(val); ok {
+			networkAddresses = append(networkAddresses, netAddr)
+		}
 	}
-	_, err = strconv.Atoi(value)
-	return err != nil // we do not accept integers as network addresses
+	return networkAddresses
+}
+
+// NetworkAddressValue tries to extract a network address from the given string.
+// This is a critical step in identifying which service talks to which,
+// because it identifies the evidence for a potentially required connectivity.
+// If it succeeds, a "cleaned" network address is returned as a string, together with the value true.
+// Otherwise (there does not seem to be a network address in "value"), it returns "" with the value false.
+func NetworkAddressValue(value string) (string, bool) {
+	hostname, err := getHostFromURL(value)
+	if err != nil {
+		return "", false // value cannot be interpreted as a URL
+	}
+
+	// chop port number (if exists)
+	hostnameNoPort := hostname
+	colonPos := strings.Index(hostname, ":")
+	if colonPos >= 0 {
+		hostnameNoPort = hostname[:colonPos]
+	}
+
+	errs := validation.IsDNS1123Subdomain(hostnameNoPort)
+	if len(errs) > 0 {
+		return "", false // host part of the URL is not really a network address
+	}
+
+	_, err = strconv.Atoi(hostnameNoPort)
+	if err == nil {
+		return "", false // we do not accept integers as network addresses
+	}
+	return hostname, true
+}
+
+// Attempts to parse the given string as a URL, and extract its Host part.
+// Returns an error if the string cannot be interpreted as a URL
+func getHostFromURL(urlStr string) (string, error) {
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return "", err
+	}
+
+	if parsedURL.Host == "" {
+		parsedURL.Fragment = ""
+		parsedURL.RawQuery = ""
+		return parsedURL.String(), nil // URL looks like scheme:opaque[?query][#fragment]
+	}
+
+	// URL looks like [scheme:][//[userinfo@]host][/]path[?query][#fragment]
+	return parsedURL.Host, nil
 }

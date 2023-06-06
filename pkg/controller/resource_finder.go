@@ -242,8 +242,8 @@ func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
 			configmapFullName := res.Resource.Namespace + "/" + cfgMapRef
 			if cfgMap, ok := cfgMapsByName[configmapFullName]; ok {
 				for _, v := range cfgMap.Data {
-					if analyzer.IsNetworkAddressValue(v) {
-						res.Resource.NetworkAddrs = append(res.Resource.NetworkAddrs, v)
+					if netAddr, ok := analyzer.NetworkAddressValue(v); ok {
+						res.Resource.NetworkAddrs = append(res.Resource.NetworkAddrs, netAddr)
 					}
 				}
 			} else {
@@ -256,8 +256,8 @@ func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
 			configmapFullName := res.Resource.Namespace + "/" + cfgMapKeyRef.Name
 			if cfgMap, ok := cfgMapsByName[configmapFullName]; ok {
 				if val, ok := cfgMap.Data[cfgMapKeyRef.Key]; ok {
-					if analyzer.IsNetworkAddressValue(val) {
-						res.Resource.NetworkAddrs = append(res.Resource.NetworkAddrs, val)
+					if netAddr, ok := analyzer.NetworkAddressValue(val); ok {
+						res.Resource.NetworkAddrs = append(res.Resource.NetworkAddrs, netAddr)
 					}
 				} else {
 					err := configMapKeyNotFound(cfgMapKeyRef.Name, cfgMapKeyRef.Key, res.Resource.Name)
