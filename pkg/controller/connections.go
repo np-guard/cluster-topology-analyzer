@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
@@ -99,9 +98,6 @@ func getPossibleServiceAddresses(service *common.Service, resource *common.Resou
 }
 
 func envValueMatchesService(envVal string, service *common.Service, serviceAddresses []string) (bool, common.SvcNetworkAttr) {
-	envVal = strings.TrimPrefix(envVal, "http://")
-	envVal = strings.TrimPrefix(envVal, "https://")
-
 	// first look for matches without specified port
 	for _, svcAddress := range serviceAddresses {
 		if svcAddress == envVal {

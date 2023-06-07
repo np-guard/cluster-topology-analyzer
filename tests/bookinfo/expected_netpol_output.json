@@ -59,6 +59,26 @@
                         "version": "v1"
                     }
                 },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 27017
+                            }
+                        ],
+                        "from": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "ratings",
+                                        "version": "v2"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
                 "policyTypes": [
                     "Ingress",
                     "Egress"
@@ -186,6 +206,39 @@
                         "version": "v2"
                     }
                 },
+                "egress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 27017
+                            }
+                        ],
+                        "to": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "mongodb",
+                                        "version": "v1"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "UDP",
+                                "port": 53
+                            }
+                        ],
+                        "to": [
+                            {
+                                "namespaceSelector": {}
+                            }
+                        ]
+                    }
+                ],
                 "policyTypes": [
                     "Ingress",
                     "Egress"

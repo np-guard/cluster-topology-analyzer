@@ -86,9 +86,14 @@ spec:
         app: checkoutservice
     spec:
       serviceAccountName: default
+      volumes:
+      - configMap:
+          optional: true
+          name: cart-service-config
       containers:
         - name: server
           image: gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.3
+          command: ["-currencyserviceAddr", "currencyservice:7000"]
           ports:
           - containerPort: 5050
           readinessProbe:
@@ -111,10 +116,6 @@ spec:
             value: "paymentservice:50051"
           - name: EMAIL_SERVICE_ADDR
             value: "emailservice:5000"
-          - name: CURRENCY_SERVICE_ADDR
-            value: "currencyservice:7000"
-          - name: CART_SERVICE_ADDR
-            value: "cartservice:7070"
           # - name: DISABLE_STATS
           #   value: "1"
           # - name: DISABLE_TRACING
@@ -733,3 +734,10 @@ metadata:
   name: shipping-service-config
 data:
   SHIPPING_SERVICE_ADDR: shippingservice:50051
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cart-service-config
+data:
+  CART_SERVICE_ADDR: cartservice:7070
