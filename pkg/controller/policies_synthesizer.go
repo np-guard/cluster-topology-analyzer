@@ -1,3 +1,9 @@
+/*
+Copyright 2020- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 // The controller package of cluster-topology-analyzer discovers the connectivity of a Kubernetes application
 // by analyzing its YAML manifests and looking for network addresses that match. It can output a set of
 // discovered connections or even Kubernetes NetworkPolicies to allow only these connections. For more
