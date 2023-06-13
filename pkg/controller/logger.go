@@ -1,3 +1,9 @@
+/*
+Copyright 2020- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package controller
 
 import (
@@ -30,12 +36,12 @@ type DefaultLogger struct {
 }
 
 // NewDefaultLogger creates an instance of DefaultLogger with the highest verbosity.
-func NewDefaultLogger() *DefaultLogger {
+func NewDefaultLogger() Logger {
 	return NewDefaultLoggerWithVerbosity(HighVerbosity)
 }
 
 // NewDefaultLoggerWithVerbosity creates an instance of DefaultLogger with a user-defined verbosity.
-func NewDefaultLoggerWithVerbosity(verbosity Verbosity) *DefaultLogger {
+func NewDefaultLoggerWithVerbosity(verbosity Verbosity) Logger {
 	return &DefaultLogger{
 		verbosity: verbosity,
 		l:         log.Default(),
