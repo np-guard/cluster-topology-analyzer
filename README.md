@@ -24,13 +24,13 @@ Usage of ./bin/net-top:
 ## Algorithm
 The underlying algorithm for identifying required connectivity works as follows.
 1. Scan the given directories for all YAML files.
-1. In each YAML file identify manifests for [workload resources](https://kubernetes.io/docs/concepts/workloads/controllers/), [Service resources](https://kubernetes.io/docs/concepts/services-networking/service/#service-resource) and [ConfigMap resources](https://kubernetes.io/docs/concepts/configuration/configmap/).
-1. In each workload resource, inline references to ConfigMaps as if they were directly defined in the container's `envs` field.
+1. In each YAML file identify manifests for [workload resources](https://kubernetes.io/docs/concepts/workloads/controllers/), [Service resources](https://kubernetes.io/docs/concepts/services-networking/service/#service-resource) and [ConfigMap resources](https://kubernetes.io/docs/concepts/configuration/configmap/), [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress) and [Route](https://docs.openshift.com/container-platform/latest/networking/routes/route-configuration.html).
+1. In each workload resource, identify configuration values that might represent network addresses. This includes strings in containers' `envs`, `args` and `command` fields, as well as references to data in ConfigMaps.
 1. For each target-workload in the list of workload resources:
     1. Identify all services whose selector matches target-workload
     1. For each such service:
         1. Compile a list of possible network addresses that can be used to access this service, e.g., `mysvc`, `mysvc.myns`, `mysvc.myns.svc.cluster.local`.
-        1. Identify all workload resources with a container whose `envs` field contains a value from the list of possible network addresses, possibly with an additional port specifier.
+        1. Identify all workload resources with a configuration value that matches a value from the list of possible network addresses, possibly with an additional port specifier.
         1. For each source-workload in the set of identified workloads:
             1. Add a connection from source-workload to target-workload to the list of identified connections. Add protocol and port information if available.
 
@@ -39,7 +39,7 @@ The algorithm for synthesizing NetworkPolicies that only allow the required conn
     - `metadata.namespace` is set to the workload's namespace (if specified)
     - `spec.podSelector` is set to the workload pod selector
     - `spec.policyTypes` is set to `["Ingress", "Egress"]`
-    - `spec.ingress` contains one rule for each required connection in which the workload is the target workload
+    - `spec.ingress` contains one rule for each required connection in which the workload is the target workload. If the Service exposing this workload is of type `LoadBalancer` or `NodePort`, allow ingress from any source. If the service exposing this workload is pointed by an Ingress resource or by a Route resource, allow ingress from any source within the cluster.
     - `spec.egress` contains one rule for each required connection in which the workload is the source workload. If such connections exist, also add a rule to allow egress to UDP port 53 (DNS).
 1. For each **workload namespace** add a *default deny* NetworkPolicy as follows
     - `metadata.namespace` is set to the workload's namespace 
@@ -52,7 +52,7 @@ The algorithm for synthesizing NetworkPolicies that only allow the required conn
 
 1. All the relevant application resources (workloads, Services, ConfigMaps) are defined in YAML files under the given directories or their subdirectories
 1. All YAML files can be applied to a Kubernetes cluster as-is using `kubectl apply -f` (i.e., no helm-style templating).
-1. Every workload that needs to connect to a Service, will have the Service network address as the value of an environment variable. This can be specified directly in the containers `envs` (see example [here](tests/k8s_guestbook/frontend-deployment.yaml#L25:L28)) or via a ConfigMap (see examples [here](tests/onlineboutique/kubernetes-manifests.yaml#L105:L109) and [here](tests/onlineboutique/kubernetes-manifests.yaml#L269:L271)).
+1. Every workload that needs to connect to a Service, will somehow specify the network address of this Service in its manifest. This can be specified directly in the containers `envs` (see example [here](tests/k8s_guestbook/frontend-deployment.yaml#L25:L28)), or via a ConfigMap (see examples [here](tests/onlineboutique/kubernetes-manifests.yaml#L110:L114) and [here](tests/onlineboutique/kubernetes-manifests.yaml#L270:L272)), or using command-line arguments.
 1. The network addresses of a given Service `<svc>` in Namespace `<ns>`, exposing port `<portNum>`, must match this pattern `(http(s)?://)?<svc>(.<ns>(.svc.cluster.local)?)?(:<portNum>)?`. Examples for legal network addresses are `wordpress-mysql:3306`, `redis-follower.redis.svc.cluster.local:6379`, `redis-leader.redis`, `http://rating-service`.
 
 ## Build the project
