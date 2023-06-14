@@ -1,0 +1,86 @@
+---
+# Source: qotd/templates/qotd_rating.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: qotd-rating
+  namespace: qotd
+  labels:
+    app: qotd
+    tier: api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3004
+      targetPort: 3004
+      protocol: TCP
+      name: http
+  selector:
+    app: qotd-rating
+---
+# Source: qotd/templates/qotd_rating.yaml
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: qotd-rating
+  namespace: qotd
+  labels:
+    app: qotd
+    tier: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qotd-rating
+  template:
+    metadata:
+      labels:
+        app: qotd-rating
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: qotd-rating
+          image: registry.gitlab.com/quote-of-the-day/qotd-ratings-service:v5.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3004
+              protocol: TCP
+          env:
+            - name: LOG_LEVEL
+              value: "info"
+            - name: ENABLE_INSTANA
+              value: "false"
+            - name: ANOMALY_GENERATOR_URL
+
+              value: "http://qotd-usecase-qotd-load.localhost/services/ratings"
+
+            - name: INSTANA_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3004
+            initialDelaySeconds: 60
+            timeoutSeconds: 20
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3004
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "200Mi"
+            limits:
+              cpu: "200m"
+              memory: "800Mi"

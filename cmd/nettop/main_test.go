@@ -120,6 +120,15 @@ var (
 			[]string{"bookinfo", "expected_netpol_output.json"},
 		},
 		{
+			"QuoteOfTheDay",
+			[][]string{{"qotd"}},
+			JSONFormat,
+			true,
+			[]string{"-v"},
+			false,
+			[]string{"qotd", "expected_netpol_output.json"},
+		},
+		{
 			"SpecifyDNSPort",
 			[][]string{{"acs-security-demos"}},
 			YamlFormat,

@@ -1,0 +1,519 @@
+---
+# Source: qotd/templates/qotd_usecase.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qotd-usecase-library
+  namespace: qotd-load
+data:
+  a_cascade_failure.json: >
+    {
+        "id": "a_cascade_failure",
+        "name": "Quote, PDF, Web, Rating service cascade failure",
+        "description": "This use case simulates a failure beginning in the quote service.  Later the failures cascade to pdf, ratings and web services.  ",
+        "steps": [
+            {
+                "service": "qrcode",
+                "name": "A WebGroup/Virtual Host to handle xxx has not been defined (SRVE0255E)",
+                "type": "setLogger",
+                "options": {
+                    "name": "logerr",
+                    "template": "SRVE0255E: A WebGroup/Virtual Host to handle xxx has not been defined",
+                    "fields": {},
+                    "repeat": {
+                        "mean": 5000,
+                        "stdev": 1000,
+                        "min": 2000,
+                        "max": 8000
+                    }
+                }
+            },
+            {
+                "service": "quote",
+                "name": "Start new repeating log ERROR - unknown code every 4 seconds in quote service",
+                "type": "setLogger",
+                "id": "log1",
+                "options": {
+                    "name": "ERROR - unknown code",
+                    "template": "ERROR - unknown code $WORD found in bucket.",
+                    "fields": {
+                        "WORD": {
+                            "type": "word"
+                        }
+                    },
+                    "repeat": {
+                        "mean": 4000,
+                        "stdev": 1000,
+                        "min": 2000,
+                        "max": 8000
+                    }
+                }
+            },
+            {
+                "name": "Increase memory usage",
+                "type": "memory",
+                "service": "quote",
+                "value": 6
+            },
+            {
+                "name": "Pause 5 seconds",
+                "type": "delay",
+                "duration": "5000"
+            },
+            {
+                "service": "pdf",
+                "name": "Start new repeating log WARNING about memory checksum every 2 seconds in PDF service",
+                "type": "setLogger",
+                "id": "log1",
+                "options": {
+                    "name": "memory checksum",
+                    "template": "WARNING - memory checksum doesn't match $WORD ",
+                    "fields": {
+                        "WORD": {
+                            "type": "word"
+                        }
+                    },
+                    "repeat": {
+                        "mean": 4000,
+                        "stdev": 1000,
+                        "min": 2000,
+                        "max": 8000
+                    }
+                }
+            },
+            {
+                "service": "pdf",
+                "name": "Increase memory usage",
+                "type": "memory",
+                "value": 6
+            },
+            {
+                "service": "pdf",
+                "name": "Increase cpu usage",
+                "type": "cpu",
+                "value": 10
+            },
+            {
+                "service": "pdf",
+                "name": "Increase service delay (1.1s)",
+                "type": "latency",
+                "endpoint": "GET /pdf/:id",
+                "value": {
+                    "mean": 1100,
+                    "stdev": 200,
+                    "min": 200,
+                    "max": 1200
+                }
+            },
+            {
+                "name": "Pause 20 seconds",
+                "type": "delay",
+                "duration": "20000"
+            },
+            {
+                "service": "ratings",
+                "name": "Rating service failing with 500/404 errors half of the time.",
+                "type": "setCallDistributionOverride",
+                "endpoint": "GET /ratings/:id",
+                "options": [
+                    {
+                        "code": 0,
+                        "weight": 2
+                    },
+                    {
+                        "code": 500,
+                        "weight": 1,
+                        "payload": "Uh oh",
+                        "template": "Unexpected internal error: Bobo is having a moment."
+                    },
+                    {
+                        "code": 404,
+                        "weight": 1,
+                        "payload": "huh?",
+                        "template": "Unexpected internal error: Bobo has no idea what you are talking about."
+                    }
+                ]
+            },
+            {
+                "service": "web",
+                "name": "Start log warning about requests for resource fro IP address (web service).  Repeats every 1.5 seconds.",
+                "type": "setLogger",
+                "id": "log2",
+                "options": {
+                    "name": "unexpected",
+                    "template": "ERROR unexpected request for $URL from source: $IP ",
+                    "fields": {
+                        "URL": {
+                            "type": "url"
+                        },
+                        "IP": {
+                            "type": "ip"
+                        }
+                    },
+                    "repeat": {
+                        "mean": 3500,
+                        "stdev": 100,
+                        "min": 2000,
+                        "max": 7000
+                    }
+                }
+            },
+            {
+                "service": "ratings",
+                "name": "Increase service delay in Rating service (1s)",
+                "type": "latency",
+                "endpoint": "GET /ratings/:id",
+                "value": {
+                    "mean": 1000,
+                    "stdev": 200,
+                    "min": 200,
+                    "max": 1100
+                }
+            },
+            {
+                "service": "ratings",
+                "name": "Increase memory usage in Rating service",
+                "type": "memory",
+                "value": 8
+            }
+        ]
+    }
+
+  b_ratings.json: >
+    {
+        "id": "b_ratings",
+        "name": "Ratings service failures",
+        "description": "The rating service experiences major problems across the board (log anomalies, latency, cpu, memory and increase of error status codes).",
+        "steps": [
+            {
+                "service": "ratings",
+                "name": "Rating service failing with 500/404 errors half of the time.",
+                "type": "setCallDistributionOverride",
+                "endpoint": "GET /ratings/:id",
+                "options": [
+                    {
+                        "code": 0,
+                        "weight": 2
+                    },
+                    {
+                        "code": 500,
+                        "weight": 1,
+                        "payload": "Uh oh",
+                        "template": "Unexpected internal error: Bobo is having a moment."
+                    },
+                    {
+                        "code": 404,
+                        "weight": 1,
+                        "payload": "huh?",
+                        "template": "Unexpected internal error: Bobo has no idea what you are talking about."
+                    }
+                ]
+            },
+            {
+                "service": "ratings",
+                "name": "Increase memory usage",
+                "type": "memory",
+                "value": 8
+            },
+            {
+                "service": "ratings",
+                "name": "Increase cpu usage",
+                "type": "cpu",
+                "value": 10
+            },
+            {
+                "service": "ratings",
+                "type": "latency",
+                "name": "Increase latency in primary GET /ratings/:id to 0.9 seconds",
+                "endpoint": "GET /ratings/:id",
+                "value": {
+                    "mean": 900,
+                    "stdev": 200,
+                    "min": 200,
+                    "max": 11000
+                }
+            },
+            {
+                "service": "ratings",
+                "name": "Start new independent log - unknown code every 4 seconds in quote service",
+                "type": "setLogger",
+                "id": "log1",
+                "options": {
+                    "name": "ERROR - unknown code",
+                    "template": "ERROR - unknown code $WORD found in bucket.",
+                    "fields": {
+                        "WORD": {
+                            "type": "word"
+                        }
+                    },
+                    "repeat": {
+                        "mean": 4000,
+                        "stdev": 1000,
+                        "min": 2000,
+                        "max": 8000
+                    }
+                }
+            },
+            {
+                "service": "ratings",
+                "name": "Start new dependent logger on /ratings/:id endpoint.",
+                "type": "setDependentLogger",
+                "endpoint": "GET /ratings/:id",
+                "id": "deplog1",
+                "options": {
+                    "name": "DEPENDENT LOGGER - unknown ip",
+                    "template": "ERROR - unknown ip $IP request.",
+                    "fields": {
+                        "IP": {
+                            "type": "ip"
+                        }
+                    },
+                    "delay": {
+                        "mean": 100
+                    }
+                }
+            }
+        ]
+    }
+  c_quote_pdf_issues.json: >
+    {
+        "id": "c_quote_pdf_issues",
+        "name": "Quote and PDF Service Issues",
+        "description": "New log entries are added to quote and pdf services. Both also experience sharp increase in CPU and memory.",
+        "steps": [
+            {
+                "service": "quote",
+                "name": "Start log warning about requests for resource from IP address (author service). Repeats every 3 seconds.",
+                "type": "setLogger",
+                "id": "log1",
+                "options": {
+                    "name": "dangerwill",
+                    "template": "DANGER Will Robinson. Unexpected request for $URL from source: $IP ",
+                    "fields": {
+                        "URL": {
+                            "type": "url"
+                        },
+                        "IP": {
+                            "type": "ip"
+                        }
+                    },
+                    "repeat": {
+                        "mean": 3000,
+                        "stdev": 100,
+                        "min": 2000,
+                        "max": 4000
+                    }
+                }
+            },
+            {
+                "service": "quote",
+                "name": "Increase memory usage",
+                "type": "memory",
+                "value": 8
+            },
+            {
+                "service": "quote",
+                "name": "Increase service delay (1s)",
+                "type": "latency",
+                "endpoint": "GET /quotes/:id",
+                "value": {
+                    "mean": 1000
+                }
+            },
+            {
+                "service": "pdf",
+                "name": "Start log warning about requests for resource from IP address (image service). Repeats every 3 seconds.",
+                "type": "setLogger",
+                "id": "log1",
+                "options": {
+                    "name": "possible hack",
+                    "template": "Unknown client access resource $URL from source: $IP ",
+                    "fields": {
+                        "URL": {
+                            "type": "url"
+                        },
+                        "IP": {
+                            "type": "ip"
+                        }
+                    },
+                    "repeat": {
+                        "mean": 3000,
+                        "stdev": 100,
+                        "min": 2000,
+                        "max": 4000
+                    }
+                }
+            },
+            {
+                "service": "quote",
+                "name": "Increase cpu usage",
+                "type": "cpu",
+                "value": 10
+            },
+            {
+                "service": "pdf",
+                "name": "Increase memory usage",
+                "type": "memory",
+                "value": 8
+            },
+            {
+                "service": "pdf",
+                "name": "Increase cpu usage",
+                "type": "cpu",
+                "value": 8
+            }
+        ]
+    }
+  1_cert_warning.json: >
+    {
+        "id": "1_cert_warning",
+        "name": "Image service logs indicate certificate is about to expire.",
+        "description": "The certificate for the image service will expire soon. Unless dealt with the failure will cause lots of problems.",
+        "steps": [
+            {
+                "service": "image",
+                "name": "Log warnings indicate that cert will expire soon.",
+                "type": "setLogger",
+                "options": {
+                    "name": "Log warning of cert to expire.",
+                    "template": "WARNING: service certificate expiration imminent.  Please update certificates.",
+                    "fields": { },
+                    "repeat": {
+                        "mean": 20000,
+                        "stdev": 1000,
+                        "min": 5000,
+                        "max": 30000
+                    }
+                }
+            }
+        ]
+    }
+
+  2_cert_failure.json: >
+    {
+        "id": "2_cert_failure",
+        "name": "Image service cert expires, Author service unable to connect to ratings.",
+        "description": "The ratings service is unaccessible because cert expired.",
+        "steps": [
+            {
+                "service": "author",
+                "name": "Rating endpoint GET /images/:id failing with 500 errors all the time.",
+                "type": "setCallDistributionOverride",
+                "endpoint": "GET /images/:id",
+                "options": [
+                    {
+                        "code": 500,
+                        "weight": 1,
+                        "payload": "CERT_HAS_EXPIRED",
+                        "template": "CERT_HAS_EXPIRED. Reporting: 'notAfter=Nov 8 01:37:01 2021 GMT'. Unable to connect to image service."
+                    }
+                ]
+            },
+            {
+                "service": "author",
+                "type": "latency",
+                "name": "Increase latency in primary GET /image/:id to 0.9 seconds",
+                "endpoint": "GET /images/:id",
+                "value": {
+                    "mean": 900,
+                    "stdev": 200,
+                    "min": 200,
+                    "max": 11000
+                }
+            },
+            {
+                "service": "image",
+                "name": "Increase memory usage",
+                "type": "memory",
+                "value": 8
+            },
+            {
+                "service": "image",
+                "name": "Increase cpu usage",
+                "type": "cpu",
+                "value": 10
+            }
+        ]
+    }
+---
+# Source: qotd/templates/qotd_usecase.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: qotd-usecase
+  namespace: qotd-load
+  labels:
+    app: qotd
+    tier: load
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3012
+      targetPort: 3012
+      protocol: TCP
+      name: http
+  selector:
+    app: qotd-usecase
+---
+# Source: qotd/templates/qotd_usecase.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qotd-usecase
+  namespace: qotd-load
+  labels:
+    app: qotd
+    tier: load
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qotd-usecase
+  template:
+    metadata:
+      labels:
+        app: qotd-usecase
+    spec:
+      volumes:
+        - name: qotd-usecase-library
+          configMap:
+            name: qotd-usecase-library
+            defaultMode: 420
+
+      containers:
+        - name: main
+          image: registry.gitlab.com/quote-of-the-day/qotd-usecase-generator:v5.1.0
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: qotd-usecase-library
+              readOnly: true
+              mountPath: /app/library
+
+          ports:
+            - name: http
+              containerPort: 3012
+              protocol: TCP
+          env:
+            - name: LOG_LEVEL
+              value: "info"
+            - name: BRANDING
+              value: "Quote of the Day"
+            - name: AUTO_SHUTOFF
+              value: "true"
+---
+# Source: qotd/templates/qotd_usecase.yaml
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: qotd-usecase
+  namespace: qotd-load
+  labels:
+    app: qotd
+    tier: load
+spec:
+  path: /
+  to:
+    kind: Service
+    name: qotd-usecase
+  port:
+    targetPort: http

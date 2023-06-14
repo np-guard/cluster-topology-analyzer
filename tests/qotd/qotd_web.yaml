@@ -1,0 +1,128 @@
+---
+# Source: qotd/templates/qotd_web.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: qotd-web
+  namespace: qotd
+  labels:
+    app: qotd
+    tier: web
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  selector:
+    app: qotd-web
+---
+# Source: qotd/templates/qotd_web.yaml
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: qotd-web
+  namespace: qotd
+  labels:
+    app: qotd
+    tier: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: qotd-web
+  template:
+    metadata:
+      labels:
+        app: qotd-web
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: qotd-web
+          image: registry.gitlab.com/quote-of-the-day/qotd-web:v5.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: LOG_LEVEL
+              value: "info"
+            - name: ENABLE_INSTANA
+              value: "false"
+            - name: INSTANA_REPORTING_URL
+              value: ""
+            - name: INSTANA_ENUM_MIN_JS_URL
+              value: ""
+            - name: INSTANA_KEY
+              value: ""
+            - name: USE_REQ_TOKEN
+              value: "true"
+            - name: POLLING_FREQUENCY
+              value: "5000"
+            - name: ANOMALY_GENERATOR_URL
+
+              value: "http://qotd-usecase-qotd-load.localhost/services/web"
+
+            - name: QUOTE_SVC
+              value: "http://qotd-quote.qotd.svc.cluster.local:3001"
+            - name: AUTHOR_SVC
+              value: "http://qotd-author.qotd.svc.cluster.local:3002"
+            - name: RATING_SVC
+              value: "http://qotd-rating.qotd.svc.cluster.local:3004"
+            - name: PDF_SVC
+              value: "http://qotd-pdf.qotd.svc.cluster.local:3005"
+            - name: ENGRAVING_SVC
+              value: "http://qotd-engraving.qotd.svc.cluster.local:3006"
+            - name: QRCODE_SVC
+              value: "http://qotd-qrcode.qotd.svc.cluster.local:9080/qotd-qrcode/qr"
+            - name: BRANDING
+              value: "Quote of the Day"
+            - name: INSTANA_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 60
+            timeoutSeconds: 20
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "200Mi"
+            limits:
+              cpu: "200m"
+              memory: "800Mi"
+---
+# Source: qotd/templates/qotd_web.yaml
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: qotd-web
+  namespace: qotd
+  labels:
+    app: qotd
+    tier: web
+spec:
+  to:
+    kind: Service
+    name: qotd-web
+    weight: 100
+  port:
+    targetPort: http
+  wildcardPolicy: None
