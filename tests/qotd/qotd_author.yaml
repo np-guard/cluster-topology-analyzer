@@ -1,0 +1,98 @@
+---
+# Source: qotd/templates/qotd_author.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: qotd-author
+  namespace: qotd
+  labels:
+    app: qotd
+    tier: api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3002
+      targetPort: 3002
+      protocol: TCP
+      name: http
+  selector:
+    app: qotd-author
+---
+# Source: qotd/templates/qotd_author.yaml
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: qotd-author
+  namespace: qotd
+  labels:
+    app: qotd
+    tier: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qotd-author
+  template:
+    metadata:
+      labels:
+        app: qotd-author
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: qotd-author
+          image: registry.gitlab.com/quote-of-the-day/qotd-author-service:v5.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3002
+              protocol: TCP
+          env:
+            - name: LOG_LEVEL
+              value: "info"
+            - name: ENABLE_INSTANA
+              value: "false"
+            - name: ANOMALY_GENERATOR_URL
+
+              value: "http://qotd-usecase-qotd-load.localhost/services/author"
+
+            - name: IMAGE_SVC
+              value: "http://qotd-image.qotd.svc.cluster.local:3003"
+            - name: DB_HOST
+              value: "qotd-db.qotd.svc.cluster.local"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_USER
+              value: "root"
+            - name: DB_PASS
+              value: "root"
+            - name: DB_NAME
+              value: "qotd"
+            - name: INSTANA_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 60
+            timeoutSeconds: 20
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "350Mi"
+            limits:
+              cpu: "200m"
+              memory: "800Mi"

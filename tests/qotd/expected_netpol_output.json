@@ -1,0 +1,697 @@
+{
+    "kind": "NetworkPolicyList",
+    "apiVersion": "networking.k8s.io/v1",
+    "metadata": {},
+    "items": [
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "qotd-author-netpol",
+                "namespace": "qotd",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "qotd-author"
+                    }
+                },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3002
+                            }
+                        ],
+                        "from": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-web"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "egress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3306
+                            }
+                        ],
+                        "to": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-db"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3003
+                            }
+                        ],
+                        "to": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-image"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "UDP",
+                                "port": 53
+                            }
+                        ],
+                        "to": [
+                            {
+                                "namespaceSelector": {}
+                            }
+                        ]
+                    }
+                ],
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            },
+            "status": {}
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "qotd-db-netpol",
+                "namespace": "qotd",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "qotd-db"
+                    }
+                },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3306
+                            }
+                        ],
+                        "from": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-author"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3306
+                            }
+                        ],
+                        "from": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-quote"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            },
+            "status": {}
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "qotd-engraving-netpol",
+                "namespace": "qotd",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "qotd-engraving"
+                    }
+                },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3006
+                            }
+                        ],
+                        "from": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-web"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            },
+            "status": {}
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "qotd-image-netpol",
+                "namespace": "qotd",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "qotd-image"
+                    }
+                },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3003
+                            }
+                        ],
+                        "from": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-author"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            },
+            "status": {}
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "qotd-pdf-netpol",
+                "namespace": "qotd",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "qotd-pdf"
+                    }
+                },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3005
+                            }
+                        ],
+                        "from": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-web"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "egress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3001
+                            }
+                        ],
+                        "to": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-quote"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "UDP",
+                                "port": 53
+                            }
+                        ],
+                        "to": [
+                            {
+                                "namespaceSelector": {}
+                            }
+                        ]
+                    }
+                ],
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            },
+            "status": {}
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "qotd-qrcode-netpol",
+                "namespace": "qotd",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "qotd-qrcode"
+                    }
+                },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 9080
+                            }
+                        ],
+                        "from": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-web"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            },
+            "status": {}
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "qotd-quote-netpol",
+                "namespace": "qotd",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "qotd-quote"
+                    }
+                },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3001
+                            }
+                        ],
+                        "from": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-pdf"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3001
+                            }
+                        ],
+                        "from": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-web"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "egress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3306
+                            }
+                        ],
+                        "to": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-db"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "UDP",
+                                "port": 53
+                            }
+                        ],
+                        "to": [
+                            {
+                                "namespaceSelector": {}
+                            }
+                        ]
+                    }
+                ],
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            },
+            "status": {}
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "qotd-rating-netpol",
+                "namespace": "qotd",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "qotd-rating"
+                    }
+                },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3004
+                            }
+                        ],
+                        "from": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-web"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            },
+            "status": {}
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "qotd-usecase-netpol",
+                "namespace": "qotd-load",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "qotd-usecase"
+                    }
+                },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3012
+                            }
+                        ],
+                        "from": [
+                            {
+                                "namespaceSelector": {}
+                            }
+                        ]
+                    }
+                ],
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            },
+            "status": {}
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "qotd-web-netpol",
+                "namespace": "qotd",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {
+                    "matchLabels": {
+                        "app": "qotd-web"
+                    }
+                },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3000
+                            }
+                        ],
+                        "from": [
+                            {
+                                "namespaceSelector": {}
+                            }
+                        ]
+                    }
+                ],
+                "egress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3002
+                            }
+                        ],
+                        "to": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-author"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3006
+                            }
+                        ],
+                        "to": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-engraving"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3005
+                            }
+                        ],
+                        "to": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-pdf"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 9080
+                            }
+                        ],
+                        "to": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-qrcode"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3001
+                            }
+                        ],
+                        "to": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-quote"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 3004
+                            }
+                        ],
+                        "to": [
+                            {
+                                "podSelector": {
+                                    "matchLabels": {
+                                        "app": "qotd-rating"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "UDP",
+                                "port": 53
+                            }
+                        ],
+                        "to": [
+                            {
+                                "namespaceSelector": {}
+                            }
+                        ]
+                    }
+                ],
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            },
+            "status": {}
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "default-deny-in-namespace-qotd",
+                "namespace": "qotd",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {},
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            },
+            "status": {}
+        },
+        {
+            "kind": "NetworkPolicy",
+            "apiVersion": "networking.k8s.io/v1",
+            "metadata": {
+                "name": "default-deny-in-namespace-qotd-load",
+                "namespace": "qotd-load",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "podSelector": {},
+                "policyTypes": [
+                    "Ingress",
+                    "Egress"
+                ]
+            },
+            "status": {}
+        }
+    ]
+}

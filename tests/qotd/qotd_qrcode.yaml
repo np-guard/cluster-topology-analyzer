@@ -1,0 +1,56 @@
+---
+# Source: qotd/templates/qotd_qrcode.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: qotd-qrcode
+  namespace: qotd
+  labels:
+    app: qotd
+    tier: api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9080
+      targetPort: 9080
+      protocol: TCP
+      name: http
+  selector:
+    app: qotd-qrcode
+---
+# Source: qotd/templates/qotd_qrcode.yaml
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: qotd-qrcode
+  namespace: qotd
+  labels:
+    app: qotd
+    tier: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qotd-qrcode
+  template:
+    metadata:
+      labels:
+        app: qotd-qrcode
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: qotd-qrcode
+          image: registry.gitlab.com/quote-of-the-day/qotd-qrcode:v5.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 9080
+              protocol: TCP
+          env:
+            - name: WLP_LOGGING_CONSOLE_LOGLEVEL
+              value: INFO
+            - name: ANOMALY_GENERATOR_URL
+
+              value: "http://qotd-usecase-qotd-load.localhost/services/qrcode"
+
+          resources: {}

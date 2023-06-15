@@ -1,0 +1,68 @@
+---
+# Source: qotd/templates/qotd_db.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: qotd-db
+  namespace: qotd
+  labels:
+    app: qotd
+    tier: data
+spec:
+  type: ClusterIP
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: 3306
+      protocol: TCP 
+  selector:
+    app: qotd-db
+---
+# Source: qotd/templates/qotd_db.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qotd-db
+  namespace: qotd
+  labels:
+    app: qotd
+    tier: data
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qotd-db
+  template:
+    metadata:
+      labels:
+        app: qotd-db
+    spec:
+      containers:
+        - name: qotd-db
+          image: registry.gitlab.com/quote-of-the-day/qotd-db:v5.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "root"
+            - name: MYSQL_DATABASE
+              value: "qotd"
+        - name: anomaly
+          image: registry.gitlab.com/quote-of-the-day/qotd-null:v5.1.0
+          imagePullPolicy: Always
+          env:
+            - name: LOG_LEVEL
+              value: "info"
+            - name: ENABLE_INSTANA
+              value: "false"
+            - name: ANOMALY_GENERATOR_URL
+
+              value: "http://qotd-usecase-qotd-load.localhost/services/db"
+
+            - name: INSTANA_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP

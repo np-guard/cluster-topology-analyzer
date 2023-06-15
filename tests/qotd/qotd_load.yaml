@@ -1,0 +1,36 @@
+---
+# Source: qotd/templates/qotd_load.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qotd-load
+  namespace: qotd-load
+  labels:
+    app: qotd
+    tier: load
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: qotd-load
+  template:
+    metadata:
+      labels:
+        app: qotd-load
+    spec:
+      containers:
+        - name: main
+          image: registry.gitlab.com/quote-of-the-day/qotd-load-generator:v5.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3011
+              protocol: TCP
+          env:
+            - name: LOG_LEVEL
+              value: "info"
+            - name: QRCODE
+              value: "true"
+            - name: QOTD_WEB_HOST
+
+              value: "http://qotd-web-qotd.localhost/"
