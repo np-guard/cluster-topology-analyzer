@@ -1,11 +1,11 @@
 # SOURCE: https://cloud.google.com/kubernetes-engine/docs/tutorials/guestbook
 apiVersion: apps/v1
-kind: Deployment
+kind: ReplicaSet
 metadata:
   name: redis-leader
   namespace: redis
   labels:
-    app: redis
+    app: redisapp
     role: leader
     tier: backend
 spec:

@@ -26,46 +26,40 @@ import (
 
 // Create a common.Resource object from a k8s Workload object
 func ScanK8sWorkloadObject(kind string, objDataBuf []byte) (*common.Resource, error) {
-	var podSpecV1 v1.PodTemplateSpec
+	var podSpecV1 *v1.PodTemplateSpec
 	var resourceCtx common.Resource
 	var metaObj metaV1.Object
 	resourceCtx.Resource.Kind = kind
 	switch kind { // TODO: handle Pod
 	case "ReplicaSet":
 		obj := parseResource[appsv1.ReplicaSet](bytes.NewReader(objDataBuf))
-		resourceCtx.Resource.Labels = obj.GetLabels()
-		podSpecV1 = obj.Spec.Template
+		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	case "ReplicationController":
 		obj := parseResource[v1.ReplicationController](bytes.NewReader(objDataBuf))
-		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		podSpecV1 = *obj.Spec.Template
+		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "Deployment":
 		obj := parseResource[appsv1.Deployment](bytes.NewReader(objDataBuf))
-		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		podSpecV1 = obj.Spec.Template
+		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	case "DaemonSet":
 		obj := parseResource[appsv1.DaemonSet](bytes.NewReader(objDataBuf))
-		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		podSpecV1 = obj.Spec.Template
+		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	case "StatefulSet":
 		obj := parseResource[appsv1.StatefulSet](bytes.NewReader(objDataBuf))
-		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		podSpecV1 = obj.Spec.Template
+		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	case "Job":
 		obj := parseResource[batchv1.Job](bytes.NewReader(objDataBuf))
-		resourceCtx.Resource.Labels = obj.Spec.Template.Labels
-		podSpecV1 = obj.Spec.Template
+		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	default:
 		return nil, fmt.Errorf("unsupported object type: `%s`", kind)
 	}
 
-	parseDeployResource(&podSpecV1, metaObj, &resourceCtx)
+	parseDeployResource(podSpecV1, metaObj, &resourceCtx)
 	return &resourceCtx, nil
 }
 
@@ -178,6 +172,7 @@ func ScanIngressObject(kind string, objDataBuf []byte, servicesToExpose common.S
 func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourceCtx *common.Resource) {
 	resourceCtx.Resource.Name = obj.GetName()
 	resourceCtx.Resource.Namespace = obj.GetNamespace()
+	resourceCtx.Resource.Labels = podSpec.Labels
 	resourceCtx.Resource.ServiceAccountName = podSpec.Spec.ServiceAccountName
 	for containerIdx := range podSpec.Spec.Containers {
 		container := &podSpec.Spec.Containers[containerIdx]
