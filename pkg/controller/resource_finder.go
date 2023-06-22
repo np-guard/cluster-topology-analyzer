@@ -186,24 +186,24 @@ func (rf *resourceFinder) parseK8sYaml(mfp, relMfp string) []FileProcessingError
 func (rf *resourceFinder) parseResource(kind string, yamlDoc []byte, manifestFilePath string) error {
 	switch kind {
 	case service:
-		res, err := analyzer.ScanK8sServiceObject(kind, yamlDoc)
+		res, err := analyzer.ScanK8sServiceObject(yamlDoc)
 		if err != nil {
 			return err
 		}
 		res.Resource.FilePath = manifestFilePath
 		rf.services = append(rf.services, res)
 	case route:
-		err := analyzer.ScanOCRouteObject(kind, yamlDoc, rf.servicesToExpose)
+		err := analyzer.ScanOCRouteObject(yamlDoc, rf.servicesToExpose)
 		if err != nil {
 			return err
 		}
 	case ingress:
-		err := analyzer.ScanIngressObject(kind, yamlDoc, rf.servicesToExpose)
+		err := analyzer.ScanIngressObject(yamlDoc, rf.servicesToExpose)
 		if err != nil {
 			return err
 		}
 	case configmap:
-		res, err := analyzer.ScanK8sConfigmapObject(kind, yamlDoc)
+		res, err := analyzer.ScanK8sConfigmapObject(yamlDoc)
 		if err != nil {
 			return err
 		}
