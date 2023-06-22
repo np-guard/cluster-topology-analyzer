@@ -74,6 +74,7 @@ func TestScanningDeploymentWithConfigMapRef(t *testing.T) {
 	res, err := ScanK8sWorkloadObject("Deployment", resourceBuf)
 	require.Nil(t, err)
 	require.Equal(t, "webapp", res.Resource.Name)
+	require.Len(t, res.Resource.ConfigMapRefs, 1)
 	require.Empty(t, res.Resource.NetworkAddrs) // extracting network addresses from configmaps happens later
 	require.Len(t, res.Resource.Labels, 1)
 }
