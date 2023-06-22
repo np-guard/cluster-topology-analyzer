@@ -12,7 +12,6 @@ import (
 )
 
 func TestNetworkAddressValue(t *testing.T) {
-
 	type strBoolPair struct {
 		str string
 		b   bool
