@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package analyzer
 
 import (
-	"bytes"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -32,27 +31,27 @@ func ScanK8sWorkloadObject(kind string, objDataBuf []byte) (*common.Resource, er
 	resourceCtx.Resource.Kind = kind
 	switch kind { // TODO: handle Pod
 	case "ReplicaSet":
-		obj := parseResource[appsv1.ReplicaSet](bytes.NewReader(objDataBuf))
+		obj := parseResource[appsv1.ReplicaSet](objDataBuf)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	case "ReplicationController":
-		obj := parseResource[v1.ReplicationController](bytes.NewReader(objDataBuf))
+		obj := parseResource[v1.ReplicationController](objDataBuf)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "Deployment":
-		obj := parseResource[appsv1.Deployment](bytes.NewReader(objDataBuf))
+		obj := parseResource[appsv1.Deployment](objDataBuf)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	case "DaemonSet":
-		obj := parseResource[appsv1.DaemonSet](bytes.NewReader(objDataBuf))
+		obj := parseResource[appsv1.DaemonSet](objDataBuf)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	case "StatefulSet":
-		obj := parseResource[appsv1.StatefulSet](bytes.NewReader(objDataBuf))
+		obj := parseResource[appsv1.StatefulSet](objDataBuf)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	case "Job":
-		obj := parseResource[batchv1.Job](bytes.NewReader(objDataBuf))
+		obj := parseResource[batchv1.Job](objDataBuf)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	default:
@@ -71,8 +70,8 @@ func matchLabelSelectorToStrLabels(labels map[string]string) []string {
 	return res
 }
 
-func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (*common.CfgMap, error) {
-	obj := parseResource[v1.ConfigMap](bytes.NewReader(objDataBuf))
+func ScanK8sConfigmapObject(objDataBuf []byte) (*common.CfgMap, error) {
+	obj := parseResource[v1.ConfigMap](objDataBuf)
 	if obj == nil {
 		return nil, fmt.Errorf("unable to parse configmap")
 	}
@@ -82,19 +81,15 @@ func ScanK8sConfigmapObject(kind string, objDataBuf []byte) (*common.CfgMap, err
 }
 
 // Create a common.Service object from a k8s Service object
-func ScanK8sServiceObject(kind string, objDataBuf []byte) (*common.Service, error) {
-	if kind != "Service" {
-		return nil, fmt.Errorf("expected parsing a Service resource, but got `%s`", kind)
-	}
-
-	svcObj := parseResource[v1.Service](bytes.NewReader(objDataBuf))
+func ScanK8sServiceObject(objDataBuf []byte) (*common.Service, error) {
+	svcObj := parseResource[v1.Service](objDataBuf)
 	if svcObj == nil {
 		return nil, fmt.Errorf("failed to parse Service resource")
 	}
 	var serviceCtx common.Service
 	serviceCtx.Resource.Name = svcObj.GetName()
 	serviceCtx.Resource.Namespace = svcObj.Namespace
-	serviceCtx.Resource.Kind = kind
+	serviceCtx.Resource.Kind = svcObj.Kind
 	serviceCtx.Resource.Type = svcObj.Spec.Type
 	serviceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(svcObj.Spec.Selector)
 	serviceCtx.Resource.ExposeExternally = (svcObj.Spec.Type == v1.ServiceTypeLoadBalancer || svcObj.Spec.Type == v1.ServiceTypeNodePort)
@@ -109,12 +104,8 @@ func ScanK8sServiceObject(kind string, objDataBuf []byte) (*common.Service, erro
 }
 
 // Scan an OpenShift Route object and mark the services it uses to be exposed inside the cluster
-func ScanOCRouteObject(kind string, objDataBuf []byte, servicesToExpose common.ServicesToExpose) error {
-	if kind != "Route" {
-		return fmt.Errorf("expected parsing a Route resource, but got `%s`", kind)
-	}
-
-	routeObj := parseResource[ocroutev1.Route](bytes.NewReader(objDataBuf))
+func ScanOCRouteObject(objDataBuf []byte, servicesToExpose common.ServicesToExpose) error {
+	routeObj := parseResource[ocroutev1.Route](objDataBuf)
 	if routeObj == nil {
 		return fmt.Errorf("failed to parse Route resource")
 	}
@@ -133,12 +124,8 @@ func ScanOCRouteObject(kind string, objDataBuf []byte, servicesToExpose common.S
 }
 
 // Scan an Ingress object and mark the services it uses to be exposed inside the cluster
-func ScanIngressObject(kind string, objDataBuf []byte, servicesToExpose common.ServicesToExpose) error {
-	if kind != "Ingress" {
-		return fmt.Errorf("expected parsing a Ingress resource, but got `%s`", kind)
-	}
-
-	ingressObj := parseResource[networkv1.Ingress](bytes.NewReader(objDataBuf))
+func ScanIngressObject(objDataBuf []byte, servicesToExpose common.ServicesToExpose) error {
+	ingressObj := parseResource[networkv1.Ingress](objDataBuf)
 	if ingressObj == nil {
 		return fmt.Errorf("failed to parse Ingress resource")
 	}
