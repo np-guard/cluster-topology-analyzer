@@ -56,7 +56,7 @@ The algorithm for synthesizing NetworkPolicies that only allow the required conn
 1. The network addresses of a given Service `<svc>` in Namespace `<ns>`, exposing port `<portNum>`, must match this pattern `(http(s)?://)?<svc>(.<ns>(.svc.cluster.local)?)?(:<portNum>)?`. Examples for legal network addresses are `wordpress-mysql:3306`, `redis-follower.redis.svc.cluster.local:6379`, `redis-leader.redis`, `http://rating-service`.
 
 ## Build the project
-Make sure you have golang 1.18+ on your platform
+Make sure you have golang 1.20+ on your platform
 
 ```shell
 git clone git@github.com:np-guard/cluster-topology-analyzer.git

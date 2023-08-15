@@ -1,5 +1,5 @@
-# FROM golang:1.19-alpine
-FROM golang@sha256:9668643a2e62d8bd298ef3663a96de4a70ceb2865b9b7cadd1d5e08387745103
+# FROM golang:1.20-alpine
+FROM golang@sha256:03278bc16e1a5b4fb6cdd3462108c060aa1e9c2353ce4d15d744b3c40168677d
 
 RUN apk update && apk upgrade && apk --no-cache add make
 
@@ -11,7 +11,7 @@ COPY go.mod go.sum Makefile ./
 
 RUN make
 
-FROM registry.access.redhat.com/ubi8@sha256:4a6dbfbb845810dce5902ab80cb93ecb24c367460fff9d15438e0b3080e244b3
+FROM registry.access.redhat.com/ubi8@sha256:b6616b280ec23c2283ac10e19dd3cd4c8e6df14599f6d93f662ca261273097a9
 RUN yum -y upgrade
 
 WORKDIR /gitsecure
