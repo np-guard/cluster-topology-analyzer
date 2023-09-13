@@ -7,20 +7,19 @@ SPDX-License-Identifier: Apache-2.0
 package analyzer
 
 import (
-	"bytes"
-
-	"k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/cli-runtime/pkg/resource"
 )
 
-const yamlParseBufferSize = 200
-
-func parseResource[T interface{}](objDataBuf []byte) *T {
-	reader := bytes.NewReader(objDataBuf)
-	if reader == nil {
+func parseResourceFromInfo[T interface{}](info *resource.Info) *T {
+	obj, ok := info.Object.(*unstructured.Unstructured)
+	if !ok {
 		return nil
 	}
+
 	var rc T
-	err := yaml.NewYAMLOrJSONDecoder(reader, yamlParseBufferSize).Decode(&rc)
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), &rc)
 	if err != nil {
 		return nil
 	}

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"k8s.io/cli-runtime/pkg/resource"
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
@@ -35,9 +36,9 @@ func TestNetworkAddressValue(t *testing.T) {
 }
 
 func TestScanningSvc(t *testing.T) {
-	resourceBuf, err := loadResourceAsByteArray([]string{"k8s_guestbook", "frontend-service.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"k8s_guestbook", "frontend-service.yaml"})
 	require.Nil(t, err)
-	res, err := ScanK8sServiceObject(resourceBuf)
+	res, err := ScanK8sServiceInfo(resourceInfo)
 	require.Nil(t, err)
 	require.Equal(t, "frontend", res.Resource.Name)
 	require.Len(t, res.Resource.Selectors, 2)
@@ -46,9 +47,9 @@ func TestScanningSvc(t *testing.T) {
 }
 
 func TestScanningDeploymentWithArgs(t *testing.T) {
-	resourceBuf, err := loadResourceAsByteArray([]string{"sockshop", "manifests", "01-carts-dep.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"sockshop", "manifests", "01-carts-dep.yaml"})
 	require.Nil(t, err)
-	res, err := ScanK8sWorkloadObject("Deployment", resourceBuf)
+	res, err := ScanK8sWorkloadObjectFromInfo(resourceInfo)
 	require.Nil(t, err)
 	require.Equal(t, "carts", res.Resource.Name)
 	require.Len(t, res.Resource.NetworkAddrs, 1)
@@ -58,9 +59,9 @@ func TestScanningDeploymentWithArgs(t *testing.T) {
 }
 
 func TestScanningDeploymentWithEnvs(t *testing.T) {
-	resourceBuf, err := loadResourceAsByteArray([]string{"k8s_guestbook", "frontend-deployment.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"k8s_guestbook", "frontend-deployment.yaml"})
 	require.Nil(t, err)
-	res, err := ScanK8sWorkloadObject("Deployment", resourceBuf)
+	res, err := ScanK8sWorkloadObjectFromInfo(resourceInfo)
 	require.Nil(t, err)
 	require.Equal(t, "frontend", res.Resource.Name)
 	require.Len(t, res.Resource.NetworkAddrs, 4)
@@ -68,9 +69,9 @@ func TestScanningDeploymentWithEnvs(t *testing.T) {
 }
 
 func TestScanningDeploymentWithConfigMapRef(t *testing.T) {
-	resourceBuf, err := loadResourceAsByteArray([]string{"acs-security-demos", "frontend", "webapp", "deployment.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"acs-security-demos", "frontend", "webapp", "deployment.yaml"})
 	require.Nil(t, err)
-	res, err := ScanK8sWorkloadObject("Deployment", resourceBuf)
+	res, err := ScanK8sWorkloadObjectFromInfo(resourceInfo)
 	require.Nil(t, err)
 	require.Equal(t, "webapp", res.Resource.Name)
 	require.Len(t, res.Resource.ConfigMapRefs, 1)
@@ -79,9 +80,9 @@ func TestScanningDeploymentWithConfigMapRef(t *testing.T) {
 }
 
 func TestScanningReplicaSet(t *testing.T) {
-	resourceBuf, err := loadResourceAsByteArray([]string{"k8s_guestbook", "redis-leader-deployment.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"k8s_guestbook", "redis-leader-deployment.yaml"})
 	require.Nil(t, err)
-	res, err := ScanK8sWorkloadObject("ReplicaSet", resourceBuf)
+	res, err := ScanK8sWorkloadObjectFromInfo(resourceInfo)
 	require.Nil(t, err)
 	require.Equal(t, "redis-leader", res.Resource.Name)
 	require.Len(t, res.Resource.NetworkAddrs, 0)
@@ -89,35 +90,47 @@ func TestScanningReplicaSet(t *testing.T) {
 }
 
 func TestScanningConfigMap(t *testing.T) {
-	resourceBuf, err := loadResourceAsByteArray([]string{"qotd", "qotd_usecase.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"qotd", "qotd_usecase.yaml"})
 	require.Nil(t, err)
-	res, err := ScanK8sConfigmapObject(resourceBuf)
+	res, err := ScanK8sConfigmapInfo(resourceInfo)
 	require.Nil(t, err)
 	require.Equal(t, res.FullName, "qotd-load/qotd-usecase-library")
 	require.Len(t, res.Data, 5)
 }
 
 func TestScanningIngress(t *testing.T) {
-	resourceBuf, err := loadResourceAsByteArray([]string{"bookinfo", "bookinfo-ingress.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"bookinfo", "bookinfo-ingress.yaml"})
 	require.Nil(t, err)
 	toExpose := common.ServicesToExpose{}
-	err = ScanIngressObject(resourceBuf, toExpose)
+	err = ScanIngressObjectFromInfo(resourceInfo, toExpose)
 	require.Nil(t, err)
 	require.Len(t, toExpose, 1)
 }
 
 func TestScanningRoute(t *testing.T) {
-	resourceBuf, err := loadResourceAsByteArray([]string{"acs-security-demos", "frontend", "webapp", "route.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"acs-security-demos", "frontend", "webapp", "route.yaml"})
 	require.Nil(t, err)
 	toExpose := common.ServicesToExpose{}
-	err = ScanOCRouteObject(resourceBuf, toExpose)
+	err = ScanOCRouteObjectFromInfo(resourceInfo, toExpose)
 	require.Nil(t, err)
 	require.Len(t, toExpose, 1)
 }
 
-func loadResourceAsByteArray(resourceDirs []string) ([]byte, error) {
+func loadResourceAsInfo(resourceDirs []string) (*resource.Info, error) {
 	currentDir, _ := os.Getwd()
 	resourceRelPath := filepath.Join(resourceDirs...)
 	resourcePath := filepath.Join(currentDir, "..", "..", "tests", resourceRelPath)
-	return os.ReadFile(resourcePath)
+
+	fileOption := resource.FilenameOptions{Filenames: []string{resourcePath}, Recursive: true}
+	builder := resource.NewLocalBuilder()
+	resourceResult := builder.
+		Unstructured().
+		ContinueOnError().
+		FilenameParam(false, &fileOption).
+		Flatten().
+		Do()
+
+	infos, err := resourceResult.Infos()
+
+	return infos[0], err
 }

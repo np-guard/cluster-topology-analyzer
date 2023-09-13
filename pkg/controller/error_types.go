@@ -170,7 +170,7 @@ func noYamlsFound() *FileProcessingError {
 }
 
 func noK8sResourcesFound() *FileProcessingError {
-	return &FileProcessingError{&NoK8sResourcesFoundError{}, "", 0, -1, false, false}
+	return &FileProcessingError{&NoK8sResourcesFoundError{}, "", 0, -1, true, true}
 }
 
 func configMapNotFound(cfgMapName, resourceName string) *FileProcessingError {

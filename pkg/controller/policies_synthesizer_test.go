@@ -107,7 +107,7 @@ func TestPoliciesSynthesizerAPIFailFast(t *testing.T) {
 func TestExtractConnectionsNoK8sResources(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "irrelevant_k8s_resources.yaml")
 	synthesizer := NewPoliciesSynthesizer()
-	resources, conns, errs := synthesizer.extractConnections([]string{dirPath})
+	resources, conns, errs := synthesizer.extractConnectionsFromFolderPaths([]string{dirPath})
 	require.Len(t, errs, 1)
 	noK8sRes := &NoK8sResourcesFoundError{}
 	require.True(t, errors.As(errs[0].Error(), &noK8sRes))
@@ -118,7 +118,7 @@ func TestExtractConnectionsNoK8sResources(t *testing.T) {
 func TestExtractConnectionsNoK8sResourcesFailFast(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls")
 	synthesizer := NewPoliciesSynthesizer(WithStopOnError())
-	resources, conns, errs := synthesizer.extractConnections([]string{dirPath})
+	resources, conns, errs := synthesizer.extractConnectionsFromFolderPaths([]string{dirPath})
 	require.Len(t, errs, 1)
 	require.Empty(t, conns)
 	require.Empty(t, resources)
@@ -127,7 +127,7 @@ func TestExtractConnectionsNoK8sResourcesFailFast(t *testing.T) {
 func TestExtractConnectionsBadConfigMapRefs(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "bad_configmap_refs.yaml")
 	synthesizer := NewPoliciesSynthesizer()
-	resources, conns, errs := synthesizer.extractConnections([]string{dirPath})
+	resources, conns, errs := synthesizer.extractConnectionsFromFolderPaths([]string{dirPath})
 	require.Len(t, errs, 3)
 	noConfigMap := &ConfigMapNotFoundError{}
 	noConfigMapKey := &ConfigMapKeyNotFoundError{}
@@ -141,7 +141,7 @@ func TestExtractConnectionsBadConfigMapRefs(t *testing.T) {
 func TestExtractConnectionsCustomWalk(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "sockshop")
 	synthesizer := NewPoliciesSynthesizer(WithWalkFn(nonRecursiveWalk))
-	resources, conns, errs := synthesizer.extractConnections([]string{dirPath})
+	resources, conns, errs := synthesizer.extractConnectionsFromFolderPaths([]string{dirPath})
 	require.Len(t, errs, 2) // no yaml should be found in a non-recursive scan
 	noYamls := &NoYamlsFoundError{}
 	noK8sRes := &NoK8sResourcesFoundError{}
@@ -154,7 +154,7 @@ func TestExtractConnectionsCustomWalk(t *testing.T) {
 func TestExtractConnectionsCustomWalk2(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "sockshop")
 	synthesizer := NewPoliciesSynthesizer(WithWalkFn(filepath.WalkDir))
-	resources, conns, errs := synthesizer.extractConnections([]string{dirPath})
+	resources, conns, errs := synthesizer.extractConnectionsFromFolderPaths([]string{dirPath})
 	require.Len(t, errs, 0)
 	require.Len(t, conns, 14)
 	require.Len(t, resources, 14)

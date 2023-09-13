@@ -19,43 +19,44 @@ import (
 	networkv1 "k8s.io/api/networking/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
+	"k8s.io/cli-runtime/pkg/resource"
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
-// Create a common.Resource object from a k8s Workload object
-func ScanK8sWorkloadObject(kind string, objDataBuf []byte) (*common.Resource, error) {
+// ScanK8sWorkloadObjectFromInfo creates a common.Resource object from an Info object
+func ScanK8sWorkloadObjectFromInfo(info *resource.Info) (*common.Resource, error) {
 	var podSpecV1 *v1.PodTemplateSpec
 	var resourceCtx common.Resource
 	var metaObj metaV1.Object
-	resourceCtx.Resource.Kind = kind
-	switch kind { // TODO: handle Pod
+	resourceCtx.Resource.Kind = info.Object.GetObjectKind().GroupVersionKind().Kind
+	switch resourceCtx.Resource.Kind { // TODO: handle Pod
 	case "ReplicaSet":
-		obj := parseResource[appsv1.ReplicaSet](objDataBuf)
+		obj := parseResourceFromInfo[appsv1.ReplicaSet](info)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	case "ReplicationController":
-		obj := parseResource[v1.ReplicationController](objDataBuf)
+		obj := parseResourceFromInfo[v1.ReplicationController](info)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
 	case "Deployment":
-		obj := parseResource[appsv1.Deployment](objDataBuf)
+		obj := parseResourceFromInfo[appsv1.Deployment](info)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	case "DaemonSet":
-		obj := parseResource[appsv1.DaemonSet](objDataBuf)
+		obj := parseResourceFromInfo[appsv1.DaemonSet](info)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	case "StatefulSet":
-		obj := parseResource[appsv1.StatefulSet](objDataBuf)
+		obj := parseResourceFromInfo[appsv1.StatefulSet](info)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	case "Job":
-		obj := parseResource[batchv1.Job](objDataBuf)
+		obj := parseResourceFromInfo[batchv1.Job](info)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
 	default:
-		return nil, fmt.Errorf("unsupported object type: `%s`", kind)
+		return nil, fmt.Errorf("unsupported object type: `%s`", resourceCtx.Resource.Kind)
 	}
 
 	parseDeployResource(podSpecV1, metaObj, &resourceCtx)
@@ -70,8 +71,9 @@ func matchLabelSelectorToStrLabels(labels map[string]string) []string {
 	return res
 }
 
-func ScanK8sConfigmapObject(objDataBuf []byte) (*common.CfgMap, error) {
-	obj := parseResource[v1.ConfigMap](objDataBuf)
+// ScanK8sConfigmapInfo creates a common.CfgMap object from a k8s ConfigMap object
+func ScanK8sConfigmapInfo(info *resource.Info) (*common.CfgMap, error) {
+	obj := parseResourceFromInfo[v1.ConfigMap](info)
 	if obj == nil {
 		return nil, fmt.Errorf("unable to parse configmap")
 	}
@@ -80,9 +82,9 @@ func ScanK8sConfigmapObject(objDataBuf []byte) (*common.CfgMap, error) {
 	return &common.CfgMap{FullName: fullName, Data: obj.Data}, nil
 }
 
-// Create a common.Service object from a k8s Service object
-func ScanK8sServiceObject(objDataBuf []byte) (*common.Service, error) {
-	svcObj := parseResource[v1.Service](objDataBuf)
+// ScanK8sServiceInfo creates a common.Service object from a k8s Service object
+func ScanK8sServiceInfo(info *resource.Info) (*common.Service, error) {
+	svcObj := parseResourceFromInfo[v1.Service](info)
 	if svcObj == nil {
 		return nil, fmt.Errorf("failed to parse Service resource")
 	}
@@ -103,9 +105,9 @@ func ScanK8sServiceObject(objDataBuf []byte) (*common.Service, error) {
 	return &serviceCtx, nil
 }
 
-// Scan an OpenShift Route object and mark the services it uses to be exposed inside the cluster
-func ScanOCRouteObject(objDataBuf []byte, servicesToExpose common.ServicesToExpose) error {
-	routeObj := parseResource[ocroutev1.Route](objDataBuf)
+// ScanOCRouteObjectFromInfo updates servicesToExpose based on an OpenShift Route object
+func ScanOCRouteObjectFromInfo(info *resource.Info, servicesToExpose common.ServicesToExpose) error {
+	routeObj := parseResourceFromInfo[ocroutev1.Route](info)
 	if routeObj == nil {
 		return fmt.Errorf("failed to parse Route resource")
 	}
@@ -123,9 +125,9 @@ func ScanOCRouteObject(objDataBuf []byte, servicesToExpose common.ServicesToExpo
 	return nil
 }
 
-// Scan an Ingress object and mark the services it uses to be exposed inside the cluster
-func ScanIngressObject(objDataBuf []byte, servicesToExpose common.ServicesToExpose) error {
-	ingressObj := parseResource[networkv1.Ingress](objDataBuf)
+// ScanIngressObjectFromInfo updates servicesToExpose based on an K8s Ingress object
+func ScanIngressObjectFromInfo(info *resource.Info, servicesToExpose common.ServicesToExpose) error {
+	ingressObj := parseResourceFromInfo[networkv1.Ingress](info)
 	if ingressObj == nil {
 		return fmt.Errorf("failed to parse Ingress resource")
 	}
