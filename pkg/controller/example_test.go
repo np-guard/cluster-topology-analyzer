@@ -88,8 +88,7 @@ func ExamplePoliciesSynthesizer() {
 	//                 "Ingress",
 	//                 "Egress"
 	//             ]
-	//         },
-	//         "status": {}
+	//         }
 	//     },
 	//     {
 	//         "kind": "NetworkPolicy",
@@ -129,8 +128,7 @@ func ExamplePoliciesSynthesizer() {
 	//                 "Ingress",
 	//                 "Egress"
 	//             ]
-	//         },
-	//         "status": {}
+	//         }
 	//     },
 	//     {
 	//         "kind": "NetworkPolicy",
@@ -145,8 +143,7 @@ func ExamplePoliciesSynthesizer() {
 	//                 "Ingress",
 	//                 "Egress"
 	//             ]
-	//         },
-	//         "status": {}
+	//         }
 	//     }
 	// ]
 }
