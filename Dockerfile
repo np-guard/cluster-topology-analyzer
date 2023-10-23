@@ -11,7 +11,7 @@ COPY go.mod go.sum Makefile ./
 
 RUN make
 
-FROM registry.access.redhat.com/ubi8@sha256:dd3ea588640fd91ea85f6324df14627b2f8ad52ac55ecd907ca3201cd78667e6
+FROM registry.access.redhat.com/ubi8@sha256:3a865d83c19c86e3a43a0f2c66a5fbb6afe23403bd68a2af9deef7bd1d41ecea
 RUN yum -y upgrade
 
 WORKDIR /gitsecure
