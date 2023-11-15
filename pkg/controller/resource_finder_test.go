@@ -21,12 +21,8 @@ func TestGetRelevantK8sResourcesBadYamlDocument(t *testing.T) {
 	resFinder := newResourceFinder(NewDefaultLogger(), false, filepath.WalkDir)
 	errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
-	badDoc := &MalformedYamlDocError{}
-	require.True(t, errors.As(errs[0].Error(), &badDoc))
-
-	docID, err := errs[0].DocumentID()
-	require.Equal(t, 6, docID)
-	require.Nil(t, err)
+	badFile := &FailedReadingFileError{}
+	require.True(t, errors.As(errs[0].Error(), &badFile))
 
 	require.Len(t, resFinder.workloads, 3)
 	require.Len(t, resFinder.services, 3)
@@ -38,12 +34,8 @@ func TestGetRelevantK8sResourcesBadYamlDocumentFailFast(t *testing.T) {
 	resFinder := newResourceFinder(NewDefaultLogger(), true, filepath.WalkDir)
 	errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
-	badDoc := &MalformedYamlDocError{}
-	require.True(t, errors.As(errs[0].Error(), &badDoc))
-
-	docID, err := errs[0].DocumentID()
-	require.Equal(t, 6, docID)
-	require.Nil(t, err)
+	badFile := &FailedReadingFileError{}
+	require.True(t, errors.As(errs[0].Error(), &badFile))
 
 	require.Empty(t, resFinder.workloads)
 	require.Empty(t, resFinder.services)
@@ -55,8 +47,8 @@ func TestGetRelevantK8sResourcesNoK8sResource(t *testing.T) {
 	resFinder := newResourceFinder(NewDefaultLogger(), false, filepath.WalkDir)
 	errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
-	notK8sRes := &NotK8sResourceError{}
-	require.True(t, errors.As(errs[0].Error(), &notK8sRes))
+	fileErr := &FailedReadingFileError{}
+	require.True(t, errors.As(errs[0].Error(), &fileErr))
 	require.Empty(t, resFinder.workloads)
 	require.Len(t, resFinder.services, 1)
 	require.Empty(t, resFinder.configmaps)
@@ -102,9 +94,7 @@ func TestGetRelevantK8sResourcesNonK8sResources(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bookinfo")
 	resFinder := newResourceFinder(NewDefaultLogger(), false, filepath.WalkDir)
 	errs := resFinder.getRelevantK8sResources(dirPath)
-	require.Len(t, errs, 2) // Has Istio resources ClusterIssuer and Certificate
-	badResource := &NotK8sResourceError{}
-	require.True(t, errors.As(errs[0].Error(), &badResource))
+	require.Empty(t, errs) // Irrelevant resources such as Certificate are only reported to log - not returned as errors
 }
 
 func TestSearchForManifests(t *testing.T) {

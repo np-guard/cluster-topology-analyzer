@@ -119,6 +119,9 @@ func (rf *resourceFinder) parseK8sYaml(mfp, relMfp string) []FileProcessingError
 	fileProcessingErrors := []FileProcessingError{}
 	for _, err := range errs {
 		fileProcessingErrors = appendAndLogNewError(fileProcessingErrors, failedReadingFile(mfp, err), rf.logger)
+		if stopProcessing(rf.stopOn1stErr, fileProcessingErrors) {
+			return fileProcessingErrors
+		}
 	}
 
 	for _, info := range infos {

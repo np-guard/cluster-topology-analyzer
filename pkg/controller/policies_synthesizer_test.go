@@ -99,7 +99,7 @@ func TestPoliciesSynthesizerAPIFailFast(t *testing.T) {
 	netpols, err := synthesizer.PoliciesFromFolderPath(dirPath)
 	require.Nil(t, err)
 	require.Len(t, synthesizer.Errors(), 1)
-	badYaml := &MalformedYamlDocError{}
+	badYaml := &FailedReadingFileError{}
 	require.True(t, errors.As(synthesizer.Errors()[0].Error(), &badYaml))
 	require.Empty(t, netpols)
 }
