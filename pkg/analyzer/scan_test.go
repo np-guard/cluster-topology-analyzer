@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"k8s.io/cli-runtime/pkg/resource"
 
+	"github.com/np-guard/netpol-analyzer/pkg/netpol/manifests/fsscanner"
+
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
@@ -121,16 +123,10 @@ func loadResourceAsInfo(resourceDirs []string) (*resource.Info, error) {
 	resourceRelPath := filepath.Join(resourceDirs...)
 	resourcePath := filepath.Join(currentDir, "..", "..", "tests", resourceRelPath)
 
-	fileOption := resource.FilenameOptions{Filenames: []string{resourcePath}, Recursive: true}
-	builder := resource.NewLocalBuilder()
-	resourceResult := builder.
-		Unstructured().
-		ContinueOnError().
-		FilenameParam(false, &fileOption).
-		Flatten().
-		Do()
+	infos, errs := fsscanner.GetResourceInfosFromDirPath([]string{resourcePath}, true, true)
+	if len(errs) > 0 {
+		return nil, errs[0]
+	}
 
-	infos, err := resourceResult.Infos()
-
-	return infos[0], err
+	return infos[0], nil
 }
