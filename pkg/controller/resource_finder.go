@@ -116,7 +116,7 @@ func (rf *resourceFinder) searchForManifests(repoDir string) ([]string, []FilePr
 // parseK8sYaml takes a YAML file and attempts to parse each of its documents into
 // one of the relevant k8s resources
 func (rf *resourceFinder) parseK8sYaml(mfp, relMfp string) []FileProcessingError {
-	infos, errs := fsscanner.GetResourceInfosFromDirPath([]string{mfp}, true, rf.stopOn1stErr)
+	infos, errs := fsscanner.GetResourceInfosFromDirPath([]string{mfp}, false, rf.stopOn1stErr)
 	fileProcessingErrors := []FileProcessingError{}
 	for _, err := range errs {
 		fileProcessingErrors = appendAndLogNewError(fileProcessingErrors, failedReadingFile(mfp, err), rf.logger)
@@ -140,10 +140,18 @@ func (rf *resourceFinder) parseK8sYaml(mfp, relMfp string) []FileProcessingError
 // the workload resource slice, the Service resource slice and the ConfigMaps resource slice
 // It also updates the set of services to be exposed when parsing Ingress or OpenShift Routes
 func (rf *resourceFinder) parseInfo(info *resource.Info) error {
+	if info == nil || info.Object == nil {
+		return fmt.Errorf("a bad Info object - Object field is Nil")
+	}
+
 	kind := info.Object.GetObjectKind().GroupVersionKind().Kind
 	if !acceptedK8sTypes.MatchString(kind) {
+		msg := fmt.Sprintf("skipping object with type: %s", kind)
 		resourcePath := info.Source
-		rf.logger.Infof("in file: %s, skipping object with type: %s", resourcePath, kind)
+		if resourcePath != "" {
+			msg = fmt.Sprintf("in file: %s, %s", resourcePath, msg)
+		}
+		rf.logger.Infof(msg)
 		return nil
 	}
 

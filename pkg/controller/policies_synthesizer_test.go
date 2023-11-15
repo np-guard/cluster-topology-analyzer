@@ -16,8 +16,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/np-guard/netpol-analyzer/pkg/netpol/manifests/fsscanner"
 	"github.com/stretchr/testify/require"
 	core "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/cli-runtime/pkg/resource"
 )
 
 func TestPoliciesSynthesizerAPI(t *testing.T) {
@@ -49,6 +52,49 @@ func TestPoliciesSynthesizerAPI(t *testing.T) {
 	os.Remove(outFile)
 }
 
+func TestPoliciesSynthesizerAPIWithInfos(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "k8s_wordpress_example")
+	infos, errs := fsscanner.GetResourceInfosFromDirPath([]string{dirPath}, true, false)
+	require.Empty(t, errs)
+
+	synthesizer := NewPoliciesSynthesizer()
+	policies, err := synthesizer.PoliciesFromInfos(infos)
+	require.Nil(t, err)
+	require.Empty(t, synthesizer.Errors())
+	require.Len(t, policies, 3) // wordpress, mysql and namespace default deny
+
+	conns, err := synthesizer.ConnectionsFromInfos(infos)
+	require.Nil(t, err)
+	require.Empty(t, synthesizer.Errors())
+	require.Len(t, conns, 2) // internet->wordpress and wordpress->mysql
+}
+
+func TestPoliciesSynthesizerAPIWithInfosEmptySlice(t *testing.T) {
+	noInfos := []*resource.Info{}
+
+	synthesizer := NewPoliciesSynthesizer()
+	_, err := synthesizer.PoliciesFromInfos(noInfos)
+	require.NotNil(t, err)
+
+	_, err = synthesizer.ConnectionsFromInfos(noInfos)
+	require.NotNil(t, err)
+}
+
+func TestPoliciesSynthesizerAPIWithInfosBadInfo(t *testing.T) {
+	badInfo1 := resource.Info{}
+	badInfo2 := resource.Info{Object: &unstructured.Unstructured{}}
+	badInfo3 := resource.Info{Object: &unstructured.Unstructured{Object: map[string]interface{}{"kind": "bad"}}}
+	badInfo4 := resource.Info{Object: &unstructured.Unstructured{Object: map[string]interface{}{"kind": "Service", "spec": []string{}}}}
+	badInfos := []*resource.Info{&badInfo1, &badInfo2, &badInfo3, &badInfo4}
+
+	synthesizer := NewPoliciesSynthesizer()
+	_, err := synthesizer.PoliciesFromInfos(badInfos)
+	require.NotNil(t, err)
+
+	_, err = synthesizer.ConnectionsFromInfos(badInfos)
+	require.NotNil(t, err)
+}
+
 func TestPoliciesSynthesizerAPIMultiplePaths(t *testing.T) {
 	dirPath1 := filepath.Join(getTestsDir(), "k8s_wordpress_example", "mysql-deployment.yaml")
 	dirPath2 := filepath.Join(getTestsDir(), "k8s_wordpress_example", "wordpress-deployment.yaml")
@@ -57,6 +103,11 @@ func TestPoliciesSynthesizerAPIMultiplePaths(t *testing.T) {
 	require.Nilf(t, err, "expected no fatal errors, but got %v", err)
 	require.Empty(t, synthesizer.Errors())
 	require.Len(t, netpols, 3)
+
+	conns, err := synthesizer.ConnectionsFromFolderPath(dirPath2)
+	require.Nilf(t, err, "expected no fatal errors, but got %v", err)
+	require.Empty(t, synthesizer.Errors())
+	require.Len(t, conns, 1)
 }
 
 func TestPoliciesSynthesizerAPIDnsPort(t *testing.T) {

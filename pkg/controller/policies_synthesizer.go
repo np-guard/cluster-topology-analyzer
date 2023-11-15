@@ -174,7 +174,10 @@ func (ps *PoliciesSynthesizer) extractConnectionsFromInfos(infos []*resource.Inf
 	for _, info := range infos {
 		err := resFinder.parseInfo(info)
 		if err != nil {
-			kind := info.Object.GetObjectKind().GroupVersionKind().Kind
+			kind := "<unknown>"
+			if info != nil && info.Object != nil {
+				kind = info.Object.GetObjectKind().GroupVersionKind().Kind
+			}
 			fileErrors = appendAndLogNewError(fileErrors, failedScanningResource(kind, info.Source, err), ps.logger)
 		}
 	}
