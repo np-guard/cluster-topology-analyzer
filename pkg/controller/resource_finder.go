@@ -12,8 +12,9 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/np-guard/netpol-analyzer/pkg/netpol/manifests/fsscanner"
 	"k8s.io/cli-runtime/pkg/resource"
+
+	"github.com/np-guard/netpol-analyzer/pkg/netpol/manifests/fsscanner"
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"

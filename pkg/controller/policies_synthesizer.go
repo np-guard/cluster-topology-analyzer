@@ -97,6 +97,8 @@ func (ps *PoliciesSynthesizer) Errors() []FileProcessingError {
 	return ps.errors
 }
 
+// PoliciesFromInfos returns a slice of Kubernetes NetworkPolicies that allow only the connections discovered
+// while processing K8s resources in the given slice of Info objects.
 func (ps *PoliciesSynthesizer) PoliciesFromInfos(infos []*resource.Info) ([]*networking.NetworkPolicy, error) {
 	resources, connections, errs := ps.extractConnectionsFromInfos(infos)
 	policies := []*networking.NetworkPolicy{}
@@ -135,6 +137,8 @@ func (ps *PoliciesSynthesizer) PoliciesFromFolderPaths(dirPaths []string) ([]*ne
 	return policies, nil
 }
 
+// ConnectionsFromInfos returns a slice of Connections, listing the connections discovered
+// while processing the K8s resources provided as a slice of Info objects.
 func (ps *PoliciesSynthesizer) ConnectionsFromInfos(infos []*resource.Info) ([]*common.Connections, error) {
 	_, connections, errs := ps.extractConnectionsFromInfos(infos)
 	ps.errors = errs
