@@ -16,11 +16,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/np-guard/netpol-analyzer/pkg/netpol/manifests/fsscanner"
 	"github.com/stretchr/testify/require"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/cli-runtime/pkg/resource"
+
+	"github.com/np-guard/netpol-analyzer/pkg/netpol/manifests/fsscanner"
 )
 
 func TestPoliciesSynthesizerAPI(t *testing.T) {
