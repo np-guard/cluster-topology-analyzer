@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"github.com/np-guard/netpol-analyzer/pkg/netpol/manifests/fsscanner"
 	"k8s.io/cli-runtime/pkg/resource"
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
@@ -114,7 +115,12 @@ func (rf *resourceFinder) searchForManifests(repoDir string) ([]string, []FilePr
 // parseK8sYaml takes a YAML file and attempts to parse each of its documents into
 // one of the relevant k8s resources
 func (rf *resourceFinder) parseK8sYaml(mfp, relMfp string) []FileProcessingError {
-	infos, fileProcessingErrors := infosFromFilePath(mfp, rf.logger)
+	infos, errs := fsscanner.GetResourceInfosFromDirPath([]string{mfp}, true, rf.stopOn1stErr)
+	fileProcessingErrors := []FileProcessingError{}
+	for _, err := range errs {
+		fileProcessingErrors = appendAndLogNewError(fileProcessingErrors, failedReadingFile(mfp, err), rf.logger)
+	}
+
 	for _, info := range infos {
 		err := rf.parseInfo(info)
 		if err != nil {
