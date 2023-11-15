@@ -39,4 +39,4 @@ jobs:
       - name: Check Docker image - help
         run: docker run ${{ steps.build_docker.outputs.digest }} -h
       - name: Check Docker image - scan
-        run: docker run ${{ steps.build_docker.outputs.digest }} -dirpath /
+        run: docker run --rm -v $PWD/tests/bookinfo:/bookinfo ${{ steps.build_docker.outputs.digest }} -dirpath /bookinfo
