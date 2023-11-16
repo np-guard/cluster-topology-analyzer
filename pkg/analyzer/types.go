@@ -11,16 +11,18 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-type CfgMap struct {
+type cfgMap struct {
 	FullName string
 	Data     map[string]string
 }
 
-type CfgMapKeyRef struct {
+type cfgMapKeyRef struct {
 	Name string
 	Key  string
 }
 
+// Resource is an abstraction of a k8s workload resource (e.g., pod, deployment).
+// It also stores additional information that is later being used in the analysis
 type Resource struct {
 	Resource struct {
 		Name               string            `json:"name,omitempty"`
@@ -34,17 +36,19 @@ type Resource struct {
 		} `json:"image"`
 		NetworkAddrs     []string
 		ConfigMapRefs    []string       `json:"-"`
-		ConfigMapKeyRefs []CfgMapKeyRef `json:"-"`
+		ConfigMapKeyRefs []cfgMapKeyRef `json:"-"`
 		UsedPorts        []SvcNetworkAttr
 	} `json:"resource,omitempty"`
 }
 
+// SvcNetworkAttr is used to store port information
 type SvcNetworkAttr struct {
 	Port       int                `json:"port,omitempty"`
 	TargetPort intstr.IntOrString `json:"target_port,omitempty"`
 	Protocol   corev1.Protocol    `json:"protocol,omitempty"`
 }
 
+// Service is used to store information about a K8s Service
 type Service struct {
 	Resource struct {
 		Name             string             `json:"name,omitempty"`
@@ -59,6 +63,7 @@ type Service struct {
 	} `json:"resource,omitempty"`
 }
 
+// Connections represents a connection from a source workload to a target workload using via a service.
 type Connections struct {
 	Source *Resource `json:"source,omitempty"`
 	Target *Resource `json:"target"`
@@ -67,4 +72,4 @@ type Connections struct {
 
 // A map from namespaces to a map of service names in each namespaces.
 // For each service we also hold whether they should be exposed externally (true) or just globally inside the cluster (false)
-type ServicesToExpose map[string]map[string]bool
+type servicesToExpose map[string]map[string]bool

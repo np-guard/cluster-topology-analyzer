@@ -72,14 +72,14 @@ func matchLabelSelectorToStrLabels(labels map[string]string) []string {
 }
 
 // k8sConfigmapFromInfo creates a CfgMap object from a k8s ConfigMap object
-func k8sConfigmapFromInfo(info *resource.Info) (*CfgMap, error) {
+func k8sConfigmapFromInfo(info *resource.Info) (*cfgMap, error) {
 	obj := parseResourceFromInfo[v1.ConfigMap](info)
 	if obj == nil {
 		return nil, fmt.Errorf("unable to parse configmap")
 	}
 
 	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
-	return &CfgMap{FullName: fullName, Data: obj.Data}, nil
+	return &cfgMap{FullName: fullName, Data: obj.Data}, nil
 }
 
 // k8sServiceFromInfo creates a Service object from a k8s Service object
@@ -106,16 +106,16 @@ func k8sServiceFromInfo(info *resource.Info) (*Service, error) {
 }
 
 // ocRouteFromInfo updates servicesToExpose based on an OpenShift Route object
-func ocRouteFromInfo(info *resource.Info, servicesToExpose ServicesToExpose) error {
+func ocRouteFromInfo(info *resource.Info, toExpose servicesToExpose) error {
 	routeObj := parseResourceFromInfo[ocroutev1.Route](info)
 	if routeObj == nil {
 		return fmt.Errorf("failed to parse Route resource")
 	}
 
-	exposedServicesInNamespace, ok := servicesToExpose[routeObj.Namespace]
+	exposedServicesInNamespace, ok := toExpose[routeObj.Namespace]
 	if !ok {
-		servicesToExpose[routeObj.Namespace] = map[string]bool{}
-		exposedServicesInNamespace = servicesToExpose[routeObj.Namespace]
+		toExpose[routeObj.Namespace] = map[string]bool{}
+		exposedServicesInNamespace = toExpose[routeObj.Namespace]
 	}
 	exposedServicesInNamespace[routeObj.Spec.To.Name] = false
 	for _, backend := range routeObj.Spec.AlternateBackends {
@@ -126,16 +126,16 @@ func ocRouteFromInfo(info *resource.Info, servicesToExpose ServicesToExpose) err
 }
 
 // k8sIngressFromInfo updates servicesToExpose based on an K8s Ingress object
-func k8sIngressFromInfo(info *resource.Info, servicesToExpose ServicesToExpose) error {
+func k8sIngressFromInfo(info *resource.Info, toExpose servicesToExpose) error {
 	ingressObj := parseResourceFromInfo[networkv1.Ingress](info)
 	if ingressObj == nil {
 		return fmt.Errorf("failed to parse Ingress resource")
 	}
 
-	exposedServicesInNamespace, ok := servicesToExpose[ingressObj.Namespace]
+	exposedServicesInNamespace, ok := toExpose[ingressObj.Namespace]
 	if !ok {
-		servicesToExpose[ingressObj.Namespace] = map[string]bool{}
-		exposedServicesInNamespace = servicesToExpose[ingressObj.Namespace]
+		toExpose[ingressObj.Namespace] = map[string]bool{}
+		exposedServicesInNamespace = toExpose[ingressObj.Namespace]
 	}
 
 	defaultBackend := ingressObj.Spec.DefaultBackend
@@ -174,7 +174,7 @@ func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourc
 			} else if e.ValueFrom != nil && e.ValueFrom.ConfigMapKeyRef != nil {
 				keyRef := e.ValueFrom.ConfigMapKeyRef
 				if keyRef.Name != "" && keyRef.Key != "" { // just store ref for now - check later if it's a network address
-					cfgMapKeyRef := CfgMapKeyRef{Name: keyRef.Name, Key: keyRef.Key}
+					cfgMapKeyRef := cfgMapKeyRef{Name: keyRef.Name, Key: keyRef.Key}
 					resourceCtx.Resource.ConfigMapKeyRefs = append(resourceCtx.Resource.ConfigMapKeyRefs, cfgMapKeyRef)
 				}
 			}

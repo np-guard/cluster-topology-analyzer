@@ -49,14 +49,14 @@ type resourceFinder struct {
 
 	workloads        []*Resource      // accumulates all workload resources found
 	services         []*Service       // accumulates all service resources found
-	configmaps       []*CfgMap        // accumulates all ConfigMap resources found
-	servicesToExpose ServicesToExpose // stores which services should be later exposed
+	configmaps       []*cfgMap        // accumulates all ConfigMap resources found
+	servicesToExpose servicesToExpose // stores which services should be later exposed
 }
 
 func newResourceFinder(logger Logger, failFast bool, walkFn WalkFunction) *resourceFinder {
 	res := resourceFinder{logger: logger, stopOn1stErr: failFast, walkFn: walkFn}
 
-	res.servicesToExpose = ServicesToExpose{}
+	res.servicesToExpose = servicesToExpose{}
 
 	return &res
 }
@@ -204,7 +204,7 @@ func pathWithoutBaseDir(path, baseDir string) string {
 // inlineConfigMapRefsAsEnvs appends to the Envs of each given resource the ConfigMap values it is referring to
 // It should only be called after ALL calls to getRelevantK8sResources successfully returned
 func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
-	cfgMapsByName := map[string]*CfgMap{}
+	cfgMapsByName := map[string]*cfgMap{}
 	for _, cm := range rf.configmaps {
 		cfgMapsByName[cm.FullName] = cm
 	}

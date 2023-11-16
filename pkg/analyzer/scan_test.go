@@ -101,7 +101,7 @@ func TestScanningConfigMap(t *testing.T) {
 func TestScanningIngress(t *testing.T) {
 	resourceInfo, err := loadResourceAsInfo([]string{"bookinfo", "bookinfo-ingress.yaml"})
 	require.Nil(t, err)
-	toExpose := ServicesToExpose{}
+	toExpose := servicesToExpose{}
 	err = k8sIngressFromInfo(resourceInfo, toExpose)
 	require.Nil(t, err)
 	require.Len(t, toExpose, 1)
@@ -110,7 +110,7 @@ func TestScanningIngress(t *testing.T) {
 func TestScanningRoute(t *testing.T) {
 	resourceInfo, err := loadResourceAsInfo([]string{"acs-security-demos", "frontend", "webapp", "route.yaml"})
 	require.Nil(t, err)
-	toExpose := ServicesToExpose{}
+	toExpose := servicesToExpose{}
 	err = ocRouteFromInfo(resourceInfo, toExpose)
 	require.Nil(t, err)
 	require.Len(t, toExpose, 1)
