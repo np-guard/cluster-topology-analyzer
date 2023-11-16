@@ -16,8 +16,6 @@ import (
 
 	networking "k8s.io/api/networking/v1"
 	"k8s.io/cli-runtime/pkg/resource"
-
-	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
 const (
@@ -139,7 +137,7 @@ func (ps *PoliciesSynthesizer) PoliciesFromFolderPaths(dirPaths []string) ([]*ne
 
 // ConnectionsFromInfos returns a slice of Connections, listing the connections discovered
 // while processing the K8s resources provided as a slice of Info objects.
-func (ps *PoliciesSynthesizer) ConnectionsFromInfos(infos []*resource.Info) ([]*common.Connections, error) {
+func (ps *PoliciesSynthesizer) ConnectionsFromInfos(infos []*resource.Info) ([]*Connections, error) {
 	_, connections, errs := ps.extractConnectionsFromInfos(infos)
 	ps.errors = errs
 	if err := hasFatalError(errs); err != nil {
@@ -151,13 +149,13 @@ func (ps *PoliciesSynthesizer) ConnectionsFromInfos(infos []*resource.Info) ([]*
 
 // ConnectionsFromFolderPath returns a slice of Connections, listing the connections discovered
 // while processing K8s resources under the provided directory or one of its subdirectories (recursively).
-func (ps *PoliciesSynthesizer) ConnectionsFromFolderPath(dirPath string) ([]*common.Connections, error) {
+func (ps *PoliciesSynthesizer) ConnectionsFromFolderPath(dirPath string) ([]*Connections, error) {
 	return ps.ConnectionsFromFolderPaths([]string{dirPath})
 }
 
 // ConnectionsFromFolderPaths returns a slice of Connections, listing the connections discovered
 // while processing K8s resources under the provided directories or one of their subdirectories (recursively).
-func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]*common.Connections, error) {
+func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]*Connections, error) {
 	_, connections, errs := ps.extractConnectionsFromFolderPaths(dirPaths)
 	ps.errors = errs
 	if err := hasFatalError(errs); err != nil {
@@ -168,7 +166,7 @@ func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]
 }
 
 func (ps *PoliciesSynthesizer) extractConnectionsFromInfos(infos []*resource.Info) (
-	[]*common.Resource, []*common.Connections, []FileProcessingError) {
+	[]*Resource, []*Connections, []FileProcessingError) {
 	resFinder := newResourceFinder(ps.logger, ps.stopOnError, ps.walkFn)
 	fileErrors := []FileProcessingError{}
 	for _, info := range infos {
@@ -189,7 +187,7 @@ func (ps *PoliciesSynthesizer) extractConnectionsFromInfos(infos []*resource.Inf
 
 // Scans the given directory for YAMLs with k8s resources and extracts required connections between workloads
 func (ps *PoliciesSynthesizer) extractConnectionsFromFolderPaths(dirPaths []string) (
-	[]*common.Resource, []*common.Connections, []FileProcessingError) {
+	[]*Resource, []*Connections, []FileProcessingError) {
 	resFinder := newResourceFinder(ps.logger, ps.stopOnError, ps.walkFn)
 	fileErrors := []FileProcessingError{}
 	for _, dirPath := range dirPaths {
@@ -205,7 +203,7 @@ func (ps *PoliciesSynthesizer) extractConnectionsFromFolderPaths(dirPaths []stri
 }
 
 func (ps *PoliciesSynthesizer) extractConnections(resFinder *resourceFinder) (
-	[]*common.Resource, []*common.Connections, []FileProcessingError) {
+	[]*Resource, []*Connections, []FileProcessingError) {
 	if len(resFinder.workloads) == 0 {
 		return nil, nil, appendAndLogNewError(nil, noK8sResourcesFound(), ps.logger)
 	}

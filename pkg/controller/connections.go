@@ -8,14 +8,12 @@ package controller
 
 import (
 	"fmt"
-
-	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
 // This function is at the core of the topology analysis
 // For each resource, it finds other resources that may use it and compiles a list of connections holding these dependencies
-func discoverConnections(resources []*common.Resource, links []*common.Service, logger Logger) []*common.Connections {
-	connections := []*common.Connections{}
+func discoverConnections(resources []*Resource, links []*Service, logger Logger) []*Connections {
+	connections := []*Connections{}
 	for _, destRes := range resources {
 		deploymentServices := findServices(destRes, links)
 		logger.Debugf("services matched to %v: %v", destRes.Resource.Name, deploymentServices)
@@ -24,10 +22,10 @@ func discoverConnections(resources []*common.Resource, links []*common.Service, 
 			if len(srcRes) > 0 {
 				for _, r := range srcRes {
 					logger.Debugf("source: %s target: %s link: %s", svc.Resource.Name, r.Resource.Name, svc.Resource.Name)
-					connections = append(connections, &common.Connections{Source: r, Target: destRes, Link: svc})
+					connections = append(connections, &Connections{Source: r, Target: destRes, Link: svc})
 				}
 			} else {
-				connections = append(connections, &common.Connections{Target: destRes, Link: svc}) // indicates a source-less service
+				connections = append(connections, &Connections{Target: destRes, Link: svc}) // indicates a source-less service
 			}
 		}
 	}
@@ -51,8 +49,8 @@ func areSelectorsContained(selectors1 map[string]string, selectors2 []string) bo
 }
 
 // findServices returns a list of services that may be in front of a given workload resource
-func findServices(resource *common.Resource, links []*common.Service) []*common.Service {
-	var matchedSvc []*common.Service
+func findServices(resource *Resource, links []*Service) []*Service {
+	var matchedSvc []*Service
 	for _, link := range links {
 		if link.Resource.Namespace != resource.Resource.Namespace {
 			continue
@@ -68,8 +66,8 @@ func findServices(resource *common.Resource, links []*common.Service) []*common.
 }
 
 // findSource returns a list of resources that are likely trying to connect to the given service
-func findSource(resources []*common.Resource, service *common.Service) []*common.Resource {
-	tRes := []*common.Resource{}
+func findSource(resources []*Resource, service *Service) []*Resource {
+	tRes := []*Resource{}
 	for _, resource := range resources {
 		serviceAddresses := getPossibleServiceAddresses(service, resource)
 		foundSrc := *resource // We copy the resource so we can specify the ports used by the source found
@@ -90,7 +88,7 @@ func findSource(resources []*common.Resource, service *common.Service) []*common
 	return tRes
 }
 
-func getPossibleServiceAddresses(service *common.Service, resource *common.Resource) []string {
+func getPossibleServiceAddresses(service *Service, resource *Resource) []string {
 	svcAddresses := []string{}
 	if service.Resource.Namespace != "" {
 		serviceDotNamespace := fmt.Sprintf("%s.%s", service.Resource.Name, service.Resource.Namespace)
@@ -103,11 +101,11 @@ func getPossibleServiceAddresses(service *common.Service, resource *common.Resou
 	return svcAddresses
 }
 
-func envValueMatchesService(envVal string, service *common.Service, serviceAddresses []string) (bool, common.SvcNetworkAttr) {
+func envValueMatchesService(envVal string, service *Service, serviceAddresses []string) (bool, SvcNetworkAttr) {
 	// first look for matches without specified port
 	for _, svcAddress := range serviceAddresses {
 		if svcAddress == envVal {
-			return true, common.SvcNetworkAttr{} // this means no specified port
+			return true, SvcNetworkAttr{} // this means no specified port
 		}
 	}
 
@@ -120,5 +118,5 @@ func envValueMatchesService(envVal string, service *common.Service, serviceAddre
 			}
 		}
 	}
-	return false, common.SvcNetworkAttr{}
+	return false, SvcNetworkAttr{}
 }

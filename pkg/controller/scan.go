@@ -4,7 +4,7 @@ Copyright 2020- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package analyzer
+package controller
 
 import (
 	"fmt"
@@ -20,14 +20,12 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/cli-runtime/pkg/resource"
-
-	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
-// ScanK8sWorkloadObjectFromInfo creates a common.Resource object from an Info object
-func ScanK8sWorkloadObjectFromInfo(info *resource.Info) (*common.Resource, error) {
+// ScanK8sWorkloadObjectFromInfo creates a Resource object from an Info object
+func ScanK8sWorkloadObjectFromInfo(info *resource.Info) (*Resource, error) {
 	var podSpecV1 *v1.PodTemplateSpec
-	var resourceCtx common.Resource
+	var resourceCtx Resource
 	var metaObj metaV1.Object
 	resourceCtx.Resource.Kind = info.Object.GetObjectKind().GroupVersionKind().Kind
 	switch resourceCtx.Resource.Kind { // TODO: handle Pod
@@ -71,24 +69,24 @@ func matchLabelSelectorToStrLabels(labels map[string]string) []string {
 	return res
 }
 
-// ScanK8sConfigmapInfo creates a common.CfgMap object from a k8s ConfigMap object
-func ScanK8sConfigmapInfo(info *resource.Info) (*common.CfgMap, error) {
+// ScanK8sConfigmapInfo creates a CfgMap object from a k8s ConfigMap object
+func ScanK8sConfigmapInfo(info *resource.Info) (*CfgMap, error) {
 	obj := parseResourceFromInfo[v1.ConfigMap](info)
 	if obj == nil {
 		return nil, fmt.Errorf("unable to parse configmap")
 	}
 
 	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
-	return &common.CfgMap{FullName: fullName, Data: obj.Data}, nil
+	return &CfgMap{FullName: fullName, Data: obj.Data}, nil
 }
 
-// ScanK8sServiceInfo creates a common.Service object from a k8s Service object
-func ScanK8sServiceInfo(info *resource.Info) (*common.Service, error) {
+// ScanK8sServiceInfo creates a Service object from a k8s Service object
+func ScanK8sServiceInfo(info *resource.Info) (*Service, error) {
 	svcObj := parseResourceFromInfo[v1.Service](info)
 	if svcObj == nil {
 		return nil, fmt.Errorf("failed to parse Service resource")
 	}
-	var serviceCtx common.Service
+	var serviceCtx Service
 	serviceCtx.Resource.Name = svcObj.GetName()
 	serviceCtx.Resource.Namespace = svcObj.Namespace
 	serviceCtx.Resource.Kind = svcObj.Kind
@@ -98,7 +96,7 @@ func ScanK8sServiceInfo(info *resource.Info) (*common.Service, error) {
 	serviceCtx.Resource.ExposeToCluster = false
 
 	for _, p := range svcObj.Spec.Ports {
-		n := common.SvcNetworkAttr{Port: int(p.Port), TargetPort: p.TargetPort, Protocol: p.Protocol}
+		n := SvcNetworkAttr{Port: int(p.Port), TargetPort: p.TargetPort, Protocol: p.Protocol}
 		serviceCtx.Resource.Network = append(serviceCtx.Resource.Network, n)
 	}
 
@@ -106,7 +104,7 @@ func ScanK8sServiceInfo(info *resource.Info) (*common.Service, error) {
 }
 
 // ScanOCRouteObjectFromInfo updates servicesToExpose based on an OpenShift Route object
-func ScanOCRouteObjectFromInfo(info *resource.Info, servicesToExpose common.ServicesToExpose) error {
+func ScanOCRouteObjectFromInfo(info *resource.Info, servicesToExpose ServicesToExpose) error {
 	routeObj := parseResourceFromInfo[ocroutev1.Route](info)
 	if routeObj == nil {
 		return fmt.Errorf("failed to parse Route resource")
@@ -126,7 +124,7 @@ func ScanOCRouteObjectFromInfo(info *resource.Info, servicesToExpose common.Serv
 }
 
 // ScanIngressObjectFromInfo updates servicesToExpose based on an K8s Ingress object
-func ScanIngressObjectFromInfo(info *resource.Info, servicesToExpose common.ServicesToExpose) error {
+func ScanIngressObjectFromInfo(info *resource.Info, servicesToExpose ServicesToExpose) error {
 	ingressObj := parseResourceFromInfo[networkv1.Ingress](info)
 	if ingressObj == nil {
 		return fmt.Errorf("failed to parse Ingress resource")
@@ -158,7 +156,7 @@ func ScanIngressObjectFromInfo(info *resource.Info, servicesToExpose common.Serv
 	return nil
 }
 
-func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourceCtx *common.Resource) {
+func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourceCtx *Resource) {
 	resourceCtx.Resource.Name = obj.GetName()
 	resourceCtx.Resource.Namespace = obj.GetNamespace()
 	resourceCtx.Resource.Labels = podSpec.Labels
@@ -174,7 +172,7 @@ func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourc
 			} else if e.ValueFrom != nil && e.ValueFrom.ConfigMapKeyRef != nil {
 				keyRef := e.ValueFrom.ConfigMapKeyRef
 				if keyRef.Name != "" && keyRef.Key != "" { // just store ref for now - check later if it's a network address
-					cfgMapKeyRef := common.CfgMapKeyRef{Name: keyRef.Name, Key: keyRef.Key}
+					cfgMapKeyRef := CfgMapKeyRef{Name: keyRef.Name, Key: keyRef.Key}
 					resourceCtx.Resource.ConfigMapKeyRefs = append(resourceCtx.Resource.ConfigMapKeyRefs, cfgMapKeyRef)
 				}
 			}

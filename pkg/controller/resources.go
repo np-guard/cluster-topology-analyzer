@@ -4,7 +4,7 @@ Copyright 2020- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package analyzer
+package controller
 
 import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"

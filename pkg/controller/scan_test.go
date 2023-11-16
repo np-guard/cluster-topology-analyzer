@@ -1,4 +1,4 @@
-package analyzer
+package controller
 
 import (
 	"os"
@@ -10,8 +10,6 @@ import (
 	"k8s.io/cli-runtime/pkg/resource"
 
 	"github.com/np-guard/netpol-analyzer/pkg/netpol/manifests/fsscanner"
-
-	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
 func TestNetworkAddressValue(t *testing.T) {
@@ -103,7 +101,7 @@ func TestScanningConfigMap(t *testing.T) {
 func TestScanningIngress(t *testing.T) {
 	resourceInfo, err := loadResourceAsInfo([]string{"bookinfo", "bookinfo-ingress.yaml"})
 	require.Nil(t, err)
-	toExpose := common.ServicesToExpose{}
+	toExpose := ServicesToExpose{}
 	err = ScanIngressObjectFromInfo(resourceInfo, toExpose)
 	require.Nil(t, err)
 	require.Len(t, toExpose, 1)
@@ -112,7 +110,7 @@ func TestScanningIngress(t *testing.T) {
 func TestScanningRoute(t *testing.T) {
 	resourceInfo, err := loadResourceAsInfo([]string{"acs-security-demos", "frontend", "webapp", "route.yaml"})
 	require.Nil(t, err)
-	toExpose := common.ServicesToExpose{}
+	toExpose := ServicesToExpose{}
 	err = ScanOCRouteObjectFromInfo(resourceInfo, toExpose)
 	require.Nil(t, err)
 	require.Len(t, toExpose, 1)
