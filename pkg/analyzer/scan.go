@@ -24,8 +24,8 @@ import (
 	"k8s.io/cli-runtime/pkg/resource"
 )
 
-// ScanK8sWorkloadObjectFromInfo creates a Resource object from an Info object
-func ScanK8sWorkloadObjectFromInfo(info *resource.Info) (*Resource, error) {
+// k8sWorkloadObjectFromInfo creates a Resource object from an Info object
+func k8sWorkloadObjectFromInfo(info *resource.Info) (*Resource, error) {
 	var podSpecV1 *v1.PodTemplateSpec
 	var resourceCtx Resource
 	var metaObj metaV1.Object
@@ -71,8 +71,8 @@ func matchLabelSelectorToStrLabels(labels map[string]string) []string {
 	return res
 }
 
-// ScanK8sConfigmapInfo creates a CfgMap object from a k8s ConfigMap object
-func ScanK8sConfigmapInfo(info *resource.Info) (*CfgMap, error) {
+// k8sConfigmapFromInfo creates a CfgMap object from a k8s ConfigMap object
+func k8sConfigmapFromInfo(info *resource.Info) (*CfgMap, error) {
 	obj := parseResourceFromInfo[v1.ConfigMap](info)
 	if obj == nil {
 		return nil, fmt.Errorf("unable to parse configmap")
@@ -82,8 +82,8 @@ func ScanK8sConfigmapInfo(info *resource.Info) (*CfgMap, error) {
 	return &CfgMap{FullName: fullName, Data: obj.Data}, nil
 }
 
-// ScanK8sServiceInfo creates a Service object from a k8s Service object
-func ScanK8sServiceInfo(info *resource.Info) (*Service, error) {
+// k8sServiceFromInfo creates a Service object from a k8s Service object
+func k8sServiceFromInfo(info *resource.Info) (*Service, error) {
 	svcObj := parseResourceFromInfo[v1.Service](info)
 	if svcObj == nil {
 		return nil, fmt.Errorf("failed to parse Service resource")
@@ -105,8 +105,8 @@ func ScanK8sServiceInfo(info *resource.Info) (*Service, error) {
 	return &serviceCtx, nil
 }
 
-// ScanOCRouteObjectFromInfo updates servicesToExpose based on an OpenShift Route object
-func ScanOCRouteObjectFromInfo(info *resource.Info, servicesToExpose ServicesToExpose) error {
+// ocRouteFromInfo updates servicesToExpose based on an OpenShift Route object
+func ocRouteFromInfo(info *resource.Info, servicesToExpose ServicesToExpose) error {
 	routeObj := parseResourceFromInfo[ocroutev1.Route](info)
 	if routeObj == nil {
 		return fmt.Errorf("failed to parse Route resource")
@@ -125,8 +125,8 @@ func ScanOCRouteObjectFromInfo(info *resource.Info, servicesToExpose ServicesToE
 	return nil
 }
 
-// ScanIngressObjectFromInfo updates servicesToExpose based on an K8s Ingress object
-func ScanIngressObjectFromInfo(info *resource.Info, servicesToExpose ServicesToExpose) error {
+// k8sIngressFromInfo updates servicesToExpose based on an K8s Ingress object
+func k8sIngressFromInfo(info *resource.Info, servicesToExpose ServicesToExpose) error {
 	ingressObj := parseResourceFromInfo[networkv1.Ingress](info)
 	if ingressObj == nil {
 		return fmt.Errorf("failed to parse Ingress resource")
@@ -168,7 +168,7 @@ func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourc
 		resourceCtx.Resource.Image.ID = container.Image
 		for _, e := range container.Env {
 			if e.Value != "" {
-				if netAddr, ok := NetworkAddressValue(e.Value); ok {
+				if netAddr, ok := networkAddressFromStr(e.Value); ok {
 					resourceCtx.Resource.NetworkAddrs = append(resourceCtx.Resource.NetworkAddrs, netAddr)
 				}
 			} else if e.ValueFrom != nil && e.ValueFrom.ConfigMapKeyRef != nil {
@@ -197,19 +197,19 @@ func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourc
 
 func appendNetworkAddresses(networkAddresses, values []string) []string {
 	for _, val := range values {
-		if netAddr, ok := NetworkAddressValue(val); ok {
+		if netAddr, ok := networkAddressFromStr(val); ok {
 			networkAddresses = append(networkAddresses, netAddr)
 		}
 	}
 	return networkAddresses
 }
 
-// NetworkAddressValue tries to extract a network address from the given string.
+// networkAddressFromStr tries to extract a network address from the given string.
 // This is a critical step in identifying which service talks to which,
 // because it decides if the given string is an evidence for a potentially required connectivity.
 // If it succeeds, a "cleaned" network address is returned as a string, together with the value true.
 // Otherwise (there does not seem to be a network address in "value"), it returns "" with the value false.
-func NetworkAddressValue(value string) (string, bool) {
+func networkAddressFromStr(value string) (string, bool) {
 	host, err := getHostFromURL(value)
 	if err != nil {
 		return "", false // value cannot be interpreted as a URL

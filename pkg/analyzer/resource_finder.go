@@ -154,30 +154,30 @@ func (rf *resourceFinder) parseInfo(info *resource.Info) error {
 
 	switch kind {
 	case service:
-		res, err := ScanK8sServiceInfo(info)
+		res, err := k8sServiceFromInfo(info)
 		if err != nil {
 			return err
 		}
 		res.Resource.FilePath = info.Source
 		rf.services = append(rf.services, res)
 	case route:
-		err := ScanOCRouteObjectFromInfo(info, rf.servicesToExpose)
+		err := ocRouteFromInfo(info, rf.servicesToExpose)
 		if err != nil {
 			return err
 		}
 	case ingress:
-		err := ScanIngressObjectFromInfo(info, rf.servicesToExpose)
+		err := k8sIngressFromInfo(info, rf.servicesToExpose)
 		if err != nil {
 			return err
 		}
 	case configmap:
-		res, err := ScanK8sConfigmapInfo(info)
+		res, err := k8sConfigmapFromInfo(info)
 		if err != nil {
 			return err
 		}
 		rf.configmaps = append(rf.configmaps, res)
 	default:
-		res, err := ScanK8sWorkloadObjectFromInfo(info)
+		res, err := k8sWorkloadObjectFromInfo(info)
 		if err != nil {
 			return err
 		}
@@ -216,7 +216,7 @@ func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
 			configmapFullName := res.Resource.Namespace + "/" + cfgMapRef
 			if cfgMap, ok := cfgMapsByName[configmapFullName]; ok {
 				for _, v := range cfgMap.Data {
-					if netAddr, ok := NetworkAddressValue(v); ok {
+					if netAddr, ok := networkAddressFromStr(v); ok {
 						res.Resource.NetworkAddrs = append(res.Resource.NetworkAddrs, netAddr)
 					}
 				}
@@ -230,7 +230,7 @@ func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
 			configmapFullName := res.Resource.Namespace + "/" + cfgMapKeyRef.Name
 			if cfgMap, ok := cfgMapsByName[configmapFullName]; ok {
 				if val, ok := cfgMap.Data[cfgMapKeyRef.Key]; ok {
-					if netAddr, ok := NetworkAddressValue(val); ok {
+					if netAddr, ok := networkAddressFromStr(val); ok {
 						res.Resource.NetworkAddrs = append(res.Resource.NetworkAddrs, netAddr)
 					}
 				} else {
