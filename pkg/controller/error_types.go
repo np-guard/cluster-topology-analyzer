@@ -41,14 +41,6 @@ type FailedScanningResource struct {
 	origErr      error
 }
 
-type NotK8sResourceError struct {
-	origErr error
-}
-
-type MalformedYamlDocError struct {
-	origErr error
-}
-
 type FailedReadingFileError struct {
 	origErr error
 }
@@ -78,22 +70,6 @@ func (err *FailedScanningResource) Error() string {
 }
 
 func (err *FailedScanningResource) Unwrap() error {
-	return err.origErr
-}
-
-func (err *NotK8sResourceError) Error() string {
-	return fmt.Sprintf("Yaml document is not a K8s resource: %v", err.origErr)
-}
-
-func (err *NotK8sResourceError) Unwrap() error {
-	return err.origErr
-}
-
-func (err *MalformedYamlDocError) Error() string {
-	return fmt.Sprintf("YAML document is malformed: %v", err.origErr)
-}
-
-func (err *MalformedYamlDocError) Unwrap() error {
 	return err.origErr
 }
 
@@ -170,7 +146,7 @@ func noYamlsFound() *FileProcessingError {
 }
 
 func noK8sResourcesFound() *FileProcessingError {
-	return &FileProcessingError{&NoK8sResourcesFoundError{}, "", 0, -1, false, false}
+	return &FileProcessingError{&NoK8sResourcesFoundError{}, "", 0, -1, true, true}
 }
 
 func configMapNotFound(cfgMapName, resourceName string) *FileProcessingError {
@@ -183,14 +159,6 @@ func configMapKeyNotFound(cfgMapName, cfgMapKey, resourceName string) *FileProce
 
 func failedScanningResource(resourceType, filePath string, err error) *FileProcessingError {
 	return &FileProcessingError{&FailedScanningResource{resourceType, err}, filePath, 0, -1, false, false}
-}
-
-func notK8sResource(filePath string, docID int, err error) *FileProcessingError {
-	return &FileProcessingError{&NotK8sResourceError{err}, filePath, 0, docID, false, false}
-}
-
-func malformedYamlDoc(filePath string, lineNum, docID int, err error) *FileProcessingError {
-	return &FileProcessingError{&MalformedYamlDocError{err}, filePath, lineNum, docID, false, true}
 }
 
 func failedReadingFile(filePath string, err error) *FileProcessingError {

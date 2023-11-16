@@ -15,15 +15,16 @@ import (
 	"path/filepath"
 
 	networking "k8s.io/api/networking/v1"
+	"k8s.io/cli-runtime/pkg/resource"
 
 	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
 const (
-	DefaultDNSPort = 53
+	DefaultDNSPort = 53 // DefaultDNSPort is the default DNS port to use in the generated policies
 )
 
-// Walk function is a function for recursively scanning a directory, in the spirit of Go's native filepath.WalkDir()
+// WalkFunction is a function for recursively scanning a directory, in the spirit of Go's native filepath.WalkDir()
 // See https://pkg.go.dev/path/filepath#WalkDir for full description on how such a function should work
 type WalkFunction func(root string, fn fs.WalkDirFunc) error
 
@@ -68,6 +69,7 @@ func WithStopOnError() PoliciesSynthesizerOption {
 	}
 }
 
+// WithDNSPort is a functional option to set the DNS port in the generated policies to a non-default value
 func WithDNSPort(dnsPort int) PoliciesSynthesizerOption {
 	return func(p *PoliciesSynthesizer) {
 		p.dnsPort = dnsPort
@@ -95,16 +97,10 @@ func (ps *PoliciesSynthesizer) Errors() []FileProcessingError {
 	return ps.errors
 }
 
-// PoliciesFromFolderPath returns a slice of Kubernetes NetworkPolicies that allow only the connections discovered
-// while processing K8s resources under the provided directory or one of its subdirectories (recursively).
-func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networking.NetworkPolicy, error) {
-	return ps.PoliciesFromFolderPaths([]string{dirPath})
-}
-
-// PoliciesFromFolderPath returns a slice of Kubernetes NetworkPolicies that allow only the connections discovered
-// while processing K8s resources under the provided directories or one of their subdirectories (recursively).
-func (ps *PoliciesSynthesizer) PoliciesFromFolderPaths(dirPaths []string) ([]*networking.NetworkPolicy, error) {
-	resources, connections, errs := ps.extractConnections(dirPaths)
+// PoliciesFromInfos returns a slice of Kubernetes NetworkPolicies that allow only the connections discovered
+// while processing K8s resources in the given slice of Info objects.
+func (ps *PoliciesSynthesizer) PoliciesFromInfos(infos []*resource.Info) ([]*networking.NetworkPolicy, error) {
+	resources, connections, errs := ps.extractConnectionsFromInfos(infos)
 	policies := []*networking.NetworkPolicy{}
 	if !stopProcessing(ps.stopOnError, errs) {
 		policies = ps.synthNetpols(resources, connections)
@@ -118,16 +114,33 @@ func (ps *PoliciesSynthesizer) PoliciesFromFolderPaths(dirPaths []string) ([]*ne
 	return policies, nil
 }
 
-// ConnectionsFromFolderPath returns a slice of Connections, listing the connections discovered
+// PoliciesFromFolderPath returns a slice of Kubernetes NetworkPolicies that allow only the connections discovered
 // while processing K8s resources under the provided directory or one of its subdirectories (recursively).
-func (ps *PoliciesSynthesizer) ConnectionsFromFolderPath(dirPath string) ([]*common.Connections, error) {
-	return ps.ConnectionsFromFolderPaths([]string{dirPath})
+func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networking.NetworkPolicy, error) {
+	return ps.PoliciesFromFolderPaths([]string{dirPath})
 }
 
-// ConnectionsFromFolderPath returns a slice of Connections, listing the connections discovered
+// PoliciesFromFolderPaths returns a slice of Kubernetes NetworkPolicies that allow only the connections discovered
 // while processing K8s resources under the provided directories or one of their subdirectories (recursively).
-func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]*common.Connections, error) {
-	_, connections, errs := ps.extractConnections(dirPaths)
+func (ps *PoliciesSynthesizer) PoliciesFromFolderPaths(dirPaths []string) ([]*networking.NetworkPolicy, error) {
+	resources, connections, errs := ps.extractConnectionsFromFolderPaths(dirPaths)
+	policies := []*networking.NetworkPolicy{}
+	if !stopProcessing(ps.stopOnError, errs) {
+		policies = ps.synthNetpols(resources, connections)
+	}
+
+	ps.errors = errs
+	if err := hasFatalError(errs); err != nil {
+		return nil, err
+	}
+
+	return policies, nil
+}
+
+// ConnectionsFromInfos returns a slice of Connections, listing the connections discovered
+// while processing the K8s resources provided as a slice of Info objects.
+func (ps *PoliciesSynthesizer) ConnectionsFromInfos(infos []*resource.Info) ([]*common.Connections, error) {
+	_, connections, errs := ps.extractConnectionsFromInfos(infos)
 	ps.errors = errs
 	if err := hasFatalError(errs); err != nil {
 		return nil, err
@@ -136,9 +149,47 @@ func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]
 	return connections, nil
 }
 
+// ConnectionsFromFolderPath returns a slice of Connections, listing the connections discovered
+// while processing K8s resources under the provided directory or one of its subdirectories (recursively).
+func (ps *PoliciesSynthesizer) ConnectionsFromFolderPath(dirPath string) ([]*common.Connections, error) {
+	return ps.ConnectionsFromFolderPaths([]string{dirPath})
+}
+
+// ConnectionsFromFolderPaths returns a slice of Connections, listing the connections discovered
+// while processing K8s resources under the provided directories or one of their subdirectories (recursively).
+func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]*common.Connections, error) {
+	_, connections, errs := ps.extractConnectionsFromFolderPaths(dirPaths)
+	ps.errors = errs
+	if err := hasFatalError(errs); err != nil {
+		return nil, err
+	}
+
+	return connections, nil
+}
+
+func (ps *PoliciesSynthesizer) extractConnectionsFromInfos(infos []*resource.Info) (
+	[]*common.Resource, []*common.Connections, []FileProcessingError) {
+	resFinder := newResourceFinder(ps.logger, ps.stopOnError, ps.walkFn)
+	fileErrors := []FileProcessingError{}
+	for _, info := range infos {
+		err := resFinder.parseInfo(info)
+		if err != nil {
+			kind := "<unknown>"
+			if info != nil && info.Object != nil {
+				kind = info.Object.GetObjectKind().GroupVersionKind().Kind
+			}
+			fileErrors = appendAndLogNewError(fileErrors, failedScanningResource(kind, info.Source, err), ps.logger)
+		}
+	}
+
+	wls, conns, errs := ps.extractConnections(resFinder)
+	fileErrors = append(fileErrors, errs...)
+	return wls, conns, fileErrors
+}
+
 // Scans the given directory for YAMLs with k8s resources and extracts required connections between workloads
-func (ps *PoliciesSynthesizer) extractConnections(dirPaths []string) ([]*common.Resource, []*common.Connections, []FileProcessingError) {
-	// 1. Get all relevant resources from the repo
+func (ps *PoliciesSynthesizer) extractConnectionsFromFolderPaths(dirPaths []string) (
+	[]*common.Resource, []*common.Connections, []FileProcessingError) {
 	resFinder := newResourceFinder(ps.logger, ps.stopOnError, ps.walkFn)
 	fileErrors := []FileProcessingError{}
 	for _, dirPath := range dirPaths {
@@ -148,20 +199,26 @@ func (ps *PoliciesSynthesizer) extractConnections(dirPaths []string) ([]*common.
 			return nil, nil, fileErrors
 		}
 	}
+	wls, conns, errs := ps.extractConnections(resFinder)
+	fileErrors = append(fileErrors, errs...)
+	return wls, conns, fileErrors
+}
+
+func (ps *PoliciesSynthesizer) extractConnections(resFinder *resourceFinder) (
+	[]*common.Resource, []*common.Connections, []FileProcessingError) {
 	if len(resFinder.workloads) == 0 {
-		fileErrors = appendAndLogNewError(fileErrors, noK8sResourcesFound(), ps.logger)
-		return nil, nil, fileErrors
+		return nil, nil, appendAndLogNewError(nil, noK8sResourcesFound(), ps.logger)
 	}
 
-	// 2. Inline configmaps values as workload envs
-	errs := resFinder.inlineConfigMapRefsAsEnvs()
-	fileErrors = append(fileErrors, errs...)
+	// Inline configmaps values as workload envs
+	fileErrors := resFinder.inlineConfigMapRefsAsEnvs()
 	if stopProcessing(ps.stopOnError, fileErrors) {
 		return nil, nil, fileErrors
 	}
+
 	resFinder.exposeServices()
 
-	// 3. Discover all connections between resources
+	// Discover all connections between resources
 	connections := discoverConnections(resFinder.workloads, resFinder.services, ps.logger)
 	return resFinder.workloads, connections, fileErrors
 }

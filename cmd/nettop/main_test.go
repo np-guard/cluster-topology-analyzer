@@ -200,6 +200,15 @@ var (
 			true,
 			nil,
 		},
+		{
+			"badYamls",
+			[][]string{{"bad_yamls"}},
+			JSONFormat,
+			true,
+			[]string{"-v"},
+			false,
+			nil,
+		},
 	}
 
 	currentDir, _ = os.Getwd()
@@ -211,7 +220,9 @@ func (td *TestDetails) runTest(t *testing.T) {
 	outFileName, err := getTempOutputFile()
 	require.Nil(t, err)
 
-	err = _main(getTestArgs(td, outFileName))
+	testArgs := getTestArgs(td, outFileName)
+	t.Logf("Test args: %v", testArgs)
+	err = _main(testArgs)
 
 	if td.expectError {
 		require.NotNil(t, err)
@@ -296,8 +307,8 @@ func compareFiles(expectedFile, actualFile string) (bool, error) {
 	for i := 0; i < len(expectedLines); i++ {
 		lineExpected := expectedLines[i]
 		lineActual := actualLines[i]
-		if lineExpected != lineActual && !strings.Contains(lineExpected, "\"filepath\"") {
-			fmt.Printf("Gap in line %d: expected(%s): %s, actual(%s): %s", i, expectedFile, lineExpected, actualFile, lineActual)
+		if lineExpected != lineActual && !strings.Contains(lineExpected, "filepath") {
+			fmt.Printf("Gap in line %d:\n  expected(%s): %s\n  actual(%s): %s\n", i, expectedFile, lineExpected, actualFile, lineActual)
 			return false, nil
 		}
 	}
