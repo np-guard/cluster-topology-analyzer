@@ -16,9 +16,9 @@ import (
 type Verbosity int
 
 const (
-	LowVerbosity Verbosity = iota
-	MediumVerbosity
-	HighVerbosity
+	LowVerbosity    Verbosity = iota // LowVerbosity only reports errors
+	MediumVerbosity                  // MediumVerbosity reports warnings and errors
+	HighVerbosity                    // HighVerbosity reports infos, warnings and errors
 )
 
 // The Logger interface defines the API for loggers in this package.
