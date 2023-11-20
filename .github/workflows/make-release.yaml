@@ -3,7 +3,7 @@ name: Create docker release and publish to pkg.go.dev
 on:
   push:
     tags:
-      - v1.**
+      - v*.**
 
 permissions:
   contents: read

@@ -170,12 +170,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
+	"github.com/np-guard/cluster-topology-analyzer/v2/pkg/analyzer"
 )
 
 func main() {
-	logger := controller.NewDefaultLogger()
-	synth := controller.NewPoliciesSynthesizer(analyzer.WithLogger(logger))
+	logger := analyzer.NewDefaultLogger()
+	synth := analyzer.NewPoliciesSynthesizer(analyzer.WithLogger(logger))
 
 	netpols, err := synth.PoliciesFromFolderPath("/tmp/k8s_manifests")
 	if err != nil {

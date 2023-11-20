@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
+	"github.com/np-guard/cluster-topology-analyzer/v2/pkg/analyzer"
 )
 
 func ExamplePoliciesSynthesizer() {

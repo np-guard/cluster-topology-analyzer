@@ -10,7 +10,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
+	"github.com/np-guard/cluster-topology-analyzer/v2/pkg/analyzer"
 )
 
 type pathList []string
