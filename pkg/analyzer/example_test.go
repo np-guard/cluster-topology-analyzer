@@ -4,19 +4,19 @@ Copyright 2020- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package controller_test
+package analyzer_test
 
 import (
 	"encoding/json"
 	"fmt"
 	"os"
 
-	"github.com/np-guard/cluster-topology-analyzer/pkg/controller"
+	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
 )
 
 func ExamplePoliciesSynthesizer() {
-	logger := controller.NewDefaultLogger()
-	synth := controller.NewPoliciesSynthesizer(controller.WithLogger(logger))
+	logger := analyzer.NewDefaultLogger()
+	synth := analyzer.NewPoliciesSynthesizer(analyzer.WithLogger(logger))
 
 	netpols, err := synth.PoliciesFromFolderPath("../../tests/k8s_wordpress_example")
 	if err != nil {

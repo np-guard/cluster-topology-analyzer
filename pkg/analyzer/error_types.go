@@ -4,7 +4,7 @@ Copyright 2020- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package controller
+package analyzer
 
 import (
 	"errors"
@@ -22,29 +22,36 @@ type FileProcessingError struct {
 	severe   bool // a severe error is recoverable. However, outputs should be used with care
 }
 
+// NoYamlsFoundError is the error emitted when directory scanning finds no YAML files
 type NoYamlsFoundError struct {
 }
 
+// NoK8sResourcesFoundError is the error emitted when no relevant K8s resources can be found in the YAMLs
 type NoK8sResourcesFoundError struct {
 }
 
+// ConfigMapNotFoundError is the error emitted when a config map is referenced by a workload, but cannot be found
 type ConfigMapNotFoundError struct {
 	cfgMapName, resourceName string
 }
 
+// ConfigMapKeyNotFoundError is the error emitted when a config map key is referenced by a workload, but cannot be found
 type ConfigMapKeyNotFoundError struct {
 	cfgMapName, cfgMapKey, resourceName string
 }
 
+// FailedScanningResource is the error emitted when a known resource cannot be properly deciphered
 type FailedScanningResource struct {
 	resourceType string
 	origErr      error
 }
 
+// FailedReadingFileError is the error emitted for a variety of file-reading issues
 type FailedReadingFileError struct {
 	origErr error
 }
 
+// FailedAccessingDirError is the error emitted when there are problems scanning a directory for YAML files
 type FailedAccessingDirError struct {
 	origErr error
 }

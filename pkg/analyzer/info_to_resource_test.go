@@ -10,8 +10,6 @@ import (
 	"k8s.io/cli-runtime/pkg/resource"
 
 	"github.com/np-guard/netpol-analyzer/pkg/netpol/manifests/fsscanner"
-
-	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
 func TestNetworkAddressValue(t *testing.T) {
@@ -31,7 +29,7 @@ func TestNetworkAddressValue(t *testing.T) {
 	}
 
 	for val, expectedAnswer := range valuesToCheck {
-		strRes, boolRes := NetworkAddressValue(val)
+		strRes, boolRes := networkAddressFromStr(val)
 		require.Equal(t, expectedAnswer.b, boolRes)
 		require.Equal(t, expectedAnswer.str, strRes)
 	}
@@ -40,7 +38,7 @@ func TestNetworkAddressValue(t *testing.T) {
 func TestScanningSvc(t *testing.T) {
 	resourceInfo, err := loadResourceAsInfo([]string{"k8s_guestbook", "frontend-service.yaml"})
 	require.Nil(t, err)
-	res, err := ScanK8sServiceInfo(resourceInfo)
+	res, err := k8sServiceFromInfo(resourceInfo)
 	require.Nil(t, err)
 	require.Equal(t, "frontend", res.Resource.Name)
 	require.Len(t, res.Resource.Selectors, 2)
@@ -51,7 +49,7 @@ func TestScanningSvc(t *testing.T) {
 func TestScanningDeploymentWithArgs(t *testing.T) {
 	resourceInfo, err := loadResourceAsInfo([]string{"sockshop", "manifests", "01-carts-dep.yaml"})
 	require.Nil(t, err)
-	res, err := ScanK8sWorkloadObjectFromInfo(resourceInfo)
+	res, err := k8sWorkloadObjectFromInfo(resourceInfo)
 	require.Nil(t, err)
 	require.Equal(t, "carts", res.Resource.Name)
 	require.Len(t, res.Resource.NetworkAddrs, 1)
@@ -63,7 +61,7 @@ func TestScanningDeploymentWithArgs(t *testing.T) {
 func TestScanningDeploymentWithEnvs(t *testing.T) {
 	resourceInfo, err := loadResourceAsInfo([]string{"k8s_guestbook", "frontend-deployment.yaml"})
 	require.Nil(t, err)
-	res, err := ScanK8sWorkloadObjectFromInfo(resourceInfo)
+	res, err := k8sWorkloadObjectFromInfo(resourceInfo)
 	require.Nil(t, err)
 	require.Equal(t, "frontend", res.Resource.Name)
 	require.Len(t, res.Resource.NetworkAddrs, 4)
@@ -73,7 +71,7 @@ func TestScanningDeploymentWithEnvs(t *testing.T) {
 func TestScanningDeploymentWithConfigMapRef(t *testing.T) {
 	resourceInfo, err := loadResourceAsInfo([]string{"acs-security-demos", "frontend", "webapp", "deployment.yaml"})
 	require.Nil(t, err)
-	res, err := ScanK8sWorkloadObjectFromInfo(resourceInfo)
+	res, err := k8sWorkloadObjectFromInfo(resourceInfo)
 	require.Nil(t, err)
 	require.Equal(t, "webapp", res.Resource.Name)
 	require.Len(t, res.Resource.ConfigMapRefs, 1)
@@ -84,7 +82,7 @@ func TestScanningDeploymentWithConfigMapRef(t *testing.T) {
 func TestScanningReplicaSet(t *testing.T) {
 	resourceInfo, err := loadResourceAsInfo([]string{"k8s_guestbook", "redis-leader-deployment.yaml"})
 	require.Nil(t, err)
-	res, err := ScanK8sWorkloadObjectFromInfo(resourceInfo)
+	res, err := k8sWorkloadObjectFromInfo(resourceInfo)
 	require.Nil(t, err)
 	require.Equal(t, "redis-leader", res.Resource.Name)
 	require.Len(t, res.Resource.NetworkAddrs, 0)
@@ -94,7 +92,7 @@ func TestScanningReplicaSet(t *testing.T) {
 func TestScanningConfigMap(t *testing.T) {
 	resourceInfo, err := loadResourceAsInfo([]string{"qotd", "qotd_usecase.yaml"})
 	require.Nil(t, err)
-	res, err := ScanK8sConfigmapInfo(resourceInfo)
+	res, err := k8sConfigmapFromInfo(resourceInfo)
 	require.Nil(t, err)
 	require.Equal(t, res.FullName, "qotd-load/qotd-usecase-library")
 	require.Len(t, res.Data, 5)
@@ -103,8 +101,8 @@ func TestScanningConfigMap(t *testing.T) {
 func TestScanningIngress(t *testing.T) {
 	resourceInfo, err := loadResourceAsInfo([]string{"bookinfo", "bookinfo-ingress.yaml"})
 	require.Nil(t, err)
-	toExpose := common.ServicesToExpose{}
-	err = ScanIngressObjectFromInfo(resourceInfo, toExpose)
+	toExpose := servicesToExpose{}
+	err = k8sIngressFromInfo(resourceInfo, toExpose)
 	require.Nil(t, err)
 	require.Len(t, toExpose, 1)
 }
@@ -112,8 +110,8 @@ func TestScanningIngress(t *testing.T) {
 func TestScanningRoute(t *testing.T) {
 	resourceInfo, err := loadResourceAsInfo([]string{"acs-security-demos", "frontend", "webapp", "route.yaml"})
 	require.Nil(t, err)
-	toExpose := common.ServicesToExpose{}
-	err = ScanOCRouteObjectFromInfo(resourceInfo, toExpose)
+	toExpose := servicesToExpose{}
+	err = ocRouteFromInfo(resourceInfo, toExpose)
 	require.Nil(t, err)
 	require.Len(t, toExpose, 1)
 }

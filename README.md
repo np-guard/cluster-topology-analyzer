@@ -151,13 +151,15 @@ git clone git@github.com:GoogleCloudPlatform/microservices-demo.git $HOME/micros
 ```
 
 ## Golang API
-The functionality of this tool can be consumed via a [Golang package API](https://pkg.go.dev/github.com/np-guard/cluster-topology-analyzer/pkg/controller). The relevant package to import is `github.com/np-guard/cluster-topology-analyzer/pkg/controller`.
+The functionality of this tool can be consumed via a [Golang package API](https://pkg.go.dev/github.com/np-guard/cluster-topology-analyzer/pkg/analyzer). The relevant package to import is `github.com/np-guard/cluster-topology-analyzer/pkg/analyzer`.
 
-Main functionality is encapsulated under the `PoliciesSynthesizer`, which exposes four methods:
+Main functionality is encapsulated under the `PoliciesSynthesizer`, which exposes six methods:
 * `func (ps *PoliciesSynthesizer) ConnectionsFromFolderPath(dirPath string) ([]*common.Connections, error)` - getting a slice of Connection objects, each representing a required connection in the scanned application.
 * `func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]*common.Connections, error)` - same as `ConnectionsFromFolderPath()` but allows specifying multiple directories to scan.
+* `func (ps *PoliciesSynthesizer) ConnectionsFromInfos(infos []*resource.Info) ([]*Connections, error)` - same as `ConnectionsFromFolderPath()` but analyzing the K8s resources in a slice of `Info` objects rather than scanning a file-system directory for manifest files.
 * `func (ps *PoliciesSynthesizer) PoliciesFromFolderPath(dirPath string) ([]*networking.NetworkPolicy, error)` - getting a slice of K8s NetworkPolicy objects that limit the allowed connectivity to only the required connections.
 * `func (ps *PoliciesSynthesizer) PoliciesFromFolderPaths(dirPaths []string) ([]*networking.NetworkPolicy, error)` - same as `PoliciesFromFolderPath()` but allows specifying multiple directories to scan.
+* `func (ps *PoliciesSynthesizer) PoliciesFromInfos(infos []*resource.Info) ([]*networking.NetworkPolicy, error)` - same as `PoliciesFromFolderPath()` but analyzing the K8s resources in a slice of `Info` objects rather than scanning a file-system directory for manifest files.
 
 The example code below extracts required connections from the K8s manifests in the `/tmp/k8s_manifests` directory, and outputs appropriate K8s NetworkPolicies to standard output.
 ```golang
@@ -168,12 +170,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/np-guard/cluster-topology-analyzer/pkg/controller"
+	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
 )
 
 func main() {
 	logger := controller.NewDefaultLogger()
-	synth := controller.NewPoliciesSynthesizer(controller.WithLogger(logger))
+	synth := controller.NewPoliciesSynthesizer(analyzer.WithLogger(logger))
 
 	netpols, err := synth.PoliciesFromFolderPath("/tmp/k8s_manifests")
 	if err != nil {

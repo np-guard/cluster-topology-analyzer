@@ -10,27 +10,27 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/np-guard/cluster-topology-analyzer/pkg/controller"
+	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
 )
 
-type PathList []string
+type pathList []string
 
-func (dp *PathList) String() string {
+func (dp *pathList) String() string {
 	return fmt.Sprintln(*dp)
 }
 
-func (dp *PathList) Set(path string) error {
+func (dp *pathList) Set(path string) error {
 	*dp = append(*dp, path)
 	return nil
 }
 
 const (
-	JSONFormat = "json"
-	YamlFormat = "yaml"
+	jsonFormat = "json"
+	yamlFormat = "yaml"
 )
 
-type InArgs struct {
-	DirPaths     PathList
+type inArgs struct {
+	DirPaths     pathList
 	OutputFile   *string
 	OutputFormat *string
 	DNSPort      *int
@@ -39,14 +39,14 @@ type InArgs struct {
 	Verbose      *bool
 }
 
-func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
-	args := InArgs{}
+func parseInArgs(cmdlineArgs []string) (*inArgs, error) {
+	args := inArgs{}
 	flagset := flag.NewFlagSet("cluster-topology-analyzer", flag.ContinueOnError)
 	flagset.Var(&args.DirPaths, "dirpath", "input directory path")
 	args.OutputFile = flagset.String("outputfile", "", "file path to store results")
-	args.OutputFormat = flagset.String("format", JSONFormat, "output format; must be either \"json\" or \"yaml\"")
+	args.OutputFormat = flagset.String("format", jsonFormat, "output format; must be either \"json\" or \"yaml\"")
 	args.SynthNetpols = flagset.Bool("netpols", false, "whether to synthesize NetworkPolicies to allow only the discovered connections")
-	args.DNSPort = flagset.Int("dnsport", controller.DefaultDNSPort, "DNS port to be used in egress rules of synthesized NetworkPolicies")
+	args.DNSPort = flagset.Int("dnsport", analyzer.DefaultDNSPort, "DNS port to be used in egress rules of synthesized NetworkPolicies")
 	args.Quiet = flagset.Bool("q", false, "runs quietly, reports only severe errors and results")
 	args.Verbose = flagset.Bool("v", false, "runs with more informative messages printed to log")
 	err := flagset.Parse(cmdlineArgs)
@@ -62,7 +62,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 		flagset.PrintDefaults()
 		return nil, fmt.Errorf("-q and -v cannot be specified together")
 	}
-	if *args.OutputFormat != JSONFormat && *args.OutputFormat != YamlFormat {
+	if *args.OutputFormat != jsonFormat && *args.OutputFormat != yamlFormat {
 		flagset.PrintDefaults()
 		return nil, fmt.Errorf("wrong output format %s; must be either json or yaml", *args.OutputFormat)
 	}

@@ -32,7 +32,7 @@ var (
 		{
 			"ConnectionsOutputJSON",
 			[][]string{{"onlineboutique", "kubernetes-manifests.yaml"}},
-			JSONFormat,
+			jsonFormat,
 			false,
 			nil,
 			false,
@@ -41,7 +41,7 @@ var (
 		{
 			"ConnectionsOutputYAML",
 			[][]string{{"onlineboutique", "kubernetes-manifests.yaml"}},
-			YamlFormat,
+			yamlFormat,
 			false,
 			nil,
 			false,
@@ -50,7 +50,7 @@ var (
 		{
 			"DirScan",
 			[][]string{{"onlineboutique"}},
-			JSONFormat,
+			jsonFormat,
 			false,
 			[]string{"-q"},
 			false,
@@ -59,7 +59,7 @@ var (
 		{
 			"NetpolsOnlineBoutiqueYAML",
 			[][]string{{"onlineboutique", "kubernetes-manifests.yaml"}},
-			YamlFormat,
+			yamlFormat,
 			true,
 			nil,
 			false,
@@ -68,7 +68,7 @@ var (
 		{
 			"NetpolsMultiplePaths",
 			[][]string{{"k8s_wordpress_example", "mysql-deployment.yaml"}, {"k8s_wordpress_example", "wordpress-deployment.yaml"}},
-			JSONFormat,
+			jsonFormat,
 			true,
 			nil,
 			false,
@@ -77,7 +77,7 @@ var (
 		{
 			"NetpolsOnlineBoutiqueJson",
 			[][]string{{"onlineboutique", "kubernetes-manifests.yaml"}},
-			JSONFormat,
+			jsonFormat,
 			true,
 			nil,
 			false,
@@ -86,7 +86,7 @@ var (
 		{
 			"NetpolsSockshop",
 			[][]string{{"sockshop", "manifests"}},
-			JSONFormat,
+			jsonFormat,
 			true,
 			[]string{"-v"},
 			false,
@@ -95,7 +95,7 @@ var (
 		{
 			"NetpolsK8sWordpress",
 			[][]string{{"k8s_wordpress_example"}},
-			JSONFormat,
+			jsonFormat,
 			true,
 			[]string{"-v"},
 			false,
@@ -104,7 +104,7 @@ var (
 		{
 			"NetpolsK8sGuestbook",
 			[][]string{{"k8s_guestbook"}},
-			JSONFormat,
+			jsonFormat,
 			true,
 			[]string{"-v"},
 			false,
@@ -113,7 +113,7 @@ var (
 		{
 			"NetpolsBookInfo",
 			[][]string{{"bookinfo"}},
-			JSONFormat,
+			jsonFormat,
 			true,
 			[]string{"-v"},
 			false,
@@ -122,7 +122,7 @@ var (
 		{
 			"QuoteOfTheDay",
 			[][]string{{"qotd"}},
-			JSONFormat,
+			jsonFormat,
 			true,
 			[]string{"-v"},
 			false,
@@ -131,7 +131,7 @@ var (
 		{
 			"SpecifyDNSPort",
 			[][]string{{"acs-security-demos"}},
-			YamlFormat,
+			yamlFormat,
 			true,
 			[]string{"-v", "-dnsport", "5353"},
 			false,
@@ -140,7 +140,7 @@ var (
 		{
 			"HelpFlag",
 			nil,
-			JSONFormat,
+			jsonFormat,
 			true,
 			[]string{"-h"},
 			false,
@@ -149,7 +149,7 @@ var (
 		{
 			"BadFlag",
 			[][]string{{"bookinfo"}},
-			JSONFormat,
+			jsonFormat,
 			true,
 			[]string{"-no_such_flag"},
 			true,
@@ -158,7 +158,7 @@ var (
 		{
 			"QuietAndVerbose",
 			[][]string{{"bookinfo"}},
-			JSONFormat,
+			jsonFormat,
 			true,
 			[]string{"-q", "-v"},
 			true,
@@ -176,7 +176,7 @@ var (
 		{
 			"noDirPath",
 			nil,
-			JSONFormat,
+			jsonFormat,
 			true,
 			nil,
 			true,
@@ -185,7 +185,7 @@ var (
 		{
 			"badDirPathConnections",
 			[][]string{{"no-such-path"}},
-			JSONFormat,
+			jsonFormat,
 			false,
 			nil,
 			true,
@@ -194,7 +194,7 @@ var (
 		{
 			"badDirPathNetpols",
 			[][]string{{"no-such-path"}},
-			JSONFormat,
+			jsonFormat,
 			true,
 			nil,
 			true,
@@ -203,7 +203,7 @@ var (
 		{
 			"badYamls",
 			[][]string{{"bad_yamls"}},
-			JSONFormat,
+			jsonFormat,
 			true,
 			[]string{"-v"},
 			false,

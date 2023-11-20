@@ -14,7 +14,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/np-guard/cluster-topology-analyzer/pkg/controller"
+	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
 )
 
 func writeBufToFile(filepath string, buf []byte) error {
@@ -55,7 +55,7 @@ func yamlMarshalUsingJSON(content interface{}) ([]byte, error) {
 func writeContent(outputFile, outputFormat string, content interface{}) error {
 	var buf []byte
 	var err error
-	if outputFormat == YamlFormat {
+	if outputFormat == yamlFormat {
 		buf, err = yamlMarshalUsingJSON(content)
 	} else {
 		const indent = "    "
@@ -74,12 +74,12 @@ func writeContent(outputFile, outputFormat string, content interface{}) error {
 }
 
 // returns verbosity level based on the -q and -v switches
-func getVerbosity(args *InArgs) controller.Verbosity {
-	verbosity := controller.MediumVerbosity
+func getVerbosity(args *inArgs) analyzer.Verbosity {
+	verbosity := analyzer.MediumVerbosity
 	if *args.Quiet {
-		verbosity = controller.LowVerbosity
+		verbosity = analyzer.LowVerbosity
 	} else if *args.Verbose {
-		verbosity = controller.HighVerbosity
+		verbosity = analyzer.HighVerbosity
 	}
 	return verbosity
 }
@@ -87,9 +87,9 @@ func getVerbosity(args *InArgs) controller.Verbosity {
 // Based on the arguments it is given, scans all YAML files,
 // detects all required connection between resources and outputs a json connectivity report
 // (or NetworkPolicies to allow only this connectivity)
-func detectTopology(args *InArgs) error {
-	logger := controller.NewDefaultLoggerWithVerbosity(getVerbosity(args))
-	synth := controller.NewPoliciesSynthesizer(controller.WithLogger(logger), controller.WithDNSPort(*args.DNSPort))
+func detectTopology(args *inArgs) error {
+	logger := analyzer.NewDefaultLoggerWithVerbosity(getVerbosity(args))
+	synth := analyzer.NewPoliciesSynthesizer(analyzer.WithLogger(logger), analyzer.WithDNSPort(*args.DNSPort))
 
 	var content interface{}
 	if args.SynthNetpols != nil && *args.SynthNetpols {
@@ -98,7 +98,7 @@ func detectTopology(args *InArgs) error {
 			logger.Errorf(synthesisErr, "error synthesizing policies")
 			return synthesisErr
 		}
-		content = controller.NetpolListFromNetpolSlice(policies)
+		content = analyzer.NetpolListFromNetpolSlice(policies)
 	} else {
 		var err error
 		content, err = synth.ConnectionsFromFolderPaths(args.DirPaths)
@@ -119,7 +119,7 @@ func detectTopology(args *InArgs) error {
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
-	inArgs, err := ParseInArgs(cmdlineArgs)
+	inArgs, err := parseInArgs(cmdlineArgs)
 	if err == flag.ErrHelp {
 		return nil
 	}
