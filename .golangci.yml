@@ -46,6 +46,10 @@ linters-settings:
     rules:
       - name: indent-error-flow
         severity: warning
+      - name: exported
+        severity: warning
+        arguments:
+          - disableStutteringCheck
       - name: add-constant
         severity: warning
         arguments:

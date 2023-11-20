@@ -4,7 +4,7 @@ Copyright 2020- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package controller
+package analyzer
 
 import (
 	"bufio"
@@ -18,6 +18,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 	core "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/cli-runtime/pkg/resource"
+
+	"github.com/np-guard/netpol-analyzer/pkg/netpol/manifests/fsscanner"
 )
 
 func TestPoliciesSynthesizerAPI(t *testing.T) {
@@ -49,6 +53,49 @@ func TestPoliciesSynthesizerAPI(t *testing.T) {
 	os.Remove(outFile)
 }
 
+func TestPoliciesSynthesizerAPIWithInfos(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "k8s_wordpress_example")
+	infos, errs := fsscanner.GetResourceInfosFromDirPath([]string{dirPath}, true, false)
+	require.Empty(t, errs)
+
+	synthesizer := NewPoliciesSynthesizer()
+	policies, err := synthesizer.PoliciesFromInfos(infos)
+	require.Nil(t, err)
+	require.Empty(t, synthesizer.Errors())
+	require.Len(t, policies, 3) // wordpress, mysql and namespace default deny
+
+	conns, err := synthesizer.ConnectionsFromInfos(infos)
+	require.Nil(t, err)
+	require.Empty(t, synthesizer.Errors())
+	require.Len(t, conns, 2) // internet->wordpress and wordpress->mysql
+}
+
+func TestPoliciesSynthesizerAPIWithInfosEmptySlice(t *testing.T) {
+	noInfos := []*resource.Info{}
+
+	synthesizer := NewPoliciesSynthesizer()
+	_, err := synthesizer.PoliciesFromInfos(noInfos)
+	require.NotNil(t, err)
+
+	_, err = synthesizer.ConnectionsFromInfos(noInfos)
+	require.NotNil(t, err)
+}
+
+func TestPoliciesSynthesizerAPIWithInfosBadInfo(t *testing.T) {
+	badInfo1 := resource.Info{}
+	badInfo2 := resource.Info{Object: &unstructured.Unstructured{}}
+	badInfo3 := resource.Info{Object: &unstructured.Unstructured{Object: map[string]interface{}{"kind": "bad"}}}
+	badInfo4 := resource.Info{Object: &unstructured.Unstructured{Object: map[string]interface{}{"kind": "Service", "spec": []string{}}}}
+	badInfos := []*resource.Info{&badInfo1, &badInfo2, &badInfo3, &badInfo4}
+
+	synthesizer := NewPoliciesSynthesizer()
+	_, err := synthesizer.PoliciesFromInfos(badInfos)
+	require.NotNil(t, err)
+
+	_, err = synthesizer.ConnectionsFromInfos(badInfos)
+	require.NotNil(t, err)
+}
+
 func TestPoliciesSynthesizerAPIMultiplePaths(t *testing.T) {
 	dirPath1 := filepath.Join(getTestsDir(), "k8s_wordpress_example", "mysql-deployment.yaml")
 	dirPath2 := filepath.Join(getTestsDir(), "k8s_wordpress_example", "wordpress-deployment.yaml")
@@ -57,6 +104,11 @@ func TestPoliciesSynthesizerAPIMultiplePaths(t *testing.T) {
 	require.Nilf(t, err, "expected no fatal errors, but got %v", err)
 	require.Empty(t, synthesizer.Errors())
 	require.Len(t, netpols, 3)
+
+	conns, err := synthesizer.ConnectionsFromFolderPath(dirPath2)
+	require.Nilf(t, err, "expected no fatal errors, but got %v", err)
+	require.Empty(t, synthesizer.Errors())
+	require.Len(t, conns, 1)
 }
 
 func TestPoliciesSynthesizerAPIDnsPort(t *testing.T) {
@@ -99,7 +151,7 @@ func TestPoliciesSynthesizerAPIFailFast(t *testing.T) {
 	netpols, err := synthesizer.PoliciesFromFolderPath(dirPath)
 	require.Nil(t, err)
 	require.Len(t, synthesizer.Errors(), 1)
-	badYaml := &MalformedYamlDocError{}
+	badYaml := &FailedReadingFileError{}
 	require.True(t, errors.As(synthesizer.Errors()[0].Error(), &badYaml))
 	require.Empty(t, netpols)
 }
@@ -107,7 +159,7 @@ func TestPoliciesSynthesizerAPIFailFast(t *testing.T) {
 func TestExtractConnectionsNoK8sResources(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "irrelevant_k8s_resources.yaml")
 	synthesizer := NewPoliciesSynthesizer()
-	resources, conns, errs := synthesizer.extractConnections([]string{dirPath})
+	resources, conns, errs := synthesizer.extractConnectionsFromFolderPaths([]string{dirPath})
 	require.Len(t, errs, 1)
 	noK8sRes := &NoK8sResourcesFoundError{}
 	require.True(t, errors.As(errs[0].Error(), &noK8sRes))
@@ -118,7 +170,7 @@ func TestExtractConnectionsNoK8sResources(t *testing.T) {
 func TestExtractConnectionsNoK8sResourcesFailFast(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls")
 	synthesizer := NewPoliciesSynthesizer(WithStopOnError())
-	resources, conns, errs := synthesizer.extractConnections([]string{dirPath})
+	resources, conns, errs := synthesizer.extractConnectionsFromFolderPaths([]string{dirPath})
 	require.Len(t, errs, 1)
 	require.Empty(t, conns)
 	require.Empty(t, resources)
@@ -127,7 +179,7 @@ func TestExtractConnectionsNoK8sResourcesFailFast(t *testing.T) {
 func TestExtractConnectionsBadConfigMapRefs(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "bad_configmap_refs.yaml")
 	synthesizer := NewPoliciesSynthesizer()
-	resources, conns, errs := synthesizer.extractConnections([]string{dirPath})
+	resources, conns, errs := synthesizer.extractConnectionsFromFolderPaths([]string{dirPath})
 	require.Len(t, errs, 3)
 	noConfigMap := &ConfigMapNotFoundError{}
 	noConfigMapKey := &ConfigMapKeyNotFoundError{}
@@ -141,7 +193,7 @@ func TestExtractConnectionsBadConfigMapRefs(t *testing.T) {
 func TestExtractConnectionsCustomWalk(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "sockshop")
 	synthesizer := NewPoliciesSynthesizer(WithWalkFn(nonRecursiveWalk))
-	resources, conns, errs := synthesizer.extractConnections([]string{dirPath})
+	resources, conns, errs := synthesizer.extractConnectionsFromFolderPaths([]string{dirPath})
 	require.Len(t, errs, 2) // no yaml should be found in a non-recursive scan
 	noYamls := &NoYamlsFoundError{}
 	noK8sRes := &NoK8sResourcesFoundError{}
@@ -154,7 +206,7 @@ func TestExtractConnectionsCustomWalk(t *testing.T) {
 func TestExtractConnectionsCustomWalk2(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "sockshop")
 	synthesizer := NewPoliciesSynthesizer(WithWalkFn(filepath.WalkDir))
-	resources, conns, errs := synthesizer.extractConnections([]string{dirPath})
+	resources, conns, errs := synthesizer.extractConnectionsFromFolderPaths([]string{dirPath})
 	require.Len(t, errs, 0)
 	require.Len(t, conns, 14)
 	require.Len(t, resources, 14)

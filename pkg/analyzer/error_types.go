@@ -4,7 +4,7 @@ Copyright 2020- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package controller
+package analyzer
 
 import (
 	"errors"
@@ -22,37 +22,36 @@ type FileProcessingError struct {
 	severe   bool // a severe error is recoverable. However, outputs should be used with care
 }
 
+// NoYamlsFoundError is the error emitted when directory scanning finds no YAML files
 type NoYamlsFoundError struct {
 }
 
+// NoK8sResourcesFoundError is the error emitted when no relevant K8s resources can be found in the YAMLs
 type NoK8sResourcesFoundError struct {
 }
 
+// ConfigMapNotFoundError is the error emitted when a config map is referenced by a workload, but cannot be found
 type ConfigMapNotFoundError struct {
 	cfgMapName, resourceName string
 }
 
+// ConfigMapKeyNotFoundError is the error emitted when a config map key is referenced by a workload, but cannot be found
 type ConfigMapKeyNotFoundError struct {
 	cfgMapName, cfgMapKey, resourceName string
 }
 
+// FailedScanningResource is the error emitted when a known resource cannot be properly deciphered
 type FailedScanningResource struct {
 	resourceType string
 	origErr      error
 }
 
-type NotK8sResourceError struct {
-	origErr error
-}
-
-type MalformedYamlDocError struct {
-	origErr error
-}
-
+// FailedReadingFileError is the error emitted for a variety of file-reading issues
 type FailedReadingFileError struct {
 	origErr error
 }
 
+// FailedAccessingDirError is the error emitted when there are problems scanning a directory for YAML files
 type FailedAccessingDirError struct {
 	origErr error
 }
@@ -78,22 +77,6 @@ func (err *FailedScanningResource) Error() string {
 }
 
 func (err *FailedScanningResource) Unwrap() error {
-	return err.origErr
-}
-
-func (err *NotK8sResourceError) Error() string {
-	return fmt.Sprintf("Yaml document is not a K8s resource: %v", err.origErr)
-}
-
-func (err *NotK8sResourceError) Unwrap() error {
-	return err.origErr
-}
-
-func (err *MalformedYamlDocError) Error() string {
-	return fmt.Sprintf("YAML document is malformed: %v", err.origErr)
-}
-
-func (err *MalformedYamlDocError) Unwrap() error {
 	return err.origErr
 }
 
@@ -170,7 +153,7 @@ func noYamlsFound() *FileProcessingError {
 }
 
 func noK8sResourcesFound() *FileProcessingError {
-	return &FileProcessingError{&NoK8sResourcesFoundError{}, "", 0, -1, false, false}
+	return &FileProcessingError{&NoK8sResourcesFoundError{}, "", 0, -1, true, true}
 }
 
 func configMapNotFound(cfgMapName, resourceName string) *FileProcessingError {
@@ -183,14 +166,6 @@ func configMapKeyNotFound(cfgMapName, cfgMapKey, resourceName string) *FileProce
 
 func failedScanningResource(resourceType, filePath string, err error) *FileProcessingError {
 	return &FileProcessingError{&FailedScanningResource{resourceType, err}, filePath, 0, -1, false, false}
-}
-
-func notK8sResource(filePath string, docID int, err error) *FileProcessingError {
-	return &FileProcessingError{&NotK8sResourceError{err}, filePath, 0, docID, false, false}
-}
-
-func malformedYamlDoc(filePath string, lineNum, docID int, err error) *FileProcessingError {
-	return &FileProcessingError{&MalformedYamlDocError{err}, filePath, lineNum, docID, false, true}
 }
 
 func failedReadingFile(filePath string, err error) *FileProcessingError {

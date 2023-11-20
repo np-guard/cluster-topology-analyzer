@@ -4,7 +4,7 @@ Copyright 2020- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package controller
+package analyzer
 
 import (
 	"reflect"
@@ -14,8 +14,6 @@ import (
 	network "k8s.io/api/networking/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-
-	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
 )
 
 const (
@@ -24,7 +22,7 @@ const (
 )
 
 type deploymentConnectivity struct {
-	common.Resource
+	Resource
 	ingressConns []network.NetworkPolicyIngressRule
 	egressConns  []network.NetworkPolicyEgressRule
 }
@@ -76,7 +74,7 @@ func getNsDefaultDenyPolicy(namespace string) *network.NetworkPolicy {
 }
 
 // Generate default-deny NetworkPolicy for each namespace of the given resources
-func getNsDefaultDenyPolicies(resources []*common.Resource) []*network.NetworkPolicy {
+func getNsDefaultDenyPolicies(resources []*Resource) []*network.NetworkPolicy {
 	denyNetpols := []*network.NetworkPolicy{}
 	namespaces := map[string]bool{}
 	for _, res := range resources {
@@ -89,14 +87,14 @@ func getNsDefaultDenyPolicies(resources []*common.Resource) []*network.NetworkPo
 	return denyNetpols
 }
 
-func (ps *PoliciesSynthesizer) synthNetpols(resources []*common.Resource, connections []*common.Connections) []*network.NetworkPolicy {
+func (ps *PoliciesSynthesizer) synthNetpols(resources []*Resource, connections []*Connections) []*network.NetworkPolicy {
 	deployConnectivity := determineConnectivityPerDeployment(connections)
 	netpols := ps.buildNetpolPerDeployment(deployConnectivity)
 	netpols = append(netpols, getNsDefaultDenyPolicies(resources)...)
 	return netpols
 }
 
-func determineConnectivityPerDeployment(connections []*common.Connections) []*deploymentConnectivity {
+func determineConnectivityPerDeployment(connections []*Connections) []*deploymentConnectivity {
 	deploysConnectivity := map[string]*deploymentConnectivity{}
 	for _, conn := range connections {
 		srcDeploy := findOrAddDeploymentConn(conn.Source, deploysConnectivity)
@@ -134,7 +132,7 @@ func determineConnectivityPerDeployment(connections []*common.Connections) []*de
 	return retSlice
 }
 
-func findOrAddDeploymentConn(resource *common.Resource, deployConns map[string]*deploymentConnectivity) *deploymentConnectivity {
+func findOrAddDeploymentConn(resource *Resource, deployConns map[string]*deploymentConnectivity) *deploymentConnectivity {
 	if resource == nil || resource.Resource.Name == "" {
 		return nil
 	}
@@ -163,7 +161,7 @@ func getDeployConnSelector(deployConn *deploymentConnectivity) *metaV1.LabelSele
 	return &metaV1.LabelSelector{MatchLabels: deployConn.Resource.Resource.Labels}
 }
 
-func toNetpolPorts(ports []common.SvcNetworkAttr) []network.NetworkPolicyPort {
+func toNetpolPorts(ports []SvcNetworkAttr) []network.NetworkPolicyPort {
 	netpolPorts := make([]network.NetworkPolicyPort, 0, len(ports))
 	for _, port := range ports {
 		protocol := port.Protocol

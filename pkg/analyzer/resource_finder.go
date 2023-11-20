@@ -4,23 +4,17 @@ Copyright 2020- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package controller
+package analyzer
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"regexp"
 
-	ocapiv1 "github.com/openshift/api"
-	"gopkg.in/yaml.v3"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/cli-runtime/pkg/resource"
 
-	"github.com/np-guard/cluster-topology-analyzer/pkg/analyzer"
-	"github.com/np-guard/cluster-topology-analyzer/pkg/common"
+	"github.com/np-guard/netpol-analyzer/pkg/netpol/manifests/fsscanner"
 )
 
 // K8s resources that are relevant for connectivity analysis
@@ -53,23 +47,16 @@ type resourceFinder struct {
 	stopOn1stErr bool
 	walkFn       WalkFunction // for customizing directory scan
 
-	resourceDecoder runtime.Decoder
-
-	workloads        []*common.Resource      // accumulates all workload resources found
-	services         []*common.Service       // accumulates all service resources found
-	configmaps       []*common.CfgMap        // accumulates all ConfigMap resources found
-	servicesToExpose common.ServicesToExpose // stores which services should be later exposed
+	workloads        []*Resource      // accumulates all workload resources found
+	services         []*Service       // accumulates all service resources found
+	configmaps       []*cfgMap        // accumulates all ConfigMap resources found
+	servicesToExpose servicesToExpose // stores which services should be later exposed
 }
 
 func newResourceFinder(logger Logger, failFast bool, walkFn WalkFunction) *resourceFinder {
 	res := resourceFinder{logger: logger, stopOn1stErr: failFast, walkFn: walkFn}
 
-	scheme := runtime.NewScheme()
-	Codecs := serializer.NewCodecFactory(scheme)
-	_ = ocapiv1.InstallKube(scheme) // returned error is ignored - seems to be always nil
-	_ = ocapiv1.Install(scheme)     // returned error is ignored - seems to be always nil
-	res.resourceDecoder = Codecs.UniversalDeserializer()
-	res.servicesToExpose = common.ServicesToExpose{}
+	res.servicesToExpose = servicesToExpose{}
 
 	return &res
 }
@@ -123,97 +110,78 @@ func (rf *resourceFinder) searchForManifests(repoDir string) ([]string, []FilePr
 	return yamls, errors
 }
 
-// splitByYamlDocuments takes a YAML file and returns a slice containing its documents as raw text
-func (rf *resourceFinder) splitByYamlDocuments(mfp string) ([][]byte, []FileProcessingError) {
-	fileBuf, err := os.ReadFile(mfp)
-	if err != nil {
-		return nil, appendAndLogNewError(nil, failedReadingFile(mfp, err), rf.logger)
-	}
-
-	decoder := yaml.NewDecoder(bytes.NewBuffer(fileBuf))
-	documents := [][]byte{}
-	documentID := 0
-	for {
-		var doc yaml.Node
-		if err := decoder.Decode(&doc); err != nil {
-			if err != io.EOF {
-				return documents, appendAndLogNewError(nil, malformedYamlDoc(mfp, 0, documentID, err), rf.logger)
-			}
-			break
-		}
-		if len(doc.Content) > 0 && doc.Content[0].Kind == yaml.MappingNode {
-			out, err := yaml.Marshal(doc.Content[0])
-			if err != nil {
-				return documents, appendAndLogNewError(nil, malformedYamlDoc(mfp, doc.Line, documentID, err), rf.logger)
-			}
-			documents = append(documents, out)
-		}
-		documentID += 1
-	}
-	return documents, nil
-}
-
 // parseK8sYaml takes a YAML file and attempts to parse each of its documents into
 // one of the relevant k8s resources
 func (rf *resourceFinder) parseK8sYaml(mfp, relMfp string) []FileProcessingError {
-	yamlDocs, fileProcessingErrors := rf.splitByYamlDocuments(mfp)
-	if stopProcessing(rf.stopOn1stErr, fileProcessingErrors) {
-		return fileProcessingErrors
+	infos, errs := fsscanner.GetResourceInfosFromDirPath([]string{mfp}, false, rf.stopOn1stErr)
+	fileProcessingErrors := []FileProcessingError{}
+	for _, err := range errs {
+		fileProcessingErrors = appendAndLogNewError(fileProcessingErrors, failedReadingFile(mfp, err), rf.logger)
+		if stopProcessing(rf.stopOn1stErr, fileProcessingErrors) {
+			return fileProcessingErrors
+		}
 	}
 
-	for docID, doc := range yamlDocs {
-		_, groupVersionKind, err := rf.resourceDecoder.Decode(doc, nil, nil)
+	for _, info := range infos {
+		err := rf.parseInfo(info)
 		if err != nil {
-			fileProcessingErrors = appendAndLogNewError(fileProcessingErrors, notK8sResource(relMfp, docID, err), rf.logger)
-			continue
-		}
-		if !acceptedK8sTypes.MatchString(groupVersionKind.Kind) {
-			rf.logger.Infof("in file: %s, document: %d, skipping object with type: %s", relMfp, docID, groupVersionKind.Kind)
-		} else {
-			kind := groupVersionKind.Kind
-			err = rf.parseResource(kind, doc, relMfp)
-			if err != nil {
-				fileProcessingErrors = appendAndLogNewError(fileProcessingErrors, failedScanningResource(kind, relMfp, err), rf.logger)
-			}
+			kind := info.Object.GetObjectKind().GroupVersionKind().Kind
+			fileProcessingErrors = appendAndLogNewError(fileProcessingErrors, failedScanningResource(kind, relMfp, err), rf.logger)
 		}
 	}
+
 	return fileProcessingErrors
 }
 
-// parseResource takes a yaml document, parses it into a K8s resource and puts it into one of the 3 struct slices:
+// parseInfo takes an Info object, parses it into a K8s resource and puts it into one of the 3 struct slices:
 // the workload resource slice, the Service resource slice and the ConfigMaps resource slice
 // It also updates the set of services to be exposed when parsing Ingress or OpenShift Routes
-func (rf *resourceFinder) parseResource(kind string, yamlDoc []byte, manifestFilePath string) error {
+func (rf *resourceFinder) parseInfo(info *resource.Info) error {
+	if info == nil || info.Object == nil {
+		return fmt.Errorf("a bad Info object - Object field is Nil")
+	}
+
+	kind := info.Object.GetObjectKind().GroupVersionKind().Kind
+	if !acceptedK8sTypes.MatchString(kind) {
+		msg := fmt.Sprintf("skipping object with type: %s", kind)
+		resourcePath := info.Source
+		if resourcePath != "" {
+			msg = fmt.Sprintf("in file: %s, %s", resourcePath, msg)
+		}
+		rf.logger.Infof(msg)
+		return nil
+	}
+
 	switch kind {
 	case service:
-		res, err := analyzer.ScanK8sServiceObject(yamlDoc)
+		res, err := k8sServiceFromInfo(info)
 		if err != nil {
 			return err
 		}
-		res.Resource.FilePath = manifestFilePath
+		res.Resource.FilePath = info.Source
 		rf.services = append(rf.services, res)
 	case route:
-		err := analyzer.ScanOCRouteObject(yamlDoc, rf.servicesToExpose)
+		err := ocRouteFromInfo(info, rf.servicesToExpose)
 		if err != nil {
 			return err
 		}
 	case ingress:
-		err := analyzer.ScanIngressObject(yamlDoc, rf.servicesToExpose)
+		err := k8sIngressFromInfo(info, rf.servicesToExpose)
 		if err != nil {
 			return err
 		}
 	case configmap:
-		res, err := analyzer.ScanK8sConfigmapObject(yamlDoc)
+		res, err := k8sConfigmapFromInfo(info)
 		if err != nil {
 			return err
 		}
 		rf.configmaps = append(rf.configmaps, res)
 	default:
-		res, err := analyzer.ScanK8sWorkloadObject(kind, yamlDoc)
+		res, err := k8sWorkloadObjectFromInfo(info)
 		if err != nil {
 			return err
 		}
-		res.Resource.FilePath = manifestFilePath
+		res.Resource.FilePath = info.Source
 		rf.workloads = append(rf.workloads, res)
 	}
 
@@ -236,7 +204,7 @@ func pathWithoutBaseDir(path, baseDir string) string {
 // inlineConfigMapRefsAsEnvs appends to the Envs of each given resource the ConfigMap values it is referring to
 // It should only be called after ALL calls to getRelevantK8sResources successfully returned
 func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
-	cfgMapsByName := map[string]*common.CfgMap{}
+	cfgMapsByName := map[string]*cfgMap{}
 	for _, cm := range rf.configmaps {
 		cfgMapsByName[cm.FullName] = cm
 	}
@@ -248,7 +216,7 @@ func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
 			configmapFullName := res.Resource.Namespace + "/" + cfgMapRef
 			if cfgMap, ok := cfgMapsByName[configmapFullName]; ok {
 				for _, v := range cfgMap.Data {
-					if netAddr, ok := analyzer.NetworkAddressValue(v); ok {
+					if netAddr, ok := networkAddressFromStr(v); ok {
 						res.Resource.NetworkAddrs = append(res.Resource.NetworkAddrs, netAddr)
 					}
 				}
@@ -262,7 +230,7 @@ func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
 			configmapFullName := res.Resource.Namespace + "/" + cfgMapKeyRef.Name
 			if cfgMap, ok := cfgMapsByName[configmapFullName]; ok {
 				if val, ok := cfgMap.Data[cfgMapKeyRef.Key]; ok {
-					if netAddr, ok := analyzer.NetworkAddressValue(val); ok {
+					if netAddr, ok := networkAddressFromStr(val); ok {
 						res.Resource.NetworkAddrs = append(res.Resource.NetworkAddrs, netAddr)
 					}
 				} else {
