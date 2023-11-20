@@ -55,7 +55,7 @@ func yamlMarshalUsingJSON(content interface{}) ([]byte, error) {
 func writeContent(outputFile, outputFormat string, content interface{}) error {
 	var buf []byte
 	var err error
-	if outputFormat == YamlFormat {
+	if outputFormat == yamlFormat {
 		buf, err = yamlMarshalUsingJSON(content)
 	} else {
 		const indent = "    "
@@ -74,7 +74,7 @@ func writeContent(outputFile, outputFormat string, content interface{}) error {
 }
 
 // returns verbosity level based on the -q and -v switches
-func getVerbosity(args *InArgs) analyzer.Verbosity {
+func getVerbosity(args *inArgs) analyzer.Verbosity {
 	verbosity := analyzer.MediumVerbosity
 	if *args.Quiet {
 		verbosity = analyzer.LowVerbosity
@@ -87,7 +87,7 @@ func getVerbosity(args *InArgs) analyzer.Verbosity {
 // Based on the arguments it is given, scans all YAML files,
 // detects all required connection between resources and outputs a json connectivity report
 // (or NetworkPolicies to allow only this connectivity)
-func detectTopology(args *InArgs) error {
+func detectTopology(args *inArgs) error {
 	logger := analyzer.NewDefaultLoggerWithVerbosity(getVerbosity(args))
 	synth := analyzer.NewPoliciesSynthesizer(analyzer.WithLogger(logger), analyzer.WithDNSPort(*args.DNSPort))
 
@@ -119,7 +119,7 @@ func detectTopology(args *InArgs) error {
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
-	inArgs, err := ParseInArgs(cmdlineArgs)
+	inArgs, err := parseInArgs(cmdlineArgs)
 	if err == flag.ErrHelp {
 		return nil
 	}
