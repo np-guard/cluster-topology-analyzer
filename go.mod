@@ -1,4 +1,4 @@
-module github.com/np-guard/cluster-topology-analyzer
+module github.com/np-guard/cluster-topology-analyzer/v2
 
 go 1.20
 
