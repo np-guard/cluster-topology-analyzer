@@ -1,5 +1,5 @@
 # FROM golang:1.20-alpine
-FROM golang@sha256:03278bc16e1a5b4fb6cdd3462108c060aa1e9c2353ce4d15d744b3c40168677d
+FROM golang@sha256:57bf74a970b68b10fe005f17f550554406d9b696d10b29f1a4bdc8cae37fd063
 
 RUN apk update && apk upgrade && apk --no-cache add make
 
