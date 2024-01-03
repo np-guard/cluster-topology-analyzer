@@ -74,8 +74,7 @@ func (rf *resourceAccumulator) getRelevantK8sResources(repoDir string) []FilePro
 	}
 
 	for _, mfp := range manifestFiles {
-		relMfp := pathWithoutBaseDir(mfp, repoDir)
-		errs := rf.parseK8sYaml(mfp, relMfp)
+		errs := rf.parseK8sYaml(mfp)
 		fileScanErrors = append(fileScanErrors, errs...)
 		if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
 			return fileScanErrors
@@ -87,25 +86,38 @@ func (rf *resourceAccumulator) getRelevantK8sResources(repoDir string) []FilePro
 
 // parseK8sYaml takes a YAML file and attempts to parse each of its documents into
 // one of the relevant k8s resources
-func (rf *resourceAccumulator) parseK8sYaml(mfp, relMfp string) []FileProcessingError {
+func (rf *resourceAccumulator) parseK8sYaml(mfp string) []FileProcessingError {
 	infos, errs := fsscanner.GetResourceInfosFromDirPath([]string{mfp}, false, rf.stopOn1stErr)
-	fileProcessingErrors := []FileProcessingError{}
+	parseErrors := []FileProcessingError{}
 	for _, err := range errs {
-		fileProcessingErrors = appendAndLogNewError(fileProcessingErrors, failedReadingFile(mfp, err), rf.logger)
-		if stopProcessing(rf.stopOn1stErr, fileProcessingErrors) {
-			return fileProcessingErrors
+		parseErrors = appendAndLogNewError(parseErrors, failedReadingFile(mfp, err), rf.logger)
+		if stopProcessing(rf.stopOn1stErr, parseErrors) {
+			return parseErrors
 		}
 	}
 
+	moreErrors := rf.parseInfos(infos)
+	return append(parseErrors, moreErrors...)
+
+}
+
+func (rf *resourceAccumulator) parseInfos(infos []*resource.Info) []FileProcessingError {
+	parseErrors := []FileProcessingError{}
 	for _, info := range infos {
 		err := rf.parseInfo(info)
 		if err != nil {
-			kind := info.Object.GetObjectKind().GroupVersionKind().Kind
-			fileProcessingErrors = appendAndLogNewError(fileProcessingErrors, failedScanningResource(kind, relMfp, err), rf.logger)
+			kind := "<unknown>"
+			if info != nil && info.Object != nil {
+				kind = info.Object.GetObjectKind().GroupVersionKind().Kind
+			}
+			parseErrors = appendAndLogNewError(parseErrors, failedScanningResource(kind, info.Source, err), rf.logger)
+			if stopProcessing(rf.stopOn1stErr, parseErrors) {
+				return parseErrors
+			}
 		}
 	}
 
-	return fileProcessingErrors
+	return parseErrors
 }
 
 // parseInfo takes an Info object, parses it into a K8s resource and puts it into one of the 3 struct slices:

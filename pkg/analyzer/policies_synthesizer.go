@@ -168,17 +168,7 @@ func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]
 func (ps *PoliciesSynthesizer) extractConnectionsFromInfos(infos []*resource.Info) (
 	[]*Resource, []*Connections, []FileProcessingError) {
 	resAcc := newResourceAccumulator(ps.logger, ps.stopOnError, ps.walkFn)
-	fileErrors := []FileProcessingError{}
-	for _, info := range infos {
-		err := resAcc.parseInfo(info)
-		if err != nil {
-			kind := "<unknown>"
-			if info != nil && info.Object != nil {
-				kind = info.Object.GetObjectKind().GroupVersionKind().Kind
-			}
-			fileErrors = appendAndLogNewError(fileErrors, failedScanningResource(kind, info.Source, err), ps.logger)
-		}
-	}
+	fileErrors := resAcc.parseInfos(infos)
 
 	wls, conns, errs := ps.extractConnections(resAcc)
 	fileErrors = append(fileErrors, errs...)
