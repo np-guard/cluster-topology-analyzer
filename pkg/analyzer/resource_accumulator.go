@@ -8,7 +8,6 @@ package analyzer
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 
@@ -37,7 +36,6 @@ var (
 	acceptedK8sTypesRegex = fmt.Sprintf("(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)",
 		pod, replicaSet, replicationController, deployment, daemonSet, statefulSet, job, cronJob, service, configmap, route, ingress)
 	acceptedK8sTypes = regexp.MustCompile(acceptedK8sTypesRegex)
-	yamlSuffix       = regexp.MustCompile(".ya?ml$")
 )
 
 // resourceAccumulator is used to locate all relevant K8s resources in given file-system directories
@@ -66,7 +64,8 @@ func newResourceAccumulator(logger Logger, failFast bool, walkFn WalkFunction) *
 // and extracts all K8s resources that are relevant for connectivity analysis.
 // The resources are stored in the struct, separated to workloads, services and configmaps
 func (rf *resourceAccumulator) getRelevantK8sResources(repoDir string) []FileProcessingError {
-	manifestFiles, fileScanErrors := rf.searchForManifests(repoDir)
+	mf := manifestFinder{rf.logger, rf.stopOn1stErr, rf.walkFn}
+	manifestFiles, fileScanErrors := mf.searchForManifests(repoDir)
 	if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
 		return fileScanErrors
 	}
@@ -85,29 +84,6 @@ func (rf *resourceAccumulator) getRelevantK8sResources(repoDir string) []FilePro
 	}
 
 	return fileScanErrors
-}
-
-// searchForManifests returns a list of YAML files under a given directory (recursively)
-func (rf *resourceAccumulator) searchForManifests(repoDir string) ([]string, []FileProcessingError) {
-	yamls := []string{}
-	errors := []FileProcessingError{}
-	err := rf.walkFn(repoDir, func(path string, f os.DirEntry, err error) error {
-		if err != nil {
-			errors = appendAndLogNewError(errors, failedAccessingDir(path, err, path != repoDir), rf.logger)
-			if stopProcessing(rf.stopOn1stErr, errors) {
-				return err
-			}
-			return filepath.SkipDir
-		}
-		if f != nil && !f.IsDir() && yamlSuffix.MatchString(f.Name()) {
-			yamls = append(yamls, path)
-		}
-		return nil
-	})
-	if err != nil {
-		rf.logger.Errorf(err, "Error walking directory")
-	}
-	return yamls, errors
 }
 
 // parseK8sYaml takes a YAML file and attempts to parse each of its documents into
