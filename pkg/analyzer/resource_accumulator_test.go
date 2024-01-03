@@ -18,7 +18,7 @@ import (
 
 func TestGetRelevantK8sResourcesBadYamlDocument(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "document_with_syntax_error.yaml")
-	resFinder := newResourceFinder(NewDefaultLogger(), false, filepath.WalkDir)
+	resFinder := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
 	errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
 	badFile := &FailedReadingFileError{}
@@ -31,7 +31,7 @@ func TestGetRelevantK8sResourcesBadYamlDocument(t *testing.T) {
 
 func TestGetRelevantK8sResourcesBadYamlDocumentFailFast(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "document_with_syntax_error.yaml")
-	resFinder := newResourceFinder(NewDefaultLogger(), true, filepath.WalkDir)
+	resFinder := newResourceAccumulator(NewDefaultLogger(), true, filepath.WalkDir)
 	errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
 	badFile := &FailedReadingFileError{}
@@ -44,7 +44,7 @@ func TestGetRelevantK8sResourcesBadYamlDocumentFailFast(t *testing.T) {
 
 func TestGetRelevantK8sResourcesNoK8sResource(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "not_a_k8s_resource.yaml")
-	resFinder := newResourceFinder(NewDefaultLogger(), false, filepath.WalkDir)
+	resFinder := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
 	errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
 	fileErr := &FailedReadingFileError{}
@@ -56,7 +56,7 @@ func TestGetRelevantK8sResourcesNoK8sResource(t *testing.T) {
 
 func TestGetRelevantK8sResourcesNoYAMLs(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "subdir2")
-	resFinder := newResourceFinder(NewDefaultLogger(), false, filepath.WalkDir)
+	resFinder := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
 	errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
 	noYamls := &NoYamlsFoundError{}
@@ -68,7 +68,7 @@ func TestGetRelevantK8sResourcesNoYAMLs(t *testing.T) {
 
 func TestGetRelevantK8sResourcesBadDir(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "subdir3") // doesn't exist
-	resFinder := newResourceFinder(NewDefaultLogger(), false, filepath.WalkDir)
+	resFinder := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
 	errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
 	badDir := &FailedAccessingDirError{}
@@ -80,7 +80,7 @@ func TestGetRelevantK8sResourcesBadDir(t *testing.T) {
 
 func TestGetRelevantK8sResourcesBadDirFailFast(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "subdir3") // doesn't exist
-	resFinder := newResourceFinder(NewDefaultLogger(), true, filepath.WalkDir)
+	resFinder := newResourceAccumulator(NewDefaultLogger(), true, filepath.WalkDir)
 	errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Len(t, errs, 1)
 	badDir := &FailedAccessingDirError{}
@@ -92,14 +92,14 @@ func TestGetRelevantK8sResourcesBadDirFailFast(t *testing.T) {
 
 func TestGetRelevantK8sResourcesNonK8sResources(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bookinfo")
-	resFinder := newResourceFinder(NewDefaultLogger(), false, filepath.WalkDir)
+	resFinder := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
 	errs := resFinder.getRelevantK8sResources(dirPath)
 	require.Empty(t, errs) // Irrelevant resources such as Certificate are only reported to log - not returned as errors
 }
 
 func TestSearchForManifests(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls")
-	resFinder := newResourceFinder(NewDefaultLogger(), false, filepath.WalkDir)
+	resFinder := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
 	yamlFiles, errs := resFinder.searchForManifests(dirPath)
 	require.Empty(t, errs)
 	require.Len(t, yamlFiles, 5)
@@ -120,7 +120,7 @@ func nonRecursiveWalk(root string, fn fs.WalkDirFunc) error {
 
 func TestSearchForManifestsNonRecursiveWalk(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls")
-	resFinder := newResourceFinder(NewDefaultLogger(), false, nonRecursiveWalk)
+	resFinder := newResourceAccumulator(NewDefaultLogger(), false, nonRecursiveWalk)
 	yamlFiles, errs := resFinder.searchForManifests(dirPath)
 	require.Empty(t, errs)
 	require.Len(t, yamlFiles, 4)

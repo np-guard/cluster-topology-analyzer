@@ -167,10 +167,10 @@ func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]
 
 func (ps *PoliciesSynthesizer) extractConnectionsFromInfos(infos []*resource.Info) (
 	[]*Resource, []*Connections, []FileProcessingError) {
-	resFinder := newResourceFinder(ps.logger, ps.stopOnError, ps.walkFn)
+	resAcc := newResourceAccumulator(ps.logger, ps.stopOnError, ps.walkFn)
 	fileErrors := []FileProcessingError{}
 	for _, info := range infos {
-		err := resFinder.parseInfo(info)
+		err := resAcc.parseInfo(info)
 		if err != nil {
 			kind := "<unknown>"
 			if info != nil && info.Object != nil {
@@ -180,7 +180,7 @@ func (ps *PoliciesSynthesizer) extractConnectionsFromInfos(infos []*resource.Inf
 		}
 	}
 
-	wls, conns, errs := ps.extractConnections(resFinder)
+	wls, conns, errs := ps.extractConnections(resAcc)
 	fileErrors = append(fileErrors, errs...)
 	return wls, conns, fileErrors
 }
@@ -188,37 +188,37 @@ func (ps *PoliciesSynthesizer) extractConnectionsFromInfos(infos []*resource.Inf
 // Scans the given directory for YAMLs with k8s resources and extracts required connections between workloads
 func (ps *PoliciesSynthesizer) extractConnectionsFromFolderPaths(dirPaths []string) (
 	[]*Resource, []*Connections, []FileProcessingError) {
-	resFinder := newResourceFinder(ps.logger, ps.stopOnError, ps.walkFn)
+	resAcc := newResourceAccumulator(ps.logger, ps.stopOnError, ps.walkFn)
 	fileErrors := []FileProcessingError{}
 	for _, dirPath := range dirPaths {
-		errs := resFinder.getRelevantK8sResources(dirPath)
+		errs := resAcc.getRelevantK8sResources(dirPath)
 		fileErrors = append(fileErrors, errs...)
 		if stopProcessing(ps.stopOnError, errs) {
 			return nil, nil, fileErrors
 		}
 	}
-	wls, conns, errs := ps.extractConnections(resFinder)
+	wls, conns, errs := ps.extractConnections(resAcc)
 	fileErrors = append(fileErrors, errs...)
 	return wls, conns, fileErrors
 }
 
-func (ps *PoliciesSynthesizer) extractConnections(resFinder *resourceFinder) (
+func (ps *PoliciesSynthesizer) extractConnections(resAcc *resourceAccumulator) (
 	[]*Resource, []*Connections, []FileProcessingError) {
-	if len(resFinder.workloads) == 0 {
+	if len(resAcc.workloads) == 0 {
 		return nil, nil, appendAndLogNewError(nil, noK8sResourcesFound(), ps.logger)
 	}
 
 	// Inline configmaps values as workload envs
-	fileErrors := resFinder.inlineConfigMapRefsAsEnvs()
+	fileErrors := resAcc.inlineConfigMapRefsAsEnvs()
 	if stopProcessing(ps.stopOnError, fileErrors) {
 		return nil, nil, fileErrors
 	}
 
-	resFinder.exposeServices()
+	resAcc.exposeServices()
 
 	// Discover all connections between resources
-	connections := discoverConnections(resFinder.workloads, resFinder.services, ps.logger)
-	return resFinder.workloads, connections, fileErrors
+	connections := discoverConnections(resAcc.workloads, resAcc.services, ps.logger)
+	return resAcc.workloads, connections, fileErrors
 }
 
 func hasFatalError(errs []FileProcessingError) error {

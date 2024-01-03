@@ -40,9 +40,9 @@ var (
 	yamlSuffix       = regexp.MustCompile(".ya?ml$")
 )
 
-// resourceFinder is used to locate all relevant K8s resources in given file-system directories
+// resourceAccumulator is used to locate all relevant K8s resources in given file-system directories
 // and to convert them into the internal structs, used for later processing.
-type resourceFinder struct {
+type resourceAccumulator struct {
 	logger       Logger
 	stopOn1stErr bool
 	walkFn       WalkFunction // for customizing directory scan
@@ -53,8 +53,8 @@ type resourceFinder struct {
 	servicesToExpose servicesToExpose // stores which services should be later exposed
 }
 
-func newResourceFinder(logger Logger, failFast bool, walkFn WalkFunction) *resourceFinder {
-	res := resourceFinder{logger: logger, stopOn1stErr: failFast, walkFn: walkFn}
+func newResourceAccumulator(logger Logger, failFast bool, walkFn WalkFunction) *resourceAccumulator {
+	res := resourceAccumulator{logger: logger, stopOn1stErr: failFast, walkFn: walkFn}
 
 	res.servicesToExpose = servicesToExpose{}
 
@@ -65,7 +65,7 @@ func newResourceFinder(logger Logger, failFast bool, walkFn WalkFunction) *resou
 // It scans a given directory using walkFn, looking for all yaml files. It then breaks each yaml into its documents
 // and extracts all K8s resources that are relevant for connectivity analysis.
 // The resources are stored in the struct, separated to workloads, services and configmaps
-func (rf *resourceFinder) getRelevantK8sResources(repoDir string) []FileProcessingError {
+func (rf *resourceAccumulator) getRelevantK8sResources(repoDir string) []FileProcessingError {
 	manifestFiles, fileScanErrors := rf.searchForManifests(repoDir)
 	if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
 		return fileScanErrors
@@ -88,7 +88,7 @@ func (rf *resourceFinder) getRelevantK8sResources(repoDir string) []FileProcessi
 }
 
 // searchForManifests returns a list of YAML files under a given directory (recursively)
-func (rf *resourceFinder) searchForManifests(repoDir string) ([]string, []FileProcessingError) {
+func (rf *resourceAccumulator) searchForManifests(repoDir string) ([]string, []FileProcessingError) {
 	yamls := []string{}
 	errors := []FileProcessingError{}
 	err := rf.walkFn(repoDir, func(path string, f os.DirEntry, err error) error {
@@ -112,7 +112,7 @@ func (rf *resourceFinder) searchForManifests(repoDir string) ([]string, []FilePr
 
 // parseK8sYaml takes a YAML file and attempts to parse each of its documents into
 // one of the relevant k8s resources
-func (rf *resourceFinder) parseK8sYaml(mfp, relMfp string) []FileProcessingError {
+func (rf *resourceAccumulator) parseK8sYaml(mfp, relMfp string) []FileProcessingError {
 	infos, errs := fsscanner.GetResourceInfosFromDirPath([]string{mfp}, false, rf.stopOn1stErr)
 	fileProcessingErrors := []FileProcessingError{}
 	for _, err := range errs {
@@ -136,7 +136,7 @@ func (rf *resourceFinder) parseK8sYaml(mfp, relMfp string) []FileProcessingError
 // parseInfo takes an Info object, parses it into a K8s resource and puts it into one of the 3 struct slices:
 // the workload resource slice, the Service resource slice and the ConfigMaps resource slice
 // It also updates the set of services to be exposed when parsing Ingress or OpenShift Routes
-func (rf *resourceFinder) parseInfo(info *resource.Info) error {
+func (rf *resourceAccumulator) parseInfo(info *resource.Info) error {
 	if info == nil || info.Object == nil {
 		return fmt.Errorf("a bad Info object - Object field is Nil")
 	}
@@ -203,7 +203,7 @@ func pathWithoutBaseDir(path, baseDir string) string {
 
 // inlineConfigMapRefsAsEnvs appends to the Envs of each given resource the ConfigMap values it is referring to
 // It should only be called after ALL calls to getRelevantK8sResources successfully returned
-func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
+func (rf *resourceAccumulator) inlineConfigMapRefsAsEnvs() []FileProcessingError {
 	cfgMapsByName := map[string]*cfgMap{}
 	for _, cm := range rf.configmaps {
 		cfgMapsByName[cm.FullName] = cm
@@ -248,7 +248,7 @@ func (rf *resourceFinder) inlineConfigMapRefsAsEnvs() []FileProcessingError {
 // exposeServices changes the exposure of services pointed by resources such as Route or Ingress.
 // This will ensure that the network policy for their workloads will allow ingress from all the cluster or from the outside internet.
 // It should only be called after ALL calls to getRelevantK8sResources successfully returned
-func (rf *resourceFinder) exposeServices() {
+func (rf *resourceAccumulator) exposeServices() {
 	for _, svc := range rf.services {
 		exposedServicesInNamespace, ok := rf.servicesToExpose[svc.Resource.Namespace]
 		if !ok {
