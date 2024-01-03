@@ -8,7 +8,6 @@ package analyzer
 
 import (
 	"fmt"
-	"path/filepath"
 	"regexp"
 
 	"k8s.io/cli-runtime/pkg/resource"
@@ -162,19 +161,6 @@ func (rf *resourceAccumulator) parseInfo(info *resource.Info) error {
 	}
 
 	return nil
-}
-
-// returns a file path without its prefix base dir
-func pathWithoutBaseDir(path, baseDir string) string {
-	if path == baseDir { // baseDir is actually a file...
-		return filepath.Base(path) // return just the file name
-	}
-
-	relPath, err := filepath.Rel(baseDir, path)
-	if err != nil {
-		return path
-	}
-	return relPath
 }
 
 // inlineConfigMapRefsAsEnvs appends to the Envs of each given resource the ConfigMap values it is referring to
