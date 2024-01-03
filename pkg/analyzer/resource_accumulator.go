@@ -58,25 +58,25 @@ func newResourceAccumulator(logger Logger, failFast bool, walkFn WalkFunction) *
 	return &res
 }
 
-// getRelevantK8sResources is the main function of resourceFinder.
+// getRelevantK8sResources is the main function of resourceAccumulator.
 // It scans a given directory using walkFn, looking for all yaml files. It then breaks each yaml into its documents
 // and extracts all K8s resources that are relevant for connectivity analysis.
 // The resources are stored in the struct, separated to workloads, services and configmaps
-func (rf *resourceAccumulator) getRelevantK8sResources(repoDir string) []FileProcessingError {
-	mf := manifestFinder{rf.logger, rf.stopOn1stErr, rf.walkFn}
+func (ra *resourceAccumulator) getRelevantK8sResources(repoDir string) []FileProcessingError {
+	mf := manifestFinder{ra.logger, ra.stopOn1stErr, ra.walkFn}
 	manifestFiles, fileScanErrors := mf.searchForManifests(repoDir)
-	if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
+	if stopProcessing(ra.stopOn1stErr, fileScanErrors) {
 		return fileScanErrors
 	}
 	if len(manifestFiles) == 0 {
-		fileScanErrors = appendAndLogNewError(fileScanErrors, noYamlsFound(), rf.logger)
+		fileScanErrors = appendAndLogNewError(fileScanErrors, noYamlsFound(), ra.logger)
 		return fileScanErrors
 	}
 
 	for _, mfp := range manifestFiles {
-		errs := rf.parseK8sYaml(mfp)
+		errs := ra.parseK8sYaml(mfp)
 		fileScanErrors = append(fileScanErrors, errs...)
-		if stopProcessing(rf.stopOn1stErr, fileScanErrors) {
+		if stopProcessing(ra.stopOn1stErr, fileScanErrors) {
 			return fileScanErrors
 		}
 	}
@@ -86,32 +86,32 @@ func (rf *resourceAccumulator) getRelevantK8sResources(repoDir string) []FilePro
 
 // parseK8sYaml takes a YAML file and attempts to parse each of its documents into
 // one of the relevant k8s resources
-func (rf *resourceAccumulator) parseK8sYaml(mfp string) []FileProcessingError {
-	infos, errs := fsscanner.GetResourceInfosFromDirPath([]string{mfp}, false, rf.stopOn1stErr)
+func (ra *resourceAccumulator) parseK8sYaml(mfp string) []FileProcessingError {
+	infos, errs := fsscanner.GetResourceInfosFromDirPath([]string{mfp}, false, ra.stopOn1stErr)
 	parseErrors := []FileProcessingError{}
 	for _, err := range errs {
-		parseErrors = appendAndLogNewError(parseErrors, failedReadingFile(mfp, err), rf.logger)
-		if stopProcessing(rf.stopOn1stErr, parseErrors) {
+		parseErrors = appendAndLogNewError(parseErrors, failedReadingFile(mfp, err), ra.logger)
+		if stopProcessing(ra.stopOn1stErr, parseErrors) {
 			return parseErrors
 		}
 	}
 
-	moreErrors := rf.parseInfos(infos)
+	moreErrors := ra.parseInfos(infos)
 	return append(parseErrors, moreErrors...)
 
 }
 
-func (rf *resourceAccumulator) parseInfos(infos []*resource.Info) []FileProcessingError {
+func (ra *resourceAccumulator) parseInfos(infos []*resource.Info) []FileProcessingError {
 	parseErrors := []FileProcessingError{}
 	for _, info := range infos {
-		err := rf.parseInfo(info)
+		err := ra.parseInfo(info)
 		if err != nil {
 			kind := "<unknown>"
 			if info != nil && info.Object != nil {
 				kind = info.Object.GetObjectKind().GroupVersionKind().Kind
 			}
-			parseErrors = appendAndLogNewError(parseErrors, failedScanningResource(kind, info.Source, err), rf.logger)
-			if stopProcessing(rf.stopOn1stErr, parseErrors) {
+			parseErrors = appendAndLogNewError(parseErrors, failedScanningResource(kind, info.Source, err), ra.logger)
+			if stopProcessing(ra.stopOn1stErr, parseErrors) {
 				return parseErrors
 			}
 		}
@@ -123,7 +123,7 @@ func (rf *resourceAccumulator) parseInfos(infos []*resource.Info) []FileProcessi
 // parseInfo takes an Info object, parses it into a K8s resource and puts it into one of the 3 struct slices:
 // the workload resource slice, the Service resource slice and the ConfigMaps resource slice
 // It also updates the set of services to be exposed when parsing Ingress or OpenShift Routes
-func (rf *resourceAccumulator) parseInfo(info *resource.Info) error {
+func (ra *resourceAccumulator) parseInfo(info *resource.Info) error {
 	if info == nil || info.Object == nil {
 		return fmt.Errorf("a bad Info object - Object field is Nil")
 	}
@@ -135,7 +135,7 @@ func (rf *resourceAccumulator) parseInfo(info *resource.Info) error {
 		if resourcePath != "" {
 			msg = fmt.Sprintf("in file: %s, %s", resourcePath, msg)
 		}
-		rf.logger.Infof(msg)
+		ra.logger.Infof(msg)
 		return nil
 	}
 
@@ -146,14 +146,14 @@ func (rf *resourceAccumulator) parseInfo(info *resource.Info) error {
 			return err
 		}
 		res.Resource.FilePath = info.Source
-		rf.services = append(rf.services, res)
+		ra.services = append(ra.services, res)
 	case route:
-		err := ocRouteFromInfo(info, rf.servicesToExpose)
+		err := ocRouteFromInfo(info, ra.servicesToExpose)
 		if err != nil {
 			return err
 		}
 	case ingress:
-		err := k8sIngressFromInfo(info, rf.servicesToExpose)
+		err := k8sIngressFromInfo(info, ra.servicesToExpose)
 		if err != nil {
 			return err
 		}
@@ -162,14 +162,14 @@ func (rf *resourceAccumulator) parseInfo(info *resource.Info) error {
 		if err != nil {
 			return err
 		}
-		rf.configmaps = append(rf.configmaps, res)
+		ra.configmaps = append(ra.configmaps, res)
 	default:
 		res, err := k8sWorkloadObjectFromInfo(info)
 		if err != nil {
 			return err
 		}
 		res.Resource.FilePath = info.Source
-		rf.workloads = append(rf.workloads, res)
+		ra.workloads = append(ra.workloads, res)
 	}
 
 	return nil
@@ -177,14 +177,14 @@ func (rf *resourceAccumulator) parseInfo(info *resource.Info) error {
 
 // inlineConfigMapRefsAsEnvs appends to the Envs of each given resource the ConfigMap values it is referring to
 // It should only be called after ALL calls to getRelevantK8sResources successfully returned
-func (rf *resourceAccumulator) inlineConfigMapRefsAsEnvs() []FileProcessingError {
+func (ra *resourceAccumulator) inlineConfigMapRefsAsEnvs() []FileProcessingError {
 	cfgMapsByName := map[string]*cfgMap{}
-	for _, cm := range rf.configmaps {
+	for _, cm := range ra.configmaps {
 		cfgMapsByName[cm.FullName] = cm
 	}
 
 	parseErrors := []FileProcessingError{}
-	for _, res := range rf.workloads {
+	for _, res := range ra.workloads {
 		// inline the envFrom field in PodSpec->containers
 		for _, cfgMapRef := range res.Resource.ConfigMapRefs {
 			configmapFullName := res.Resource.Namespace + "/" + cfgMapRef
@@ -195,7 +195,7 @@ func (rf *resourceAccumulator) inlineConfigMapRefsAsEnvs() []FileProcessingError
 					}
 				}
 			} else {
-				parseErrors = appendAndLogNewError(parseErrors, configMapNotFound(configmapFullName, res.Resource.Name), rf.logger)
+				parseErrors = appendAndLogNewError(parseErrors, configMapNotFound(configmapFullName, res.Resource.Name), ra.logger)
 			}
 		}
 
@@ -209,10 +209,10 @@ func (rf *resourceAccumulator) inlineConfigMapRefsAsEnvs() []FileProcessingError
 					}
 				} else {
 					err := configMapKeyNotFound(cfgMapKeyRef.Name, cfgMapKeyRef.Key, res.Resource.Name)
-					parseErrors = appendAndLogNewError(parseErrors, err, rf.logger)
+					parseErrors = appendAndLogNewError(parseErrors, err, ra.logger)
 				}
 			} else {
-				parseErrors = appendAndLogNewError(parseErrors, configMapNotFound(configmapFullName, res.Resource.Name), rf.logger)
+				parseErrors = appendAndLogNewError(parseErrors, configMapNotFound(configmapFullName, res.Resource.Name), ra.logger)
 			}
 		}
 	}
@@ -222,9 +222,9 @@ func (rf *resourceAccumulator) inlineConfigMapRefsAsEnvs() []FileProcessingError
 // exposeServices changes the exposure of services pointed by resources such as Route or Ingress.
 // This will ensure that the network policy for their workloads will allow ingress from all the cluster or from the outside internet.
 // It should only be called after ALL calls to getRelevantK8sResources successfully returned
-func (rf *resourceAccumulator) exposeServices() {
-	for _, svc := range rf.services {
-		exposedServicesInNamespace, ok := rf.servicesToExpose[svc.Resource.Namespace]
+func (ra *resourceAccumulator) exposeServices() {
+	for _, svc := range ra.services {
+		exposedServicesInNamespace, ok := ra.servicesToExpose[svc.Resource.Namespace]
 		if !ok {
 			continue
 		}
