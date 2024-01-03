@@ -175,18 +175,25 @@ func (ps *PoliciesSynthesizer) extractConnectionsFromInfos(infos []*resource.Inf
 	return wls, conns, fileErrors
 }
 
-// Scans the given directory for YAMLs with k8s resources and extracts required connections between workloads
+// Scans the given directories for YAMLs with k8s resources and extracts required connections between workloads
 func (ps *PoliciesSynthesizer) extractConnectionsFromFolderPaths(dirPaths []string) (
 	[]*Resource, []*Connections, []FileProcessingError) {
-	resAcc := newResourceAccumulator(ps.logger, ps.stopOnError, ps.walkFn)
-	fileErrors := []FileProcessingError{}
-	for _, dirPath := range dirPaths {
-		errs := resAcc.getRelevantK8sResources(dirPath)
-		fileErrors = append(fileErrors, errs...)
-		if stopProcessing(ps.stopOnError, errs) {
-			return nil, nil, fileErrors
-		}
+	// Find all manifest YAML files
+	mf := manifestFinder{ps.logger, ps.stopOnError, ps.walkFn}
+	manifestFiles, fileErrors := mf.searchForManifestsInDirs(dirPaths)
+	if stopProcessing(ps.stopOnError, fileErrors) {
+		return nil, nil, fileErrors
 	}
+
+	// Parse YAMLs and extract relevant resources
+	resAcc := newResourceAccumulator(ps.logger, ps.stopOnError, ps.walkFn)
+	parseErrors := resAcc.parseK8sYamls(manifestFiles)
+	fileErrors = append(fileErrors, parseErrors...)
+	if stopProcessing(ps.stopOnError, fileErrors) {
+		return nil, nil, fileErrors
+	}
+
+	// discover connections from the set of resources
 	wls, conns, errs := ps.extractConnections(resAcc)
 	fileErrors = append(fileErrors, errs...)
 	return wls, conns, fileErrors

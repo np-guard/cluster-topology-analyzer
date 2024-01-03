@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package analyzer
 
 import (
+	"errors"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -18,7 +19,7 @@ import (
 func TestSearchForManifests(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls")
 	manFinder := manifestFinder{NewDefaultLogger(), false, filepath.WalkDir}
-	yamlFiles, errs := manFinder.searchForManifests(dirPath)
+	yamlFiles, errs := manFinder.searchForManifestsInDir(dirPath)
 	require.Empty(t, errs)
 	require.Len(t, yamlFiles, 5)
 }
@@ -39,7 +40,27 @@ func nonRecursiveWalk(root string, fn fs.WalkDirFunc) error {
 func TestSearchForManifestsNonRecursiveWalk(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls")
 	manFinder := manifestFinder{NewDefaultLogger(), false, nonRecursiveWalk}
-	yamlFiles, errs := manFinder.searchForManifests(dirPath)
+	yamlFiles, errs := manFinder.searchForManifestsInDir(dirPath)
 	require.Empty(t, errs)
 	require.Len(t, yamlFiles, 4)
+}
+
+func TestSearchForManifestsMultipleDirs(t *testing.T) {
+	dirPath1 := filepath.Join(getTestsDir(), "k8s_wordpress_example")
+	dirPath2 := filepath.Join(getTestsDir(), "onlineboutique")
+	manFinder := manifestFinder{NewDefaultLogger(), false, filepath.WalkDir}
+	yamlFiles, errs := manFinder.searchForManifestsInDirs([]string{dirPath1, dirPath2})
+	require.Empty(t, errs)
+	require.Len(t, yamlFiles, 5)
+}
+
+func TestSearchForManifestsMultipleDirsWithErrors(t *testing.T) {
+	dirPath1 := filepath.Join(getTestsDir(), "k8s_wordpress_example")
+	dirPath2 := filepath.Join(getTestsDir(), "badPath")
+	manFinder := manifestFinder{NewDefaultLogger(), false, filepath.WalkDir}
+	yamlFiles, errs := manFinder.searchForManifestsInDirs([]string{dirPath1, dirPath2})
+	badDir := &FailedAccessingDirError{}
+	require.NotEmpty(t, errs)
+	require.True(t, errors.As(errs[0].Error(), &badDir))
+	require.Empty(t, yamlFiles)
 }

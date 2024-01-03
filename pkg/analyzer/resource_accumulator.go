@@ -64,7 +64,7 @@ func newResourceAccumulator(logger Logger, failFast bool, walkFn WalkFunction) *
 // The resources are stored in the struct, separated to workloads, services and configmaps
 func (ra *resourceAccumulator) getRelevantK8sResources(repoDir string) []FileProcessingError {
 	mf := manifestFinder{ra.logger, ra.stopOn1stErr, ra.walkFn}
-	manifestFiles, fileScanErrors := mf.searchForManifests(repoDir)
+	manifestFiles, fileScanErrors := mf.searchForManifestsInDir(repoDir)
 	if stopProcessing(ra.stopOn1stErr, fileScanErrors) {
 		return fileScanErrors
 	}
@@ -105,7 +105,6 @@ func (ra *resourceAccumulator) parseK8sYaml(mfp string) []FileProcessingError {
 
 	moreErrors := ra.parseInfos(infos)
 	return append(parseErrors, moreErrors...)
-
 }
 
 // A convenience function to call parseInfo() on multiple Info objects
