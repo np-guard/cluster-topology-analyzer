@@ -73,18 +73,25 @@ func (ra *resourceAccumulator) getRelevantK8sResources(repoDir string) []FilePro
 		return fileScanErrors
 	}
 
-	for _, mfp := range manifestFiles {
+	parseErrors := ra.parseK8sYamls(manifestFiles)
+	return append(fileScanErrors, parseErrors...)
+}
+
+// A convenience function to call parseK8sYaml() on multiple YAML paths
+func (ra *resourceAccumulator) parseK8sYamls(yamlPaths []string) []FileProcessingError {
+	parseErrors := []FileProcessingError{}
+	for _, mfp := range yamlPaths {
 		errs := ra.parseK8sYaml(mfp)
-		fileScanErrors = append(fileScanErrors, errs...)
-		if stopProcessing(ra.stopOn1stErr, fileScanErrors) {
-			return fileScanErrors
+		parseErrors = append(parseErrors, errs...)
+		if stopProcessing(ra.stopOn1stErr, parseErrors) {
+			return parseErrors
 		}
 	}
 
-	return fileScanErrors
+	return parseErrors
 }
 
-// parseK8sYaml takes a YAML file and attempts to parse each of its documents into
+// parseK8sYaml takes the path to a single YAML file and attempts to parse each of its documents into
 // one of the relevant k8s resources
 func (ra *resourceAccumulator) parseK8sYaml(mfp string) []FileProcessingError {
 	infos, errs := fsscanner.GetResourceInfosFromDirPath([]string{mfp}, false, ra.stopOn1stErr)
@@ -101,6 +108,7 @@ func (ra *resourceAccumulator) parseK8sYaml(mfp string) []FileProcessingError {
 
 }
 
+// A convenience function to call parseInfo() on multiple Info objects
 func (ra *resourceAccumulator) parseInfos(infos []*resource.Info) []FileProcessingError {
 	parseErrors := []FileProcessingError{}
 	for _, info := range infos {
