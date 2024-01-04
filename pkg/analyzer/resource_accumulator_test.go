@@ -16,7 +16,7 @@ import (
 
 func TestParseK8sYamlBadYamlDocument(t *testing.T) {
 	badYamlPath := filepath.Join(getTestsDir(), "bad_yamls", "document_with_syntax_error.yaml")
-	resAcc := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
+	resAcc := newResourceAccumulator(NewDefaultLogger(), false)
 	errs := resAcc.parseK8sYaml(badYamlPath)
 	require.Len(t, errs, 1)
 	badFile := &FailedReadingFileError{}
@@ -29,7 +29,7 @@ func TestParseK8sYamlBadYamlDocument(t *testing.T) {
 
 func TestParseK8sYamlBadYamlDocumentFailFast(t *testing.T) {
 	badYamlPath := filepath.Join(getTestsDir(), "bad_yamls", "document_with_syntax_error.yaml")
-	resAcc := newResourceAccumulator(NewDefaultLogger(), true, filepath.WalkDir)
+	resAcc := newResourceAccumulator(NewDefaultLogger(), true)
 	errs := resAcc.parseK8sYaml(badYamlPath)
 	require.Len(t, errs, 1)
 	badFile := &FailedReadingFileError{}
@@ -42,7 +42,7 @@ func TestParseK8sYamlBadYamlDocumentFailFast(t *testing.T) {
 
 func TestParseK8sYamlNoK8sResource(t *testing.T) {
 	yamlPath := filepath.Join(getTestsDir(), "bad_yamls", "not_a_k8s_resource.yaml")
-	resAcc := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
+	resAcc := newResourceAccumulator(NewDefaultLogger(), false)
 	errs := resAcc.parseK8sYaml(yamlPath)
 	require.Len(t, errs, 1)
 	fileErr := &FailedReadingFileError{}
@@ -54,7 +54,7 @@ func TestParseK8sYamlNoK8sResource(t *testing.T) {
 
 func TestParseK8sYamlNotYAML(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "..", ".gitignore")
-	resAcc := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
+	resAcc := newResourceAccumulator(NewDefaultLogger(), false)
 	errs := resAcc.parseK8sYaml(dirPath)
 	require.Len(t, errs, 1)
 	noYamls := &FailedReadingFileError{}
@@ -66,7 +66,7 @@ func TestParseK8sYamlNotYAML(t *testing.T) {
 
 func TestParseK8sYamlNoSuchFile(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "no_such_file") // doesn't exist
-	resAcc := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
+	resAcc := newResourceAccumulator(NewDefaultLogger(), false)
 	errs := resAcc.parseK8sYaml(dirPath)
 	require.Len(t, errs, 1)
 	badDir := &FailedReadingFileError{}
@@ -78,7 +78,7 @@ func TestParseK8sYamlNoSuchFile(t *testing.T) {
 
 func TestParseK8sYamlNonK8sResources(t *testing.T) {
 	dirPath := filepath.Join(getTestsDir(), "bookinfo", "bookinfo-certificate.yaml")
-	resAcc := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
+	resAcc := newResourceAccumulator(NewDefaultLogger(), false)
 	errs := resAcc.parseK8sYaml(dirPath)
 	require.Empty(t, errs) // Irrelevant resources such as Certificate are only reported to log - not returned as errors
 }

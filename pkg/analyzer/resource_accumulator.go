@@ -42,7 +42,6 @@ var (
 type resourceAccumulator struct {
 	logger       Logger
 	stopOn1stErr bool
-	walkFn       WalkFunction // for customizing directory scan
 
 	workloads        []*Resource      // accumulates all workload resources found
 	services         []*Service       // accumulates all service resources found
@@ -50,8 +49,8 @@ type resourceAccumulator struct {
 	servicesToExpose servicesToExpose // stores which services should be later exposed
 }
 
-func newResourceAccumulator(logger Logger, failFast bool, walkFn WalkFunction) *resourceAccumulator {
-	res := resourceAccumulator{logger: logger, stopOn1stErr: failFast, walkFn: walkFn}
+func newResourceAccumulator(logger Logger, failFast bool) *resourceAccumulator {
+	res := resourceAccumulator{logger: logger, stopOn1stErr: failFast}
 
 	res.servicesToExpose = servicesToExpose{}
 

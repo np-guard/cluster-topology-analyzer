@@ -167,7 +167,7 @@ func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]
 
 func (ps *PoliciesSynthesizer) extractConnectionsFromInfos(infos []*resource.Info) (
 	[]*Resource, []*Connections, []FileProcessingError) {
-	resAcc := newResourceAccumulator(ps.logger, ps.stopOnError, ps.walkFn)
+	resAcc := newResourceAccumulator(ps.logger, ps.stopOnError)
 	fileErrors := resAcc.parseInfos(infos)
 
 	wls, conns, errs := ps.extractConnections(resAcc)
@@ -186,7 +186,7 @@ func (ps *PoliciesSynthesizer) extractConnectionsFromFolderPaths(dirPaths []stri
 	}
 
 	// Parse YAMLs and extract relevant resources
-	resAcc := newResourceAccumulator(ps.logger, ps.stopOnError, ps.walkFn)
+	resAcc := newResourceAccumulator(ps.logger, ps.stopOnError)
 	parseErrors := resAcc.parseK8sYamls(manifestFiles)
 	fileErrors = append(fileErrors, parseErrors...)
 	if stopProcessing(ps.stopOnError, fileErrors) {
