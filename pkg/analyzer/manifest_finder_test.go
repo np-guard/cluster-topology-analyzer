@@ -64,3 +64,13 @@ func TestSearchForManifestsMultipleDirsWithErrors(t *testing.T) {
 	require.True(t, errors.As(errs[0].Error(), &badDir))
 	require.Empty(t, yamlFiles)
 }
+
+func TestNoYamlsInDir(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "subdir2")
+	manFinder := manifestFinder{NewDefaultLogger(), false, filepath.WalkDir}
+	yamlFiles, errs := manFinder.searchForManifestsInDirs([]string{dirPath})
+	require.Len(t, errs, 1)
+	noYamls := &NoYamlsFoundError{}
+	require.True(t, errors.As(errs[0].Error(), &noYamls))
+	require.Empty(t, yamlFiles)
+}

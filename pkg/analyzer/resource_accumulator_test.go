@@ -14,10 +14,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetRelevantK8sResourcesBadYamlDocument(t *testing.T) {
-	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "document_with_syntax_error.yaml")
+func TestParseK8sYamlBadYamlDocument(t *testing.T) {
+	badYamlPath := filepath.Join(getTestsDir(), "bad_yamls", "document_with_syntax_error.yaml")
 	resAcc := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
-	errs := resAcc.getRelevantK8sResources(dirPath)
+	errs := resAcc.parseK8sYaml(badYamlPath)
 	require.Len(t, errs, 1)
 	badFile := &FailedReadingFileError{}
 	require.True(t, errors.As(errs[0].Error(), &badFile))
@@ -27,10 +27,10 @@ func TestGetRelevantK8sResourcesBadYamlDocument(t *testing.T) {
 	require.Empty(t, resAcc.configmaps)
 }
 
-func TestGetRelevantK8sResourcesBadYamlDocumentFailFast(t *testing.T) {
-	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "document_with_syntax_error.yaml")
+func TestParseK8sYamlBadYamlDocumentFailFast(t *testing.T) {
+	badYamlPath := filepath.Join(getTestsDir(), "bad_yamls", "document_with_syntax_error.yaml")
 	resAcc := newResourceAccumulator(NewDefaultLogger(), true, filepath.WalkDir)
-	errs := resAcc.getRelevantK8sResources(dirPath)
+	errs := resAcc.parseK8sYaml(badYamlPath)
 	require.Len(t, errs, 1)
 	badFile := &FailedReadingFileError{}
 	require.True(t, errors.As(errs[0].Error(), &badFile))
@@ -40,10 +40,10 @@ func TestGetRelevantK8sResourcesBadYamlDocumentFailFast(t *testing.T) {
 	require.Empty(t, resAcc.configmaps)
 }
 
-func TestGetRelevantK8sResourcesNoK8sResource(t *testing.T) {
-	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "not_a_k8s_resource.yaml")
+func TestParseK8sYamlNoK8sResource(t *testing.T) {
+	yamlPath := filepath.Join(getTestsDir(), "bad_yamls", "not_a_k8s_resource.yaml")
 	resAcc := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
-	errs := resAcc.getRelevantK8sResources(dirPath)
+	errs := resAcc.parseK8sYaml(yamlPath)
 	require.Len(t, errs, 1)
 	fileErr := &FailedReadingFileError{}
 	require.True(t, errors.As(errs[0].Error(), &fileErr))
@@ -52,45 +52,33 @@ func TestGetRelevantK8sResourcesNoK8sResource(t *testing.T) {
 	require.Empty(t, resAcc.configmaps)
 }
 
-func TestGetRelevantK8sResourcesNoYAMLs(t *testing.T) {
-	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "subdir2")
+func TestParseK8sYamlNotYAML(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "..", ".gitignore")
 	resAcc := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
-	errs := resAcc.getRelevantK8sResources(dirPath)
+	errs := resAcc.parseK8sYaml(dirPath)
 	require.Len(t, errs, 1)
-	noYamls := &NoYamlsFoundError{}
+	noYamls := &FailedReadingFileError{}
 	require.True(t, errors.As(errs[0].Error(), &noYamls))
 	require.Empty(t, resAcc.workloads)
 	require.Empty(t, resAcc.services)
 	require.Empty(t, resAcc.configmaps)
 }
 
-func TestGetRelevantK8sResourcesBadDir(t *testing.T) {
-	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "subdir3") // doesn't exist
+func TestParseK8sYamlNoSuchFile(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "no_such_file") // doesn't exist
 	resAcc := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
-	errs := resAcc.getRelevantK8sResources(dirPath)
+	errs := resAcc.parseK8sYaml(dirPath)
 	require.Len(t, errs, 1)
-	badDir := &FailedAccessingDirError{}
+	badDir := &FailedReadingFileError{}
 	require.True(t, errors.As(errs[0].Error(), &badDir))
 	require.Empty(t, resAcc.workloads)
 	require.Empty(t, resAcc.services)
 	require.Empty(t, resAcc.configmaps)
 }
 
-func TestGetRelevantK8sResourcesBadDirFailFast(t *testing.T) {
-	dirPath := filepath.Join(getTestsDir(), "bad_yamls", "subdir3") // doesn't exist
-	resAcc := newResourceAccumulator(NewDefaultLogger(), true, filepath.WalkDir)
-	errs := resAcc.getRelevantK8sResources(dirPath)
-	require.Len(t, errs, 1)
-	badDir := &FailedAccessingDirError{}
-	require.True(t, errors.As(errs[0].Error(), &badDir))
-	require.Empty(t, resAcc.workloads)
-	require.Empty(t, resAcc.services)
-	require.Empty(t, resAcc.configmaps)
-}
-
-func TestGetRelevantK8sResourcesNonK8sResources(t *testing.T) {
-	dirPath := filepath.Join(getTestsDir(), "bookinfo")
+func TestParseK8sYamlNonK8sResources(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "bookinfo", "bookinfo-certificate.yaml")
 	resAcc := newResourceAccumulator(NewDefaultLogger(), false, filepath.WalkDir)
-	errs := resAcc.getRelevantK8sResources(dirPath)
+	errs := resAcc.parseK8sYaml(dirPath)
 	require.Empty(t, errs) // Irrelevant resources such as Certificate are only reported to log - not returned as errors
 }

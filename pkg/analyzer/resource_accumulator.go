@@ -58,25 +58,6 @@ func newResourceAccumulator(logger Logger, failFast bool, walkFn WalkFunction) *
 	return &res
 }
 
-// getRelevantK8sResources is the main function of resourceAccumulator.
-// It scans a given directory using walkFn, looking for all yaml files. It then breaks each yaml into its documents
-// and extracts all K8s resources that are relevant for connectivity analysis.
-// The resources are stored in the struct, separated to workloads, services and configmaps
-func (ra *resourceAccumulator) getRelevantK8sResources(repoDir string) []FileProcessingError {
-	mf := manifestFinder{ra.logger, ra.stopOn1stErr, ra.walkFn}
-	manifestFiles, fileScanErrors := mf.searchForManifestsInDir(repoDir)
-	if stopProcessing(ra.stopOn1stErr, fileScanErrors) {
-		return fileScanErrors
-	}
-	if len(manifestFiles) == 0 {
-		fileScanErrors = appendAndLogNewError(fileScanErrors, noYamlsFound(), ra.logger)
-		return fileScanErrors
-	}
-
-	parseErrors := ra.parseK8sYamls(manifestFiles)
-	return append(fileScanErrors, parseErrors...)
-}
-
 // A convenience function to call parseK8sYaml() on multiple YAML paths
 func (ra *resourceAccumulator) parseK8sYamls(yamlPaths []string) []FileProcessingError {
 	parseErrors := []FileProcessingError{}
