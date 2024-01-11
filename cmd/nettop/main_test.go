@@ -66,6 +66,15 @@ var (
 			[]string{"onlineboutique", "expected_netpol_output.yaml"},
 		},
 		{
+			"NetpolsFromPodsOnlineBoutiqueYAML",
+			[][]string{{"onlineboutique-pods"}},
+			yamlFormat,
+			true,
+			nil,
+			false,
+			[]string{"onlineboutique-pods", "expected_netpol_output.yaml"},
+		},
+		{
 			"NetpolsMultiplePaths",
 			[][]string{{"k8s_wordpress_example", "mysql-deployment.yaml"}, {"k8s_wordpress_example", "wordpress-deployment.yaml"}},
 			jsonFormat,

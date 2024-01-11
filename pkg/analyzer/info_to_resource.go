@@ -30,7 +30,11 @@ func k8sWorkloadObjectFromInfo(info *resource.Info) (*Resource, error) {
 	var resourceCtx Resource
 	var metaObj metaV1.Object
 	resourceCtx.Resource.Kind = info.Object.GetObjectKind().GroupVersionKind().Kind
-	switch resourceCtx.Resource.Kind { // TODO: handle Pod
+	switch resourceCtx.Resource.Kind {
+	case "Pod":
+		obj := parseResourceFromInfo[v1.Pod](info)
+		podSpecV1 = &v1.PodTemplateSpec{Spec: obj.Spec, ObjectMeta: obj.ObjectMeta}
+		metaObj = obj
 	case "ReplicaSet":
 		obj := parseResourceFromInfo[appsv1.ReplicaSet](info)
 		podSpecV1 = &obj.Spec.Template
@@ -162,6 +166,7 @@ func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourc
 	resourceCtx.Resource.Name = obj.GetName()
 	resourceCtx.Resource.Namespace = obj.GetNamespace()
 	resourceCtx.Resource.Labels = podSpec.Labels
+	delete(resourceCtx.Resource.Labels, "pod-template-hash") // auto-generated - better not use it in netpols
 	resourceCtx.Resource.ServiceAccountName = podSpec.Spec.ServiceAccountName
 	for containerIdx := range podSpec.Spec.Containers {
 		container := &podSpec.Spec.Containers[containerIdx]

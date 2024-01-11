@@ -1,0 +1,439 @@
+apiVersion: networking.k8s.io/v1
+items:
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: adservice-77d5cd745d-t8mx4-netpol
+        namespace: default
+      spec:
+        ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: frontend
+              ports:
+                - port: 9555
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app: adservice
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: cartservice-74f56fd4b-8fjzp-netpol
+        namespace: default
+      spec:
+        egress:
+            - ports:
+                - port: 6379
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: redis-cart
+            - ports:
+                - port: 53
+                  protocol: UDP
+              to:
+                - namespaceSelector: {}
+        ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: checkoutservice
+              ports:
+                - port: 7070
+                  protocol: TCP
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: frontend
+              ports:
+                - port: 7070
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app: cartservice
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: checkoutservice-69c8ff664b-x5bhp-netpol
+        namespace: default
+      spec:
+        egress:
+            - ports:
+                - port: 7070
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: cartservice
+            - ports:
+                - port: 7000
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: currencyservice
+            - ports:
+                - port: 8080
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: emailservice
+            - ports:
+                - port: 50051
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: paymentservice
+            - ports:
+                - port: 3550
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: productcatalogservice
+            - ports:
+                - port: 50051
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: shippingservice
+            - ports:
+                - port: 53
+                  protocol: UDP
+              to:
+                - namespaceSelector: {}
+        ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: frontend
+              ports:
+                - port: 5050
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app: checkoutservice
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: currencyservice-77654bbbdd-kq4xj-netpol
+        namespace: default
+      spec:
+        ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: checkoutservice
+              ports:
+                - port: 7000
+                  protocol: TCP
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: frontend
+              ports:
+                - port: 7000
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app: currencyservice
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: emailservice-54c7c5d9d-vp27n-netpol
+        namespace: default
+      spec:
+        ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: checkoutservice
+              ports:
+                - port: 8080
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app: emailservice
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: frontend-99684f7f8-l7mqq-netpol
+        namespace: default
+      spec:
+        egress:
+            - ports:
+                - port: 9555
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: adservice
+            - ports:
+                - port: 7070
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: cartservice
+            - ports:
+                - port: 5050
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: checkoutservice
+            - ports:
+                - port: 7000
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: currencyservice
+            - ports:
+                - port: 3550
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: productcatalogservice
+            - ports:
+                - port: 8080
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: recommendationservice
+            - ports:
+                - port: 50051
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: shippingservice
+            - ports:
+                - port: 53
+                  protocol: UDP
+              to:
+                - namespaceSelector: {}
+        ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: loadgenerator
+              ports:
+                - port: 8080
+                  protocol: TCP
+            - ports:
+                - port: 8080
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app: frontend
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: loadgenerator-555fbdc87d-cgxv8-netpol
+        namespace: default
+      spec:
+        egress:
+            - ports:
+                - port: 8080
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: frontend
+            - ports:
+                - port: 53
+                  protocol: UDP
+              to:
+                - namespaceSelector: {}
+        podSelector:
+            matchLabels:
+                app: loadgenerator
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: paymentservice-bbcbdc6b6-87j92-netpol
+        namespace: default
+      spec:
+        ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: checkoutservice
+              ports:
+                - port: 50051
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app: paymentservice
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: productcatalogservice-68765d49b6-dkxzk-netpol
+        namespace: default
+      spec:
+        ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: checkoutservice
+              ports:
+                - port: 3550
+                  protocol: TCP
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: frontend
+              ports:
+                - port: 3550
+                  protocol: TCP
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: recommendationservice
+              ports:
+                - port: 3550
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app: productcatalogservice
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: recommendationservice-5f8c456796-b594r-netpol
+        namespace: default
+      spec:
+        egress:
+            - ports:
+                - port: 3550
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: productcatalogservice
+            - ports:
+                - port: 53
+                  protocol: UDP
+              to:
+                - namespaceSelector: {}
+        ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: frontend
+              ports:
+                - port: 8080
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app: recommendationservice
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: redis-cart-78746d49dc-5hk5z-netpol
+        namespace: default
+      spec:
+        ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: cartservice
+              ports:
+                - port: 6379
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app: redis-cart
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: shippingservice-5bd985c46d-mbb8l-netpol
+        namespace: default
+      spec:
+        ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: checkoutservice
+              ports:
+                - port: 50051
+                  protocol: TCP
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app: frontend
+              ports:
+                - port: 50051
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app: shippingservice
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: default-deny-in-namespace-default
+        namespace: default
+      spec:
+        podSelector: {}
+        policyTypes:
+            - Ingress
+            - Egress
+kind: NetworkPolicyList
+metadata: {}
