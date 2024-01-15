@@ -168,11 +168,14 @@ func (ps *PoliciesSynthesizer) ConnectionsFromFolderPaths(dirPaths []string) ([]
 func (ps *PoliciesSynthesizer) extractConnectionsFromInfos(infos []*resource.Info) (
 	[]*Resource, []*Connections, []FileProcessingError) {
 	resAcc := newResourceAccumulator(ps.logger, ps.stopOnError)
-	fileErrors := resAcc.parseInfos(infos)
+	parseErrors := resAcc.parseInfos(infos)
+	if stopProcessing(ps.stopOnError, parseErrors) {
+		return nil, nil, parseErrors
+	}
 
 	wls, conns, errs := ps.extractConnections(resAcc)
-	fileErrors = append(fileErrors, errs...)
-	return wls, conns, fileErrors
+	errs = append(parseErrors, errs...)
+	return wls, conns, errs
 }
 
 // Scans the given directories for YAMLs with k8s resources and extracts required connections between workloads
