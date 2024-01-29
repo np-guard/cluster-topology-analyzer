@@ -95,6 +95,16 @@ func (ps *PoliciesSynthesizer) Errors() []FileProcessingError {
 	return ps.errors
 }
 
+// ErrorPtrs returns a slice of pointers to FileProcessingError with all warnings and errors encountered during processing.
+// Might be easier to use than Errors() if the returned slice is to be used as a slice of interfaces.
+func (ps *PoliciesSynthesizer) ErrorPtrs() []*FileProcessingError {
+	ret := make([]*FileProcessingError, len(ps.errors))
+	for idx := range ps.errors {
+		ret[idx] = &ps.errors[idx]
+	}
+	return ret
+}
+
 // PoliciesFromInfos returns a slice of Kubernetes NetworkPolicies that allow only the connections discovered
 // while processing K8s resources in the given slice of Info objects.
 func (ps *PoliciesSynthesizer) PoliciesFromInfos(infos []*resource.Info) ([]*networking.NetworkPolicy, error) {
