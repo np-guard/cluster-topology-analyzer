@@ -153,6 +153,8 @@ func TestPoliciesSynthesizerAPIFailFast(t *testing.T) {
 	require.Len(t, synthesizer.Errors(), 1)
 	badYaml := &FailedReadingFileError{}
 	require.True(t, errors.As(synthesizer.Errors()[0].Error(), &badYaml))
+	require.Len(t, synthesizer.ErrorPtrs(), 1)
+	require.True(t, errors.As(synthesizer.ErrorPtrs()[0].Error(), &badYaml))
 	require.Empty(t, netpols)
 }
 
