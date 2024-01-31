@@ -21,8 +21,10 @@ func discoverConnections(resources []*Resource, links []*Service, logger Logger)
 			srcRes := findSource(resources, svc)
 			if len(srcRes) > 0 {
 				for _, r := range srcRes {
-					logger.Debugf("source: %s target: %s link: %s", svc.Resource.Name, r.Resource.Name, svc.Resource.Name)
-					connections = append(connections, &Connections{Source: r, Target: destRes, Link: svc})
+					if !r.equals(destRes) {
+						logger.Debugf("source: %s target: %s link: %s", r.Resource.Name, destRes.Resource.Name, svc.Resource.Name)
+						connections = append(connections, &Connections{Source: r, Target: destRes, Link: svc})
+					}
 				}
 			} else {
 				connections = append(connections, &Connections{Target: destRes, Link: svc}) // indicates a source-less service
