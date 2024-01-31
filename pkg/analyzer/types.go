@@ -41,6 +41,12 @@ type Resource struct {
 	} `json:"resource,omitempty"`
 }
 
+func (r1 *Resource) equals(r2 *Resource) bool {
+	return r1.Resource.Name == r2.Resource.Name &&
+		r1.Resource.Namespace == r2.Resource.Namespace &&
+		r1.Resource.Kind == r2.Resource.Kind
+}
+
 // SvcNetworkAttr is used to store port information
 type SvcNetworkAttr struct {
 	Port       int                `json:"port,omitempty"`
