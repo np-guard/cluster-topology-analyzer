@@ -301,11 +301,11 @@ func readLines(path string) ([]string, error) {
 func compareFiles(expectedFile, actualFile string) (bool, error) {
 	expectedLines, err1 := readLines(expectedFile)
 	if err1 != nil {
-		return false, fmt.Errorf("error reading lines from file %v", err1)
+		return false, fmt.Errorf("error reading lines from file %w", err1)
 	}
 	actualLines, err2 := readLines(actualFile)
 	if err2 != nil {
-		return false, fmt.Errorf("error reading lines from file %v", err2)
+		return false, fmt.Errorf("error reading lines from file %w", err2)
 	}
 	if len(expectedLines) != len(actualLines) {
 		fmt.Printf("Files line count is different: expected(%s): %d, actual(%s): %d",

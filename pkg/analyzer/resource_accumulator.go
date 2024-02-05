@@ -189,17 +189,18 @@ func (ra *resourceAccumulator) inlineConfigMapRefsAsEnvs() []FileProcessingError
 		// inline PodSpec->container->env->valueFrom->configMapKeyRef
 		for _, cfgMapKeyRef := range res.Resource.ConfigMapKeyRefs {
 			configmapFullName := res.Resource.Namespace + "/" + cfgMapKeyRef.Name
-			if cfgMap, ok := cfgMapsByName[configmapFullName]; ok {
-				if val, ok := cfgMap.Data[cfgMapKeyRef.Key]; ok {
-					if netAddr, ok := networkAddressFromStr(val); ok {
-						res.Resource.NetworkAddrs = append(res.Resource.NetworkAddrs, netAddr)
-					}
-				} else {
-					err := configMapKeyNotFound(cfgMapKeyRef.Name, cfgMapKeyRef.Key, res.Resource.Name)
-					parseErrors = appendAndLogNewError(parseErrors, err, ra.logger)
+			cfgMap, ok := cfgMapsByName[configmapFullName]
+			if !ok {
+				parseErrors = appendAndLogNewError(parseErrors, configMapNotFound(configmapFullName, res.Resource.Name), ra.logger)
+				continue
+			}
+			if val, ok := cfgMap.Data[cfgMapKeyRef.Key]; ok {
+				if netAddr, ok := networkAddressFromStr(val); ok {
+					res.Resource.NetworkAddrs = append(res.Resource.NetworkAddrs, netAddr)
 				}
 			} else {
-				parseErrors = appendAndLogNewError(parseErrors, configMapNotFound(configmapFullName, res.Resource.Name), ra.logger)
+				err := configMapKeyNotFound(cfgMapKeyRef.Name, cfgMapKeyRef.Key, res.Resource.Name)
+				parseErrors = appendAndLogNewError(parseErrors, err, ra.logger)
 			}
 		}
 	}
