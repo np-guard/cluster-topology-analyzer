@@ -24,7 +24,7 @@ const (
 	statefulSet           string = "StatefulSet"
 	daemonSet             string = "DaemonSet"
 	job                   string = "Job"
-	cronJob               string = "CronTab"
+	cronJob               string = "CronJob"
 	service               string = "Service"
 	configmap             string = "ConfigMap"
 	route                 string = "Route"
