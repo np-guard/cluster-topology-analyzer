@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -36,7 +37,7 @@ func TestNetworkAddressValue(t *testing.T) {
 }
 
 func TestScanningSvc(t *testing.T) {
-	resourceInfo, err := loadResourceAsInfo([]string{"k8s_guestbook", "frontend-service.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"k8s_guestbook", "frontend-service.yaml"}, 0)
 	require.Nil(t, err)
 	res, err := k8sServiceFromInfo(resourceInfo)
 	require.Nil(t, err)
@@ -47,7 +48,7 @@ func TestScanningSvc(t *testing.T) {
 }
 
 func TestScanningDeploymentWithArgs(t *testing.T) {
-	resourceInfo, err := loadResourceAsInfo([]string{"sockshop", "manifests", "01-carts-dep.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"sockshop", "manifests", "01-carts-dep.yaml"}, 0)
 	require.Nil(t, err)
 	res, err := k8sWorkloadObjectFromInfo(resourceInfo)
 	require.Nil(t, err)
@@ -59,7 +60,7 @@ func TestScanningDeploymentWithArgs(t *testing.T) {
 }
 
 func TestScanningDeploymentWithEnvs(t *testing.T) {
-	resourceInfo, err := loadResourceAsInfo([]string{"k8s_guestbook", "frontend-deployment.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"k8s_guestbook", "frontend-deployment.yaml"}, 0)
 	require.Nil(t, err)
 	res, err := k8sWorkloadObjectFromInfo(resourceInfo)
 	require.Nil(t, err)
@@ -69,7 +70,7 @@ func TestScanningDeploymentWithEnvs(t *testing.T) {
 }
 
 func TestScanningDeploymentWithConfigMapRef(t *testing.T) {
-	resourceInfo, err := loadResourceAsInfo([]string{"acs-security-demos", "frontend", "webapp", "deployment.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"acs-security-demos", "frontend", "webapp", "deployment.yaml"}, 0)
 	require.Nil(t, err)
 	res, err := k8sWorkloadObjectFromInfo(resourceInfo)
 	require.Nil(t, err)
@@ -80,7 +81,7 @@ func TestScanningDeploymentWithConfigMapRef(t *testing.T) {
 }
 
 func TestScanningReplicaSet(t *testing.T) {
-	resourceInfo, err := loadResourceAsInfo([]string{"k8s_guestbook", "redis-leader-deployment.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"k8s_guestbook", "redis-leader-deployment.yaml"}, 0)
 	require.Nil(t, err)
 	res, err := k8sWorkloadObjectFromInfo(resourceInfo)
 	require.Nil(t, err)
@@ -90,7 +91,7 @@ func TestScanningReplicaSet(t *testing.T) {
 }
 
 func TestScanningConfigMap(t *testing.T) {
-	resourceInfo, err := loadResourceAsInfo([]string{"qotd", "qotd_usecase.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"qotd", "qotd_usecase.yaml"}, 0)
 	require.Nil(t, err)
 	res, err := k8sConfigmapFromInfo(resourceInfo)
 	require.Nil(t, err)
@@ -99,7 +100,7 @@ func TestScanningConfigMap(t *testing.T) {
 }
 
 func TestScanningIngress(t *testing.T) {
-	resourceInfo, err := loadResourceAsInfo([]string{"bookinfo", "bookinfo-ingress.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"bookinfo", "bookinfo-ingress.yaml"}, 0)
 	require.Nil(t, err)
 	toExpose := servicesToExpose{}
 	err = k8sIngressFromInfo(resourceInfo, toExpose)
@@ -108,7 +109,7 @@ func TestScanningIngress(t *testing.T) {
 }
 
 func TestScanningRoute(t *testing.T) {
-	resourceInfo, err := loadResourceAsInfo([]string{"acs-security-demos", "frontend", "webapp", "route.yaml"})
+	resourceInfo, err := loadResourceAsInfo([]string{"acs-security-demos", "frontend", "webapp", "route.yaml"}, 0)
 	require.Nil(t, err)
 	toExpose := servicesToExpose{}
 	err = ocRouteFromInfo(resourceInfo, toExpose)
@@ -116,7 +117,18 @@ func TestScanningRoute(t *testing.T) {
 	require.Len(t, toExpose, 1)
 }
 
-func loadResourceAsInfo(resourceDirs []string) (*resource.Info, error) {
+func TestScanningCronJob(t *testing.T) {
+	resourceInfo, err := loadResourceAsInfo([]string{"openshift", "openshift-operator-lifecycle-manager-resources.yaml"}, 7)
+	require.Nil(t, err)
+	res, err := k8sWorkloadObjectFromInfo(resourceInfo)
+	require.Nil(t, err)
+	require.Equal(t, "collect-profiles", res.Resource.Name)
+	require.Equal(t, cronJob, res.Resource.Kind)
+	require.Len(t, res.Resource.NetworkAddrs, 1)
+	require.Len(t, res.Resource.Labels, 0)
+}
+
+func loadResourceAsInfo(resourceDirs []string, infoIndex int) (*resource.Info, error) {
 	currentDir, _ := os.Getwd()
 	resourceRelPath := filepath.Join(resourceDirs...)
 	resourcePath := filepath.Join(currentDir, "..", "..", "tests", resourceRelPath)
@@ -126,5 +138,9 @@ func loadResourceAsInfo(resourceDirs []string) (*resource.Info, error) {
 		return nil, errs[0]
 	}
 
-	return infos[0], nil
+	if len(infos) <= infoIndex {
+		return nil, fmt.Errorf("Info  number %d was required, but only %d Infos were read", infoIndex, len(infos))
+	}
+
+	return infos[infoIndex], nil
 }
