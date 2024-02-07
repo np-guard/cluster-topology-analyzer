@@ -31,31 +31,35 @@ func k8sWorkloadObjectFromInfo(info *resource.Info) (*Resource, error) {
 	var metaObj metaV1.Object
 	resourceCtx.Resource.Kind = info.Object.GetObjectKind().GroupVersionKind().Kind
 	switch resourceCtx.Resource.Kind {
-	case "Pod":
+	case pod:
 		obj := parseResourceFromInfo[v1.Pod](info)
 		podSpecV1 = &v1.PodTemplateSpec{Spec: obj.Spec, ObjectMeta: obj.ObjectMeta}
 		metaObj = obj
-	case "ReplicaSet":
+	case replicaSet:
 		obj := parseResourceFromInfo[appsv1.ReplicaSet](info)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
-	case "ReplicationController":
+	case replicationController:
 		obj := parseResourceFromInfo[v1.ReplicationController](info)
 		podSpecV1 = obj.Spec.Template
 		metaObj = obj
-	case "Deployment":
+	case deployment:
 		obj := parseResourceFromInfo[appsv1.Deployment](info)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
-	case "DaemonSet":
+	case daemonSet:
 		obj := parseResourceFromInfo[appsv1.DaemonSet](info)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
-	case "StatefulSet":
+	case statefulSet:
 		obj := parseResourceFromInfo[appsv1.StatefulSet](info)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
-	case "Job":
+	case cronJob:
+		obj := parseResourceFromInfo[batchv1.CronJob](info)
+		podSpecV1 = &obj.Spec.JobTemplate.Spec.Template
+		metaObj = obj
+	case job:
 		obj := parseResourceFromInfo[batchv1.Job](info)
 		podSpecV1 = &obj.Spec.Template
 		metaObj = obj
