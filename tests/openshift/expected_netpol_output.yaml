@@ -1,0 +1,97 @@
+apiVersion: networking.k8s.io/v1
+items:
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: catalog-operator-netpol
+        namespace: openshift-operator-lifecycle-manager
+      spec:
+        ingress:
+            - from:
+                - podSelector: {}
+              ports:
+                - port: 8443
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app: catalog-operator
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: collect-profiles-netpol
+        namespace: openshift-operator-lifecycle-manager
+      spec:
+        egress:
+            - ports:
+                - port: 8443
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: catalog-operator
+            - ports:
+                - port: 8443
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app: olm-operator
+            - ports:
+                - port: 53
+                  protocol: UDP
+              to:
+                - namespaceSelector: {}
+        podSelector: {}
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: olm-operator-netpol
+        namespace: openshift-operator-lifecycle-manager
+      spec:
+        ingress:
+            - from:
+                - podSelector: {}
+              ports:
+                - port: 8443
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app: olm-operator
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: packageserver-netpol
+        namespace: openshift-operator-lifecycle-manager
+      spec:
+        podSelector:
+            matchLabels:
+                app: packageserver
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: default-deny-in-namespace-openshift-operator-lifecycle-manager
+        namespace: openshift-operator-lifecycle-manager
+      spec:
+        podSelector: {}
+        policyTypes:
+            - Ingress
+            - Egress
+kind: NetworkPolicyList
+metadata: {}
