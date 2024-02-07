@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"unicode"
 
 	ocroutev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -218,7 +219,19 @@ func appendNetworkAddresses(networkAddresses, values []string) []string {
 // because it decides if the given string is an evidence for a potentially required connectivity.
 // If it succeeds, a "cleaned" network address is returned as a string, together with the value true.
 // Otherwise (there does not seem to be a network address in "value"), it returns "" with the value false.
+// As value may be in the form of e.g. "key:val" where "val" holds the network address, we will check several possible suffixes.
 func networkAddressFromStr(value string) (string, bool) {
+	suffixes := possibleSuffixes(value)
+	for _, suffix := range suffixes {
+		addr, ok := networkAddressFromSuffix(suffix)
+		if ok {
+			return addr, ok
+		}
+	}
+	return "", false
+}
+
+func networkAddressFromSuffix(value string) (string, bool) {
 	host, err := getHostFromURL(value)
 	if err != nil {
 		return "", false // value cannot be interpreted as a URL
@@ -226,8 +239,15 @@ func networkAddressFromStr(value string) (string, bool) {
 
 	hostNoPort := host
 	colonPos := strings.Index(host, ":")
-	if colonPos >= 0 {
+	if colonPos >= 0 { // host includes port number or port name
 		hostNoPort = host[:colonPos]
+		port := host[colonPos+1:] // now validate the port
+		if len(validation.IsValidPortName(port)) > 0 {
+			portInt, _ := strconv.Atoi(port)
+			if len(validation.IsValidPortNum(portInt)) > 0 {
+				return "", false
+			}
+		}
 	}
 
 	errs := validation.IsDNS1123Subdomain(hostNoPort)
@@ -240,6 +260,24 @@ func networkAddressFromStr(value string) (string, bool) {
 		return "", false // we do not accept integers as network addresses
 	}
 	return host, true
+}
+
+// Sometimes the given value includes the network address as its suffix.
+// For example, a command-line arg may look like "server-addr=my_server:5000"
+// If we are unable to convert "value" to a network address, we may also want to check its suffixes.
+// This function returns all suffixes that start with a letter, and have ':', ' ' or '=' just before this initial letter.
+func possibleSuffixes(value string) []string {
+	res := []string{value}
+
+	var prevRune rune
+	for i, r := range value {
+		if i > 1 && unicode.IsLetter(r) && (prevRune == ':' || prevRune == '=' || prevRune == ' ') {
+			res = append(res, value[i:])
+		}
+		prevRune = r
+	}
+
+	return res
 }
 
 // Attempts to parse the given string as a URL, and extract its Host part.
