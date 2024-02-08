@@ -28,6 +28,8 @@ func TestNetworkAddressValue(t *testing.T) {
 		"not%a*url":                     {"", false},
 		"123":                           {"", false},
 		"olm-operator-heap-:https://olm-operator-metrics:8443/debug/pprof/heap": {"olm-operator-metrics:8443", true},
+		"-server=my-server:5024":  {"my-server:5024", true},
+		"-server=my-server:502%4": {"", false}, // port number is invalid
 	}
 
 	for val, expectedAnswer := range valuesToCheck {
