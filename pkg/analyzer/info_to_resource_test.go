@@ -27,6 +27,9 @@ func TestNetworkAddressValue(t *testing.T) {
 		strings.Repeat("abc", 500):      {"", false},
 		"not%a*url":                     {"", false},
 		"123":                           {"", false},
+		"olm-operator-heap-:https://olm-operator-metrics:8443/debug/pprof/heap": {"olm-operator-metrics:8443", true},
+		"-server=my-server:5024":  {"my-server:5024", true},
+		"-server=my-server:502%4": {"", false}, // port number is invalid
 	}
 
 	for val, expectedAnswer := range valuesToCheck {
@@ -53,8 +56,9 @@ func TestScanningDeploymentWithArgs(t *testing.T) {
 	res, err := k8sWorkloadObjectFromInfo(resourceInfo)
 	require.Nil(t, err)
 	require.Equal(t, "carts", res.Resource.Name)
-	require.Len(t, res.Resource.NetworkAddrs, 1)
-	require.Equal(t, "carts-db:27017", res.Resource.NetworkAddrs[0])
+	require.Len(t, res.Resource.NetworkAddrs, 2)
+	require.Equal(t, "false", res.Resource.NetworkAddrs[0])
+	require.Equal(t, "carts-db:27017", res.Resource.NetworkAddrs[1])
 	require.Len(t, res.Resource.Labels, 1)
 	require.Equal(t, "carts", res.Resource.Labels["name"])
 }
@@ -124,7 +128,7 @@ func TestScanningCronJob(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, "collect-profiles", res.Resource.Name)
 	require.Equal(t, cronJob, res.Resource.Kind)
-	require.Len(t, res.Resource.NetworkAddrs, 1)
+	require.Len(t, res.Resource.NetworkAddrs, 3)
 	require.Len(t, res.Resource.Labels, 0)
 }
 

@@ -138,6 +138,15 @@ var (
 			[]string{"qotd", "expected_netpol_output.json"},
 		},
 		{
+			"CronJobWithNontrivialNetworkAddresses",
+			[][]string{{"openshift", "openshift-operator-lifecycle-manager-resources.yaml"}},
+			yamlFormat,
+			true,
+			[]string{"-v"},
+			false,
+			[]string{"openshift", "expected_netpol_output.yaml"},
+		},
+		{
 			"SpecifyDNSPort",
 			[][]string{{"acs-security-demos"}},
 			yamlFormat,
