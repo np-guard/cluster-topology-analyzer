@@ -12,7 +12,7 @@ import (
 
 	"k8s.io/cli-runtime/pkg/resource"
 
-	"github.com/np-guard/netpol-analyzer/pkg/netpol/manifests/fsscanner"
+	"github.com/np-guard/netpol-analyzer/pkg/manifests/fsscanner"
 )
 
 // K8s resources that are relevant for connectivity analysis
