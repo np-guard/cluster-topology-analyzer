@@ -137,6 +137,7 @@ const (
 	endpointsPortDelim = "|"
 	commentToken       = "#"
 	wildcardToken      = "*"
+	endpointParts      = 3
 )
 
 type workloadAndService struct {
@@ -224,7 +225,7 @@ func (ce *connectionExtractor) parseConnectionLine(line string, lineNum int) ([]
 
 func (ce *connectionExtractor) parseEndpoints(endpoint string, lineNum int) ([]workloadAndService, error) {
 	parts := strings.Split(endpoint, "/")
-	if len(parts) != 3 {
+	if len(parts) != endpointParts {
 		return nil, syntaxError("source and destination must be of the form namespace/kind/name", lineNum)
 	}
 	ns, kind, name := parts[0], parts[1], parts[2]
