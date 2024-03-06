@@ -31,10 +31,11 @@ type WalkFunction func(root string, fn fs.WalkDirFunc) error
 // It is possible to get either a slice with all the discovered connections or a slice with K8s NetworkPolicies
 // that allow only the discovered connections and nothing more.
 type PoliciesSynthesizer struct {
-	logger      Logger
-	stopOnError bool
-	walkFn      WalkFunction
-	dnsPort     int
+	logger          Logger
+	stopOnError     bool
+	walkFn          WalkFunction
+	dnsPort         int
+	connectionsFile string
 
 	errors []FileProcessingError
 }
@@ -71,6 +72,12 @@ func WithStopOnError() PoliciesSynthesizerOption {
 func WithDNSPort(dnsPort int) PoliciesSynthesizerOption {
 	return func(p *PoliciesSynthesizer) {
 		p.dnsPort = dnsPort
+	}
+}
+
+func WithConnectionsFile(filename string) PoliciesSynthesizerOption {
+	return func(p *PoliciesSynthesizer) {
+		p.connectionsFile = filename
 	}
 }
 
@@ -227,7 +234,18 @@ func (ps *PoliciesSynthesizer) extractConnections(resAcc *resourceAccumulator) (
 	resAcc.exposeServices()
 
 	// Discover all connections between resources
-	connections := discoverConnections(resAcc.workloads, resAcc.services, ps.logger)
+	ce := connectionExtractor{resAcc.workloads, resAcc.services, ps.logger}
+	connections := ce.discoverConnections()
+
+	// If user specified a file with extra connections, add them too
+	if ps.connectionsFile != "" {
+		fileConns, err := ce.connectionsFromFile(ps.connectionsFile)
+		if err != nil {
+			fpErr := failedReadingFile(ps.connectionsFile, err)
+			return nil, nil, appendAndLogNewError(fileErrors, fpErr, ps.logger)
+		}
+		connections = append(connections, fileConns...)
+	}
 	return resAcc.workloads, connections, fileErrors
 }
 
