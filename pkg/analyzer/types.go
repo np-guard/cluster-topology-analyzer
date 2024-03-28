@@ -64,8 +64,9 @@ type Service struct {
 		FilePath         string             `json:"filepath,omitempty"`
 		Kind             string             `json:"kind,omitempty"`
 		Network          []SvcNetworkAttr   `json:"network,omitempty"`
-		ExposeToCluster  bool               `json:"-"`
-		ExposeExternally bool               `json:"-"`
+		exposeToNS       []string
+		ExposeToCluster  bool `json:"-"`
+		ExposeExternally bool `json:"-"`
 	} `json:"resource,omitempty"`
 }
 
