@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 type connectionExtractor struct {
@@ -133,11 +135,12 @@ func envValueMatchesService(envVal string, service *Service, serviceAddresses []
 }
 
 const (
-	srcDstDelim        = "->"
-	endpointsPortDelim = "|"
-	commentToken       = "#"
-	wildcardToken      = "*"
-	endpointParts      = 3
+	srcDstDelim         = "->"
+	endpointsPortDelim  = "|"
+	commentToken        = "#"
+	wildcardToken       = "_"
+	strongWildcardToken = "*"
+	endpointParts       = 3
 )
 
 type workloadAndService struct {
@@ -212,15 +215,24 @@ func (ce *connectionExtractor) parseConnectionLine(line string, lineNum int) ([]
 	conns := []*Connections{}
 	for _, srcWl := range srcWorkloads {
 		for _, dstWl := range dstWorkloads {
-			ce.logger.Debugf("src: %+v, dst: %+v\n", *srcWl.resource, *dstWl.resource)
+			svc := mergeSrcAndDstSvcs(srcWl.service, dstWl.service)
 			conns = append(conns, &Connections{
 				Source: srcWl.resource,
 				Target: dstWl.resource,
-				Link:   dstWl.service,
+				Link:   svc,
 			})
 		}
 	}
 	return conns, nil
+}
+
+func mergeSrcAndDstSvcs(srcSvc, dstSvc *Service) *Service {
+	retSvc := *dstSvc
+	retSvc.Resource.ExposeExternally = srcSvc.Resource.ExposeExternally || dstSvc.Resource.ExposeExternally
+	retSvc.Resource.ExposeToCluster = srcSvc.Resource.ExposeToCluster || dstSvc.Resource.ExposeToCluster
+	retSvc.Resource.exposeToNS = dstSvc.Resource.exposeToNS
+	retSvc.Resource.exposeToNS = append(retSvc.Resource.exposeToNS, srcSvc.Resource.exposeToNS...)
+	return &retSvc
 }
 
 func (ce *connectionExtractor) parseEndpoints(endpoint string, lineNum int) ([]workloadAndService, error) {
@@ -230,6 +242,10 @@ func (ce *connectionExtractor) parseEndpoints(endpoint string, lineNum int) ([]w
 	}
 	ns, kind, name := parts[0], parts[1], parts[2]
 	kind = strings.ToUpper(kind[:1]) + kind[1:] // Capitalize kind's first letter
+
+	if ns == strongWildcardToken || kind == strongWildcardToken || name == strongWildcardToken {
+		return ce.parseEndpointWithStrongWildcard(ns, kind, name)
+	}
 
 	var res []workloadAndService
 	switch kind {
@@ -244,6 +260,26 @@ func (ce *connectionExtractor) parseEndpoints(endpoint string, lineNum int) ([]w
 		return nil, fmt.Errorf("no matching endpoints for %s in the provided manifests", endpoint)
 	}
 	return res, nil
+}
+
+func (ce *connectionExtractor) parseEndpointWithStrongWildcard(ns, kind, name string) ([]workloadAndService, error) {
+	if kind != strongWildcardToken || name != strongWildcardToken {
+		return nil, fmt.Errorf("bad endpoint pattern %s/%s/%s. Patterns with '*' should either equal '*/*/*' "+
+			"or have the form '<namespace>/*/*'", ns, kind, name)
+	}
+
+	svc := Service{}
+	if ns != strongWildcardToken {
+		if len(validation.IsDNS1123Subdomain(ns)) != 0 {
+			return nil, fmt.Errorf("%s is not a proper namespace name", ns)
+		}
+		svc.Resource.exposeToNS = append(svc.Resource.exposeToNS, ns)
+	} else {
+		svc.Resource.ExposeToCluster = true
+	}
+	wlSvc := workloadAndService{resource: nil, service: &svc}
+
+	return []workloadAndService{wlSvc}, nil
 }
 
 func (ce *connectionExtractor) getMatchingServices(ns, name string) []workloadAndService {
