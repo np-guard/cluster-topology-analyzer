@@ -1,6 +1,6 @@
 module github.com/np-guard/cluster-topology-analyzer/v2
 
-go 1.20
+go 1.21
 
 require (
 	github.com/np-guard/netpol-analyzer v1.1.0
