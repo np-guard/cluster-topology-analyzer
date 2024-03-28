@@ -17,7 +17,6 @@ import (
 )
 
 const (
-	networkAPIVersion = "networking.k8s.io/v1"
 	networkPolicyKind = "NetworkPolicy"
 )
 
@@ -58,7 +57,7 @@ func getNsDefaultDenyPolicy(namespace string) *network.NetworkPolicy {
 	return &network.NetworkPolicy{
 		TypeMeta: metaV1.TypeMeta{
 			Kind:       networkPolicyKind,
-			APIVersion: networkAPIVersion,
+			APIVersion: network.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metaV1.ObjectMeta{
 			Name:      policyName,
@@ -105,19 +104,17 @@ func determineConnectivityPerDeployment(connections []*Connections) []*deploymen
 		}
 
 		if srcDeploy != nil {
-			netpolPeer := getNetpolPeer(srcDeploy, dstDeploy)
-			srcDeploy.addEgressRule([]network.NetworkPolicyPeer{netpolPeer}, targetPorts)
+			netpolPeers := getNetpolPeers(srcDeploy, dstDeploy, conn.Link)
+			if netpolPeers != nil {
+				srcDeploy.addEgressRule(netpolPeers, targetPorts)
+			}
 		}
 
-		switch {
-		case conn.Link.Resource.ExposeExternally:
-			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{}, targetPorts) // allowing traffic from all sources
-		case conn.Link.Resource.ExposeToCluster:
-			peer := network.NetworkPolicyPeer{NamespaceSelector: &metaV1.LabelSelector{}}
-			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{peer}, targetPorts) // allowing traffic from all cluster sources
-		case conn.Source != nil:
-			netpolPeer := getNetpolPeer(dstDeploy, srcDeploy)
-			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{netpolPeer}, targetPorts) // allow traffic only from this specific source
+		if dstDeploy != nil {
+			netpolPeers := getNetpolPeers(dstDeploy, srcDeploy, conn.Link)
+			if netpolPeers != nil {
+				dstDeploy.addIngressRule(netpolPeers, targetPorts)
+			}
 		}
 	}
 
@@ -145,16 +142,32 @@ func findOrAddDeploymentConn(resource *Resource, deployConns map[string]*deploym
 	return &deploy
 }
 
-func getNetpolPeer(netpolDeploy, otherDeploy *deploymentConnectivity) network.NetworkPolicyPeer {
-	netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(otherDeploy)}
-	if netpolDeploy.Resource.Resource.Namespace != otherDeploy.Resource.Resource.Namespace {
-		if otherDeploy.Resource.Resource.Namespace != "" {
-			netpolPeer.NamespaceSelector = &metaV1.LabelSelector{
-				MatchLabels: map[string]string{"kubernetes.io/metadata.name": otherDeploy.Resource.Resource.Namespace},
-			}
-		} // if otherDeploy has no namespace specified, we assume it is in the same namespace as the netpolDeploy
+func getNetpolPeers(netpolDeploy, otherDeploy *deploymentConnectivity, link *Service) []network.NetworkPolicyPeer {
+	switch {
+	case link.Resource.ExposeExternally: // allowing traffic to/from all endpoints
+		return []network.NetworkPolicyPeer{}
+	case link.Resource.ExposeToCluster: // allowing traffic to/from all cluster endpoints
+		return []network.NetworkPolicyPeer{{NamespaceSelector: &metaV1.LabelSelector{}}}
+	case len(link.Resource.exposeToNS) > 0: // allowing traffic to/from endpoints in selected namespaces
+		res := []network.NetworkPolicyPeer{}
+		for _, ns := range link.Resource.exposeToNS {
+			labelMap := map[string]string{core.LabelMetadataName: ns}
+			peer := network.NetworkPolicyPeer{NamespaceSelector: &metaV1.LabelSelector{MatchLabels: labelMap}}
+			res = append(res, peer)
+		}
+		return res
+	case otherDeploy != nil: // allowing traffic to the specified deplotment only
+		netpolPeer := network.NetworkPolicyPeer{PodSelector: getDeployConnSelector(otherDeploy)}
+		if netpolDeploy.Resource.Resource.Namespace != otherDeploy.Resource.Resource.Namespace {
+			if otherDeploy.Resource.Resource.Namespace != "" {
+				netpolPeer.NamespaceSelector = &metaV1.LabelSelector{
+					MatchLabels: map[string]string{core.LabelMetadataName: otherDeploy.Resource.Resource.Namespace},
+				}
+			} // if otherDeploy has no namespace specified, we assume it is in the same namespace as the netpolDeploy
+		}
+		return []network.NetworkPolicyPeer{netpolPeer}
 	}
-	return netpolPeer
+	return nil
 }
 
 func getDeployConnSelector(deployConn *deploymentConnectivity) *metaV1.LabelSelector {
@@ -191,7 +204,7 @@ func (ps *PoliciesSynthesizer) buildNetpolPerDeployment(deployConnectivity []*de
 		netpol := network.NetworkPolicy{
 			TypeMeta: metaV1.TypeMeta{
 				Kind:       networkPolicyKind,
-				APIVersion: networkAPIVersion,
+				APIVersion: network.SchemeGroupVersion.String(),
 			},
 			ObjectMeta: metaV1.ObjectMeta{
 				Name:      deployConn.Resource.Resource.Name + "-netpol",
@@ -228,7 +241,7 @@ func NetpolListFromNetpolSlice(netpols []*network.NetworkPolicy) network.Network
 	netpolList := network.NetworkPolicyList{
 		TypeMeta: metaV1.TypeMeta{
 			Kind:       "NetworkPolicyList",
-			APIVersion: networkAPIVersion,
+			APIVersion: network.SchemeGroupVersion.String(),
 		},
 		Items: netpols2,
 	}

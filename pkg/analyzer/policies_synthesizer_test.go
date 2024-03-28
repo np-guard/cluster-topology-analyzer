@@ -131,6 +131,15 @@ func TestPoliciesSynthesizerAPIDnsPort(t *testing.T) {
 	}
 }
 
+func TestPoliciesSynthesizerConnectionsFile(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "sockshop", "manifests")
+	connFilePath := filepath.Join(getTestsDir(), "sockshop", "connections.txt")
+	synthesizer := NewPoliciesSynthesizer(WithConnectionsFile(connFilePath))
+	netpols, err := synthesizer.PoliciesFromFolderPaths([]string{dirPath})
+	require.Nil(t, err)
+	require.Len(t, netpols, 15)
+}
+
 func TestPoliciesSynthesizerAPIFatalError(t *testing.T) {
 	dirPath1 := filepath.Join(getTestsDir(), "k8s_wordpress_example")
 	dirPath2 := filepath.Join(getTestsDir(), "badPath")
