@@ -1,9 +1,9 @@
 module github.com/np-guard/cluster-topology-analyzer/v2
 
-go 1.20
+go 1.21
 
 require (
-	github.com/np-guard/netpol-analyzer v1.0.1
+	github.com/np-guard/netpol-analyzer v1.1.0
 	github.com/openshift/api v0.0.0-20230502160752-c71432710382
 	github.com/stretchr/testify v1.9.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -47,7 +47,7 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/protobuf v1.31.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/client-go v0.29.2 // indirect

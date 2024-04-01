@@ -21,7 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/cli-runtime/pkg/resource"
 
-	"github.com/np-guard/netpol-analyzer/pkg/netpol/manifests/fsscanner"
+	"github.com/np-guard/netpol-analyzer/pkg/manifests/fsscanner"
 )
 
 func TestPoliciesSynthesizerAPI(t *testing.T) {
