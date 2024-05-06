@@ -5,7 +5,7 @@ linters-settings:
     lines: 100
     statements: 50
   gci:
-    local-prefixes: github.com/np-guard
+    prefix: github.com/np-guard
   goconst:
     min-len: 2
     min-occurrences: 2
@@ -20,16 +20,13 @@ linters-settings:
     min-complexity: 15
   goimports:
     local-prefixes: github.com/np-guard
-  gomnd:
-    settings:
-      mnd:
-        # don't include the "operation" and "assign"
-        checks: argument,case,condition,return
-        ignored-numbers: 0,1,2,3
-        ignored-functions: strings.SplitN
-
+  mnd:
+    # don't include the "operation" and "assign"
+    checks: argument,case,condition,return
+    ignored-numbers: 0,1,2,3
+    ignored-functions: strings.SplitN
   govet:
-    check-shadowing: true
+    shadow: true
   lll:
     line-length: 140
   misspell:
@@ -84,7 +81,6 @@ linters:
     - gocyclo
     - gofmt
     - goimports
-    - gomnd
     - gomoddirectives
     - goprintffuncname
     - gosec
@@ -97,6 +93,7 @@ linters:
     - loggercheck
     - makezero
     - misspell
+    - mnd
     - nakedret
     - nestif
     - nilerr
