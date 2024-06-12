@@ -99,7 +99,7 @@ var (
 			true,
 			[]string{"-v"},
 			false,
-			[]string{"sockshop", "expected_netpol_output.json"},
+			[]string{"sockshop", "expected_netpols", "expected_netpol_output.json"},
 		},
 		{
 			"NetpolsK8sWordpress",
