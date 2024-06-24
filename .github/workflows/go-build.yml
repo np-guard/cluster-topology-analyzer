@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - name: Build Docker image
-        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
+        uses: docker/build-push-action@31159d49c0d4756269a0940a750801a1ea5d7003
         id: build_docker
         with:
           context: .
