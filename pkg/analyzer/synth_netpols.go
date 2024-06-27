@@ -186,7 +186,7 @@ func (ps *PoliciesSynthesizer) buildNetpolPerDeployment(deployConnectivity []*de
 	for _, deployConn := range deployConnectivity {
 		if len(deployConn.egressConns) > 0 { // add a rule to allow egress DNS traffic (inside the cluster)
 			allClusterPeers := []network.NetworkPolicyPeer{{NamespaceSelector: &metaV1.LabelSelector{}}}
-			deployConn.addEgressRule(allClusterPeers, []network.NetworkPolicyPort{getDNSPort(ps.dnsPort)})
+			deployConn.addEgressRule(allClusterPeers, []network.NetworkPolicyPort{getDNSPort(&ps.dnsPort)})
 		}
 		netpol := network.NetworkPolicy{
 			TypeMeta: metaV1.TypeMeta{
@@ -209,12 +209,11 @@ func (ps *PoliciesSynthesizer) buildNetpolPerDeployment(deployConnectivity []*de
 	return netpols
 }
 
-func getDNSPort(portNum int) network.NetworkPolicyPort {
+func getDNSPort(portNum *intstr.IntOrString) network.NetworkPolicyPort {
 	udp := core.ProtocolUDP
-	port := intstr.FromInt(portNum)
 	return network.NetworkPolicyPort{
 		Protocol: &udp,
-		Port:     &port,
+		Port:     portNum,
 	}
 }
 

@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 
 	networking "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/cli-runtime/pkg/resource"
 )
 
@@ -34,7 +35,7 @@ type PoliciesSynthesizer struct {
 	logger      Logger
 	stopOnError bool
 	walkFn      WalkFunction
-	dnsPort     int
+	dnsPort     intstr.IntOrString
 
 	errors []FileProcessingError
 }
@@ -67,10 +68,17 @@ func WithStopOnError() PoliciesSynthesizerOption {
 	}
 }
 
-// WithDNSPort is a functional option to set the DNS port in the generated policies to a non-default value
+// WithDNSPort is a functional option to set the DNS port in the generated policies to a non-default integer value
 func WithDNSPort(dnsPort int) PoliciesSynthesizerOption {
 	return func(p *PoliciesSynthesizer) {
-		p.dnsPort = dnsPort
+		p.dnsPort = intstr.FromInt(dnsPort)
+	}
+}
+
+// WithDNSNamedPort is a functional option to set the DNS port in the generated policies to a specific named port
+func WithDNSNamedPort(dnsPort string) PoliciesSynthesizerOption {
+	return func(p *PoliciesSynthesizer) {
+		p.dnsPort = intstr.FromString(dnsPort)
 	}
 }
 
@@ -81,7 +89,7 @@ func NewPoliciesSynthesizer(options ...PoliciesSynthesizerOption) *PoliciesSynth
 		logger:      NewDefaultLogger(),
 		stopOnError: false,
 		walkFn:      filepath.WalkDir,
-		dnsPort:     DefaultDNSPort,
+		dnsPort:     intstr.FromInt(DefaultDNSPort),
 		errors:      []FileProcessingError{},
 	}
 	for _, o := range options {
