@@ -131,6 +131,26 @@ func TestPoliciesSynthesizerAPIDnsPort(t *testing.T) {
 	}
 }
 
+func TestPoliciesSynthesizerAPIDnsNamedPort(t *testing.T) {
+	dirPath := filepath.Join(getTestsDir(), "acs-security-demos")
+	synthesizer := NewPoliciesSynthesizer(WithDNSNamedPort("dns"))
+	netpols, err := synthesizer.PoliciesFromFolderPaths([]string{dirPath})
+	require.Nilf(t, err, "expected no fatal errors, but got %v", err)
+	require.Empty(t, synthesizer.Errors())
+	require.Len(t, netpols, 14)
+	for _, netpol := range netpols {
+		for r := range netpol.Spec.Egress {
+			eRule := &netpol.Spec.Egress[r]
+			for p := range eRule.Ports {
+				port := &eRule.Ports[p]
+				if *port.Protocol == core.ProtocolUDP {
+					require.Equal(t, "dns", port.Port.StrVal)
+				}
+			}
+		}
+	}
+}
+
 func TestPoliciesSynthesizerAPIFatalError(t *testing.T) {
 	dirPath1 := filepath.Join(getTestsDir(), "k8s_wordpress_example")
 	dirPath2 := filepath.Join(getTestsDir(), "badPath")
