@@ -309,6 +309,21 @@
                         "name": "rabbitmq"
                     }
                 },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": "exporter"
+                            }
+                        ],
+                        "from": [
+                            {
+                                "namespaceSelector": {}
+                            }
+                        ]
+                    }
+                ],
                 "policyTypes": [
                     "Ingress",
                     "Egress"

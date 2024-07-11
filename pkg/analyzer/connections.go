@@ -19,19 +19,30 @@ func discoverConnections(resources []*Resource, links []*Service, logger Logger)
 		logger.Debugf("services matched to %v: %v", destRes.Resource.Name, deploymentServices)
 		for _, svc := range deploymentServices {
 			srcRes := findSource(resources, svc)
-			if len(srcRes) > 0 {
-				for _, r := range srcRes {
-					if !r.equals(destRes) {
-						logger.Debugf("source: %s target: %s link: %s", r.Resource.Name, destRes.Resource.Name, svc.Resource.Name)
-						connections = append(connections, &Connections{Source: r, Target: destRes, Link: svc})
-					}
+			for _, r := range srcRes {
+				if !r.equals(destRes) {
+					logger.Debugf("source: %s target: %s link: %s", r.Resource.Name, destRes.Resource.Name, svc.Resource.Name)
+					connections = append(connections, &Connections{Source: r, Target: destRes, Link: svc})
 				}
-			} else {
+			}
+			if len(srcRes) == 0 || svcHasExposedPorts(svc) { // found no sources, but some ports need to be exposed
 				connections = append(connections, &Connections{Target: destRes, Link: svc}) // indicates a source-less service
 			}
 		}
 	}
 	return connections
+}
+
+func svcHasExposedPorts(svc *Service) bool {
+	if svc.Resource.ExposeExternally {
+		return true
+	}
+	for _, port := range svc.Resource.Network {
+		if port.exposeToCluster {
+			return true
+		}
+	}
+	return false
 }
 
 // areSelectorsContained returns true if selectors2 is contained in selectors1

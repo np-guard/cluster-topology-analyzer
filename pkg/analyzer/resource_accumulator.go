@@ -216,11 +216,16 @@ func (ra *resourceAccumulator) exposeServices() {
 		if !ok {
 			continue
 		}
-		if exposeExternally, ok := exposedServicesInNamespace[svc.Resource.Name]; ok {
-			if exposeExternally {
-				svc.Resource.ExposeExternally = true
-			} else {
-				svc.Resource.ExposeToCluster = true
+		portsToExpose, ok := exposedServicesInNamespace[svc.Resource.Name]
+		if !ok {
+			continue
+		}
+		for i := range svc.Resource.Network {
+			port := &svc.Resource.Network[i]
+			for _, portToExpose := range portsToExpose {
+				if port.equals(portToExpose) {
+					port.exposeToCluster = true
+				}
 			}
 		}
 	}

@@ -99,9 +99,12 @@ func determineConnectivityPerDeployment(connections []*Connections) []*deploymen
 	for _, conn := range connections {
 		srcDeploy := findOrAddDeploymentConn(conn.Source, deploysConnectivity)
 		dstDeploy := findOrAddDeploymentConn(conn.Target, deploysConnectivity)
-		targetPorts := toNetpolPorts(conn.Link.Resource.Network)
+		targetPorts := toNetpolPorts(conn.Link.Resource.Network, srcDeploy == nil && !conn.Link.Resource.ExposeExternally)
 		if conn.Source != nil && len(conn.Source.Resource.UsedPorts) > 0 {
-			targetPorts = toNetpolPorts(conn.Source.Resource.UsedPorts)
+			targetPorts = toNetpolPorts(conn.Source.Resource.UsedPorts, false)
+		}
+		if len(targetPorts) == 0 {
+			continue
 		}
 
 		if srcDeploy != nil {
@@ -112,10 +115,10 @@ func determineConnectivityPerDeployment(connections []*Connections) []*deploymen
 		switch {
 		case conn.Link.Resource.ExposeExternally:
 			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{}, targetPorts) // allowing traffic from all sources
-		case conn.Link.Resource.ExposeToCluster:
+		case srcDeploy == nil:
 			peer := network.NetworkPolicyPeer{NamespaceSelector: &metaV1.LabelSelector{}}
 			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{peer}, targetPorts) // allowing traffic from all cluster sources
-		case conn.Source != nil:
+		default:
 			netpolPeer := getNetpolPeer(dstDeploy, srcDeploy)
 			dstDeploy.addIngressRule([]network.NetworkPolicyPeer{netpolPeer}, targetPorts) // allow traffic only from this specific source
 		}
@@ -161,9 +164,12 @@ func getDeployConnSelector(deployConn *deploymentConnectivity) *metaV1.LabelSele
 	return &metaV1.LabelSelector{MatchLabels: deployConn.Resource.Resource.Labels}
 }
 
-func toNetpolPorts(ports []SvcNetworkAttr) []network.NetworkPolicyPort {
+func toNetpolPorts(ports []SvcNetworkAttr, exposedOnly bool) []network.NetworkPolicyPort {
 	netpolPorts := make([]network.NetworkPolicyPort, 0, len(ports))
 	for _, port := range ports {
+		if exposedOnly && !port.exposeToCluster {
+			continue
+		}
 		protocol := port.Protocol
 		if protocol == "" {
 			protocol = core.ProtocolTCP

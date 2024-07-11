@@ -21,6 +21,7 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/cli-runtime/pkg/resource"
 )
@@ -104,14 +105,37 @@ func k8sServiceFromInfo(info *resource.Info) (*Service, error) {
 	serviceCtx.Resource.Type = svcObj.Spec.Type
 	serviceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(svcObj.Spec.Selector)
 	serviceCtx.Resource.ExposeExternally = (svcObj.Spec.Type == v1.ServiceTypeLoadBalancer || svcObj.Spec.Type == v1.ServiceTypeNodePort)
-	serviceCtx.Resource.ExposeToCluster = false
 
 	for _, p := range svcObj.Spec.Ports {
-		n := SvcNetworkAttr{Port: int(p.Port), TargetPort: p.TargetPort, Protocol: p.Protocol}
+		n := SvcNetworkAttr{Port: int(p.Port), TargetPort: p.TargetPort, Protocol: p.Protocol, name: p.Name}
+		n.exposeToCluster = exposesPrometheusScrapePort(&n, svcObj.Annotations)
 		serviceCtx.Resource.Network = append(serviceCtx.Resource.Network, n)
 	}
 
 	return &serviceCtx, nil
+}
+
+const defaultPrometheusScrapePort = 9090
+
+func exposesPrometheusScrapePort(port *SvcNetworkAttr, annotations map[string]string) bool {
+	scrapeOn := false
+	scrapePort := intstr.FromInt(defaultPrometheusScrapePort)
+	for k, v := range annotations {
+		if strings.Contains(k, "prometheus") {
+			if strings.HasSuffix(k, "/scrape") && v == "true" {
+				scrapeOn = true
+			} else if strings.HasSuffix(k, "/port") {
+				scrapePort = intstr.Parse(v)
+			}
+		}
+	}
+
+	return scrapeOn && port.equals(&scrapePort)
+}
+
+func (port *SvcNetworkAttr) equals(intStrPort *intstr.IntOrString) bool {
+	return (port.name != "" && port.name == intStrPort.StrVal) ||
+		(port.Port > 0 && port.Port == int(intStrPort.IntVal))
 }
 
 // ocRouteFromInfo updates servicesToExpose based on an OpenShift Route object
@@ -123,12 +147,12 @@ func ocRouteFromInfo(info *resource.Info, toExpose servicesToExpose) error {
 
 	exposedServicesInNamespace, ok := toExpose[routeObj.Namespace]
 	if !ok {
-		toExpose[routeObj.Namespace] = map[string]bool{}
+		toExpose[routeObj.Namespace] = map[string][]*intstr.IntOrString{}
 		exposedServicesInNamespace = toExpose[routeObj.Namespace]
 	}
-	exposedServicesInNamespace[routeObj.Spec.To.Name] = false
+	appendToSliceInMap(exposedServicesInNamespace, routeObj.Spec.To.Name, &routeObj.Spec.Port.TargetPort)
 	for _, backend := range routeObj.Spec.AlternateBackends {
-		exposedServicesInNamespace[backend.Name] = false
+		appendToSliceInMap(exposedServicesInNamespace, backend.Name, &routeObj.Spec.Port.TargetPort)
 	}
 
 	return nil
@@ -143,13 +167,14 @@ func k8sIngressFromInfo(info *resource.Info, toExpose servicesToExpose) error {
 
 	exposedServicesInNamespace, ok := toExpose[ingressObj.Namespace]
 	if !ok {
-		toExpose[ingressObj.Namespace] = map[string]bool{}
+		toExpose[ingressObj.Namespace] = map[string][]*intstr.IntOrString{}
 		exposedServicesInNamespace = toExpose[ingressObj.Namespace]
 	}
 
 	defaultBackend := ingressObj.Spec.DefaultBackend
 	if defaultBackend != nil && defaultBackend.Service != nil {
-		exposedServicesInNamespace[defaultBackend.Service.Name] = false
+		portToAppend := portFromServiceBackendPort(&defaultBackend.Service.Port)
+		appendToSliceInMap(exposedServicesInNamespace, defaultBackend.Service.Name, portToAppend)
 	}
 
 	for ruleIdx := range ingressObj.Spec.Rules {
@@ -158,13 +183,22 @@ func k8sIngressFromInfo(info *resource.Info, toExpose servicesToExpose) error {
 			for pathIdx := range rule.HTTP.Paths {
 				svc := rule.HTTP.Paths[pathIdx].Backend.Service
 				if svc != nil {
-					exposedServicesInNamespace[svc.Name] = false
+					portToAppend := portFromServiceBackendPort(&svc.Port)
+					appendToSliceInMap(exposedServicesInNamespace, svc.Name, portToAppend)
 				}
 			}
 		}
 	}
 
 	return nil
+}
+
+func portFromServiceBackendPort(sbp *networkv1.ServiceBackendPort) *intstr.IntOrString {
+	res := intstr.FromInt32(sbp.Number)
+	if sbp.Number == 0 {
+		res = intstr.FromString(sbp.Name)
+	}
+	return &res
 }
 
 func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourceCtx *Resource) {
