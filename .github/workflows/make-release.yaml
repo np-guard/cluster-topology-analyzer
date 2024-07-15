@@ -33,7 +33,7 @@ jobs:
           tags: ghcr.io/np-guard/net-top-analyzer:${{ github.ref_name }}
 
       - name: Set up Go
-        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version: 'stable'
 
