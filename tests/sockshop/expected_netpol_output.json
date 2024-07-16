@@ -23,6 +23,10 @@
                             {
                                 "protocol": "TCP",
                                 "port": 80
+                            },
+                            {
+                                "protocol": "TCP",
+                                "port": 9090
                             }
                         ],
                         "from": [
@@ -32,6 +36,19 @@
                                         "name": "orders"
                                     }
                                 }
+                            }
+                        ]
+                    },
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 9090
+                            }
+                        ],
+                        "from": [
+                            {
+                                "namespaceSelector": {}
                             }
                         ]
                     }
@@ -203,6 +220,10 @@
                             {
                                 "protocol": "TCP",
                                 "port": 80
+                            },
+                            {
+                                "protocol": "TCP",
+                                "port": 9090
                             }
                         ],
                         "to": [
@@ -384,6 +405,21 @@
                         "name": "user"
                     }
                 },
+                "ingress": [
+                    {
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 7070
+                            }
+                        ],
+                        "from": [
+                            {
+                                "namespaceSelector": {}
+                            }
+                        ]
+                    }
+                ],
                 "egress": [
                     {
                         "ports": [
