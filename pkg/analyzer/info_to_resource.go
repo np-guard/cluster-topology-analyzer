@@ -106,9 +106,10 @@ func k8sServiceFromInfo(info *resource.Info) (*Service, error) {
 	serviceCtx.Resource.Selectors = matchLabelSelectorToStrLabels(svcObj.Spec.Selector)
 	serviceCtx.Resource.ExposeExternally = (svcObj.Spec.Type == v1.ServiceTypeLoadBalancer || svcObj.Spec.Type == v1.ServiceTypeNodePort)
 
+	prometheusPort, prometheusPortValid := exposedPrometheusScrapePort(svcObj.Annotations)
 	for _, p := range svcObj.Spec.Ports {
 		n := SvcNetworkAttr{Port: int(p.Port), TargetPort: p.TargetPort, Protocol: p.Protocol, name: p.Name}
-		n.exposeToCluster = exposesPrometheusScrapePort(&n, svcObj.Annotations)
+		n.exposeToCluster = prometheusPortValid && n.equals(prometheusPort)
 		serviceCtx.Resource.Network = append(serviceCtx.Resource.Network, n)
 	}
 
@@ -117,7 +118,7 @@ func k8sServiceFromInfo(info *resource.Info) (*Service, error) {
 
 const defaultPrometheusScrapePort = 9090
 
-func exposesPrometheusScrapePort(port *SvcNetworkAttr, annotations map[string]string) bool {
+func exposedPrometheusScrapePort(annotations map[string]string) (*intstr.IntOrString, bool) {
 	scrapeOn := false
 	scrapePort := intstr.FromInt(defaultPrometheusScrapePort)
 	for k, v := range annotations {
@@ -130,7 +131,7 @@ func exposesPrometheusScrapePort(port *SvcNetworkAttr, annotations map[string]st
 		}
 	}
 
-	return scrapeOn && port.equals(&scrapePort)
+	return &scrapePort, scrapeOn
 }
 
 func (port *SvcNetworkAttr) equals(intStrPort *intstr.IntOrString) bool {
