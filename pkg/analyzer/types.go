@@ -49,9 +49,11 @@ func (r1 *Resource) equals(r2 *Resource) bool {
 
 // SvcNetworkAttr is used to store port information
 type SvcNetworkAttr struct {
-	Port       int                `json:"port,omitempty"`
-	TargetPort intstr.IntOrString `json:"target_port,omitempty"`
-	Protocol   corev1.Protocol    `json:"protocol,omitempty"`
+	name            string
+	Port            int                `json:"port,omitempty"`
+	TargetPort      intstr.IntOrString `json:"target_port,omitempty"`
+	Protocol        corev1.Protocol    `json:"protocol,omitempty"`
+	exposeToCluster bool
 }
 
 // Service is used to store information about a K8s Service
@@ -64,7 +66,6 @@ type Service struct {
 		FilePath         string             `json:"filepath,omitempty"`
 		Kind             string             `json:"kind,omitempty"`
 		Network          []SvcNetworkAttr   `json:"network,omitempty"`
-		ExposeToCluster  bool               `json:"-"`
 		ExposeExternally bool               `json:"-"`
 	} `json:"resource,omitempty"`
 }
@@ -76,6 +77,6 @@ type Connections struct {
 	Link   *Service  `json:"link"`
 }
 
-// A map from namespaces to a map of service names in each namespaces.
-// For each service we also hold whether they should be exposed externally (true) or just globally inside the cluster (false)
-type servicesToExpose map[string]map[string]bool
+// A map from namespaces to a map of service names in each namespaces, which we want to expose within the cluster.
+// For each service we hold the ports that should be exposed
+type servicesToExpose map[string]map[string][]*intstr.IntOrString

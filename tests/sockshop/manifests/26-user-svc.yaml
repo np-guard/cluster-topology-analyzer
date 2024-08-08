@@ -5,6 +5,7 @@ metadata:
   name: user
   annotations:
         prometheus.io/scrape: 'true'
+        prometheus.io/port: '7070'
   labels:
     name: user
   namespace: sock-shop
@@ -12,7 +13,11 @@ spec:
   ports:
     # the port that this service should serve on
   - port: 80
+    name: http
     targetPort: 80
+  - port: 7070
+    name: metrics
+    targetPort: 7070
   selector:
     name: user
 

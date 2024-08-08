@@ -13,5 +13,8 @@ spec:
     # the port that this service should serve on
   - port: 80
     targetPort: 80
+  - port: 9090
+    name: exporter
+    protocol: TCP
   selector:
     name: carts

@@ -230,7 +230,7 @@ func TestExtractConnectionsCustomWalk2(t *testing.T) {
 	synthesizer := NewPoliciesSynthesizer(WithWalkFn(filepath.WalkDir))
 	resources, conns, errs := synthesizer.extractConnectionsFromFolderPaths([]string{dirPath})
 	require.Len(t, errs, 0)
-	require.Len(t, conns, 14)
+	require.Len(t, conns, 15)
 	require.Len(t, resources, 14)
 }
 
