@@ -3,7 +3,7 @@ module github.com/np-guard/cluster-topology-analyzer/v2
 go 1.21
 
 require (
-	github.com/np-guard/netpol-analyzer v1.1.0
+	github.com/np-guard/netpol-analyzer v1.2.0
 	github.com/openshift/api v0.0.0-20230502160752-c71432710382
 	github.com/stretchr/testify v1.9.0
 	gopkg.in/yaml.v3 v3.0.1
