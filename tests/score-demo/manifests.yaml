@@ -12,7 +12,7 @@ metadata:
 ---
 apiVersion: v1
 data:
-    password: NXc4SmtyekpKMlNGajNtYg==
+    password: not-a-real-password
 kind: Secret
 metadata:
     annotations:
