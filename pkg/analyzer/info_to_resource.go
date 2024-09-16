@@ -27,6 +27,8 @@ import (
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
+const RouteBackendServiceKind = "Service"
+
 // k8sWorkloadObjectFromInfo creates a Resource object from an Info object
 func k8sWorkloadObjectFromInfo(info *resource.Info) (*Resource, error) {
 	var podSpecV1 *v1.PodTemplateSpec
@@ -205,6 +207,9 @@ func gatewayHTTPRouteFromInfo(info *resource.Info, toExpose servicesToExpose) er
 		rule := &routeObj.Spec.Rules[i]
 		for j := range rule.BackendRefs {
 			backend := &rule.BackendRefs[j]
+			if (backend.Kind != nil && string(*backend.Kind) != RouteBackendServiceKind) || backend.Port == nil {
+				continue // ignore backends which are not services and which do not specify a port
+			}
 			namespace := routeObj.Namespace
 			if backend.Namespace != nil {
 				namespace = string(*backend.Namespace)
@@ -227,6 +232,9 @@ func gatewayGRPCRouteFromInfo(info *resource.Info, toExpose servicesToExpose) er
 		rule := &routeObj.Spec.Rules[i]
 		for j := range rule.BackendRefs {
 			backend := &rule.BackendRefs[j]
+			if (backend.Kind != nil && string(*backend.Kind) != RouteBackendServiceKind) || backend.Port == nil {
+				continue // ignore backends which are not services and which do not specify a port
+			}
 			port := intstr.FromInt32(int32(*backend.Port))
 			namespace := routeObj.Namespace
 			if backend.Namespace != nil {
