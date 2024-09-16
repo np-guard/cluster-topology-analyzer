@@ -21,7 +21,3 @@ func appendAndLogNewError(errs []FileProcessingError, newErr *FileProcessingErro
 	errs = append(errs, *newErr)
 	return errs
 }
-
-func appendToSliceInMap[K comparable, V any](m map[K][]V, key K, newVal V) {
-	m[key] = append(m[key], newVal)
-}

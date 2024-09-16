@@ -1,0 +1,87 @@
+apiVersion: networking.k8s.io/v1
+items:
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: example-netpol
+      spec:
+        podSelector:
+            matchLabels:
+                app.kubernetes.io/instance: example-4337238e81
+                app.kubernetes.io/managed-by: score-k8s
+                app.kubernetes.io/name: example
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: pg-sample-45ecb4b6-netpol
+      spec:
+        ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                        app.kubernetes.io/instance: sample-bb2bc5c519
+                        app.kubernetes.io/managed-by: score-k8s
+                        app.kubernetes.io/name: sample
+              ports:
+                - port: 5432
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app.kubernetes.io/instance: pg-sample-45ecb4b6
+                app.kubernetes.io/managed-by: score-k8s
+                app.kubernetes.io/name: pg-sample-45ecb4b6
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: sample-netpol
+      spec:
+        egress:
+            - ports:
+                - port: 5432
+                  protocol: TCP
+              to:
+                - podSelector:
+                    matchLabels:
+                        app.kubernetes.io/instance: pg-sample-45ecb4b6
+                        app.kubernetes.io/managed-by: score-k8s
+                        app.kubernetes.io/name: pg-sample-45ecb4b6
+            - ports:
+                - port: 53
+                  protocol: UDP
+              to:
+                - namespaceSelector: {}
+        ingress:
+            - from:
+                - namespaceSelector: {}
+              ports:
+                - port: 8080
+                  protocol: TCP
+        podSelector:
+            matchLabels:
+                app.kubernetes.io/instance: sample-bb2bc5c519
+                app.kubernetes.io/managed-by: score-k8s
+                app.kubernetes.io/name: sample
+        policyTypes:
+            - Ingress
+            - Egress
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        creationTimestamp: null
+        name: default-deny-in-namespace
+      spec:
+        podSelector: {}
+        policyTypes:
+            - Ingress
+            - Egress
+kind: NetworkPolicyList
+metadata: {}

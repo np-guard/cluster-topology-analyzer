@@ -1,0 +1,263 @@
+---
+apiVersion: v1
+data:
+    key: value
+kind: ConfigMap
+metadata:
+    annotations:
+        k8s.score.dev/resource-guid: 0944077d-d253-4d3b-db6d-7e32c3371cc3
+        k8s.score.dev/resource-uid: myprov2.default#example.scc
+        k8s.score.dev/source-workload: example
+    name: cfg-0944077d-d253-4d3b-db6d-7e32c3371cc3
+---
+apiVersion: v1
+data:
+    password: NXc4SmtyekpKMlNGajNtYg==
+kind: Secret
+metadata:
+    annotations:
+        k8s.score.dev/resource-guid: 45ecb4b6-5f18-4b6f-50b1-360ac4eb5c48
+        k8s.score.dev/resource-uid: postgres.default#sample.db
+        k8s.score.dev/source-workload: sample
+    labels:
+        app.kubernetes.io/instance: pg-sample-45ecb4b6
+        app.kubernetes.io/managed-by: score-k8s
+        app.kubernetes.io/name: pg-sample-45ecb4b6
+    name: pg-sample-45ecb4b6
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+    annotations:
+        k8s.score.dev/resource-guid: 45ecb4b6-5f18-4b6f-50b1-360ac4eb5c48
+        k8s.score.dev/resource-uid: postgres.default#sample.db
+        k8s.score.dev/source-workload: sample
+    labels:
+        app.kubernetes.io/instance: pg-sample-45ecb4b6
+        app.kubernetes.io/managed-by: score-k8s
+        app.kubernetes.io/name: pg-sample-45ecb4b6
+    name: pg-sample-45ecb4b6
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app.kubernetes.io/instance: pg-sample-45ecb4b6
+    serviceName: pg-sample-45ecb4b6
+    template:
+        metadata:
+            annotations:
+                k8s.score.dev/resource-guid: 45ecb4b6-5f18-4b6f-50b1-360ac4eb5c48
+                k8s.score.dev/resource-uid: postgres.default#sample.db
+                k8s.score.dev/source-workload: sample
+            labels:
+                app.kubernetes.io/instance: pg-sample-45ecb4b6
+                app.kubernetes.io/managed-by: score-k8s
+                app.kubernetes.io/name: pg-sample-45ecb4b6
+        spec:
+            containers:
+                - env:
+                    - name: POSTGRES_USER
+                      value: user-OMVTpymk
+                    - name: POSTGRES_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                            key: password
+                            name: pg-sample-45ecb4b6
+                    - name: POSTGRES_DB
+                      value: db-DFTMNQQC
+                  image: postgres:16
+                  name: postgres-db
+                  ports:
+                    - containerPort: 5432
+                      name: postgres
+                  readinessProbe:
+                    exec:
+                        command:
+                            - pg_isready
+                            - -U
+                            - user-OMVTpymk
+                            - -d
+                            - db-DFTMNQQC
+                    periodSeconds: 3
+                  volumeMounts:
+                    - mountPath: /var/lib/postgresql/data
+                      name: pv-data
+    volumeClaimTemplates:
+        - metadata:
+            annotations:
+                k8s.score.dev/resource-guid: 45ecb4b6-5f18-4b6f-50b1-360ac4eb5c48
+                k8s.score.dev/resource-uid: postgres.default#sample.db
+                k8s.score.dev/source-workload: sample
+            labels:
+                app.kubernetes.io/instance: pg-sample-45ecb4b6
+                app.kubernetes.io/managed-by: score-k8s
+                app.kubernetes.io/name: pg-sample-45ecb4b6
+            name: pv-data
+          spec:
+            accessModes:
+                - ReadWriteOnce
+            resources:
+                requests:
+                    storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+    annotations:
+        k8s.score.dev/resource-guid: 45ecb4b6-5f18-4b6f-50b1-360ac4eb5c48
+        k8s.score.dev/resource-uid: postgres.default#sample.db
+        k8s.score.dev/source-workload: sample
+    labels:
+        app.kubernetes.io/instance: pg-sample-45ecb4b6
+        app.kubernetes.io/managed-by: score-k8s
+        app.kubernetes.io/name: pg-sample-45ecb4b6
+    name: pg-sample-45ecb4b6
+spec:
+    ports:
+        - port: 5432
+          targetPort: 5432
+    selector:
+        app.kubernetes.io/instance: pg-sample-45ecb4b6
+    type: ClusterIP
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+    annotations:
+        k8s.score.dev/resource-guid: b46315ab-89f3-4f47-1460-5b7ec1892c54
+        k8s.score.dev/resource-uid: route.default#sample.route
+        k8s.score.dev/source-workload: sample
+    labels:
+        app.kubernetes.io/instance: route-sample-b46315ab
+        app.kubernetes.io/managed-by: score-k8s
+        app.kubernetes.io/name: route-sample-b46315ab
+    name: route-sample-b46315ab
+spec:
+    hostnames:
+        - dnsgeygln.localhost
+    parentRefs:
+        - name: default
+    rules:
+        - backendRefs:
+            - name: sample-svc
+              port: 8080
+          matches:
+            - path:
+                type: PathPrefix
+                value: /
+---
+apiVersion: v1
+kind: Service
+metadata:
+    annotations:
+        k8s.score.dev/workload-name: sample
+    creationTimestamp: null
+    labels:
+        app.kubernetes.io/instance: sample-bb2bc5c519
+        app.kubernetes.io/managed-by: score-k8s
+        app.kubernetes.io/name: sample
+    name: sample-svc
+spec:
+    ports:
+        - name: web
+          port: 8080
+          protocol: TCP
+          targetPort: 8080
+    selector:
+        app.kubernetes.io/instance: sample-bb2bc5c519
+status:
+    loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    annotations:
+        k8s.score.dev/workload-name: sample
+    creationTimestamp: null
+    labels:
+        app.kubernetes.io/instance: sample-bb2bc5c519
+        app.kubernetes.io/managed-by: score-k8s
+        app.kubernetes.io/name: sample
+    name: sample
+spec:
+    selector:
+        matchLabels:
+            app.kubernetes.io/instance: sample-bb2bc5c519
+    strategy: {}
+    template:
+        metadata:
+            annotations:
+                k8s.score.dev/workload-name: sample
+            creationTimestamp: null
+            labels:
+                app.kubernetes.io/instance: sample-bb2bc5c519
+                app.kubernetes.io/managed-by: score-k8s
+                app.kubernetes.io/name: sample
+        spec:
+            containers:
+                - env:
+                    - name: __ref_s0fshDCEfFLbSqLXrHNzVg
+                      valueFrom:
+                        secretKeyRef:
+                            key: password
+                            name: pg-sample-45ecb4b6
+                    - name: PG_CONNECTION_STRING
+                      value: postgresql://user-OMVTpymk:$(__ref_s0fshDCEfFLbSqLXrHNzVg)@pg-sample-45ecb4b6:5432/db-DFTMNQQC?sslmode=disable
+                  image: ghcr.io/score-spec/sample-app-gif:sha-2533037
+                  name: main
+                  resources: {}
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+    annotations:
+        k8s.score.dev/workload-name: example
+    creationTimestamp: null
+    labels:
+        app.kubernetes.io/instance: example-4337238e81
+        app.kubernetes.io/managed-by: score-k8s
+        app.kubernetes.io/name: example
+    name: example-svc
+spec:
+    ports:
+        - name: web
+          port: 8080
+          protocol: TCP
+          targetPort: 8080
+    selector:
+        app.kubernetes.io/instance: example-4337238e81
+status:
+    loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    annotations:
+        k8s.score.dev/workload-name: example
+    creationTimestamp: null
+    labels:
+        app.kubernetes.io/instance: example-4337238e81
+        app.kubernetes.io/managed-by: score-k8s
+        app.kubernetes.io/name: example
+    name: example
+spec:
+    selector:
+        matchLabels:
+            app.kubernetes.io/instance: example-4337238e81
+    strategy: {}
+    template:
+        metadata:
+            annotations:
+                k8s.score.dev/workload-name: example
+            creationTimestamp: null
+            labels:
+                app.kubernetes.io/instance: example-4337238e81
+                app.kubernetes.io/managed-by: score-k8s
+                app.kubernetes.io/name: example
+        spec:
+            containers:
+                - image: stefanprodan/podinfo
+                  name: main
+                  resources: {}
+status: {}
