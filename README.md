@@ -24,7 +24,7 @@ Usage of ./bin/net-top:
 ## Algorithm
 The underlying algorithm for identifying required connectivity works as follows.
 1. Scan the given directories for all YAML files.
-1. In each YAML file identify manifests for [workload resources](https://kubernetes.io/docs/concepts/workloads/controllers/), [Service resources](https://kubernetes.io/docs/concepts/services-networking/service/#service-resource) and [ConfigMap resources](https://kubernetes.io/docs/concepts/configuration/configmap/), [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress) and [Route](https://docs.openshift.com/container-platform/latest/networking/routes/route-configuration.html).
+1. In each YAML file identify manifests for [workload resources](https://kubernetes.io/docs/concepts/workloads/controllers/) and [Service resources](https://kubernetes.io/docs/concepts/services-networking/service/#service-resource), as well as [ConfigMap resources](https://kubernetes.io/docs/concepts/configuration/configmap/), [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress), [Gateway Routes](https://gateway-api.sigs.k8s.io/concepts/api-overview/#route-resources) and [OpenShift Routes](https://docs.openshift.com/container-platform/latest/networking/routes/route-configuration.html).
 1. In each workload resource, identify configuration values that might represent network addresses. This includes strings in containers' `envs`, `args` and `command` fields, as well as references to data in ConfigMaps.
 1. For each target-workload in the list of workload resources:
     1. Identify all services whose selector matches target-workload
@@ -39,7 +39,7 @@ The algorithm for synthesizing NetworkPolicies that only allow the required conn
     - `metadata.namespace` is set to the workload's namespace (if specified)
     - `spec.podSelector` is set to the workload pod selector
     - `spec.policyTypes` is set to `["Ingress", "Egress"]`
-    - `spec.ingress` contains one rule for each required connection in which the workload is the target workload. If the Service exposing this workload is of type `LoadBalancer` or `NodePort`, allow ingress from any source. If the service exposing this workload is pointed by an Ingress resource or by a Route resource, allow ingress from any source within the cluster.
+    - `spec.ingress` contains one rule for each required connection in which the workload is the target workload. If the Service exposing this workload is of type `LoadBalancer` or `NodePort`, allow ingress from any source. If the service exposing this workload is pointed by an Ingress resource or by a Route resource, allow ingress from any source **within the cluster**.
     - `spec.egress` contains one rule for each required connection in which the workload is the source workload. If such connections exist, also add a rule to allow egress to UDP port 53 (DNS).
 1. For each **workload namespace** add a *default deny* NetworkPolicy as follows
     - `metadata.namespace` is set to the workload's namespace 
