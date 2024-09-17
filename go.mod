@@ -11,7 +11,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.30.0
 	k8s.io/apimachinery v0.30.0
-	k8s.io/cli-runtime v0.29.2
+	k8s.io/cli-runtime v0.30.0
 	sigs.k8s.io/gateway-api v1.1.0
 )
 
