@@ -80,3 +80,12 @@ type Connections struct {
 // A map from namespaces to a map of service names in each namespaces, which we want to expose within the cluster.
 // For each service we hold the ports that should be exposed
 type servicesToExpose map[string]map[string][]*intstr.IntOrString
+
+func (ste servicesToExpose) appendPort(namespace, svcName string, port *intstr.IntOrString) {
+	svcPortsMap, ok := ste[namespace]
+	if !ok {
+		ste[namespace] = map[string][]*intstr.IntOrString{}
+		svcPortsMap = ste[namespace]
+	}
+	svcPortsMap[svcName] = append(svcPortsMap[svcName], port)
+}

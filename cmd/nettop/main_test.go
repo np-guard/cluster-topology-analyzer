@@ -138,6 +138,15 @@ var (
 			[]string{"qotd", "expected_netpol_output.json"},
 		},
 		{
+			"ScoreDemo-with-gateway-api",
+			[][]string{{"score-demo"}},
+			yamlFormat,
+			true,
+			[]string{"-v"},
+			false,
+			[]string{"score-demo", "expected_netpol_output.yaml"},
+		},
+		{
 			"CronJobWithNontrivialNetworkAddresses",
 			[][]string{{"openshift", "openshift-operator-lifecycle-manager-resources.yaml"}},
 			yamlFormat,

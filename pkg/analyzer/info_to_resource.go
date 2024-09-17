@@ -24,13 +24,17 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/cli-runtime/pkg/resource"
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
+
+const RouteBackendServiceKind = "Service"
 
 // k8sWorkloadObjectFromInfo creates a Resource object from an Info object
 func k8sWorkloadObjectFromInfo(info *resource.Info) (*Resource, error) {
 	var podSpecV1 *v1.PodTemplateSpec
 	var resourceCtx Resource
 	var metaObj metaV1.Object
+	resourceCtx.Resource.FilePath = info.Source
 	resourceCtx.Resource.Kind = info.Object.GetObjectKind().GroupVersionKind().Kind
 	switch resourceCtx.Resource.Kind {
 	case pod:
@@ -98,7 +102,9 @@ func k8sServiceFromInfo(info *resource.Info) (*Service, error) {
 	if svcObj == nil {
 		return nil, fmt.Errorf("failed to parse Service resource")
 	}
+
 	var serviceCtx Service
+	serviceCtx.Resource.FilePath = info.Source
 	serviceCtx.Resource.Name = svcObj.GetName()
 	serviceCtx.Resource.Namespace = svcObj.Namespace
 	serviceCtx.Resource.Kind = svcObj.Kind
@@ -146,14 +152,9 @@ func ocRouteFromInfo(info *resource.Info, toExpose servicesToExpose) error {
 		return fmt.Errorf("failed to parse Route resource")
 	}
 
-	exposedServicesInNamespace, ok := toExpose[routeObj.Namespace]
-	if !ok {
-		toExpose[routeObj.Namespace] = map[string][]*intstr.IntOrString{}
-		exposedServicesInNamespace = toExpose[routeObj.Namespace]
-	}
-	appendToSliceInMap(exposedServicesInNamespace, routeObj.Spec.To.Name, &routeObj.Spec.Port.TargetPort)
+	toExpose.appendPort(routeObj.Namespace, routeObj.Spec.To.Name, &routeObj.Spec.Port.TargetPort)
 	for _, backend := range routeObj.Spec.AlternateBackends {
-		appendToSliceInMap(exposedServicesInNamespace, backend.Name, &routeObj.Spec.Port.TargetPort)
+		toExpose.appendPort(routeObj.Namespace, backend.Name, &routeObj.Spec.Port.TargetPort)
 	}
 
 	return nil
@@ -166,16 +167,10 @@ func k8sIngressFromInfo(info *resource.Info, toExpose servicesToExpose) error {
 		return fmt.Errorf("failed to parse Ingress resource")
 	}
 
-	exposedServicesInNamespace, ok := toExpose[ingressObj.Namespace]
-	if !ok {
-		toExpose[ingressObj.Namespace] = map[string][]*intstr.IntOrString{}
-		exposedServicesInNamespace = toExpose[ingressObj.Namespace]
-	}
-
 	defaultBackend := ingressObj.Spec.DefaultBackend
 	if defaultBackend != nil && defaultBackend.Service != nil {
 		portToAppend := portFromServiceBackendPort(&defaultBackend.Service.Port)
-		appendToSliceInMap(exposedServicesInNamespace, defaultBackend.Service.Name, portToAppend)
+		toExpose.appendPort(ingressObj.Namespace, defaultBackend.Service.Name, portToAppend)
 	}
 
 	for ruleIdx := range ingressObj.Spec.Rules {
@@ -185,7 +180,7 @@ func k8sIngressFromInfo(info *resource.Info, toExpose servicesToExpose) error {
 				svc := rule.HTTP.Paths[pathIdx].Backend.Service
 				if svc != nil {
 					portToAppend := portFromServiceBackendPort(&svc.Port)
-					appendToSliceInMap(exposedServicesInNamespace, svc.Name, portToAppend)
+					toExpose.appendPort(ingressObj.Namespace, svc.Name, portToAppend)
 				}
 			}
 		}
@@ -200,6 +195,56 @@ func portFromServiceBackendPort(sbp *networkv1.ServiceBackendPort) *intstr.IntOr
 		res = intstr.FromString(sbp.Name)
 	}
 	return &res
+}
+
+func gatewayHTTPRouteFromInfo(info *resource.Info, toExpose servicesToExpose) error {
+	routeObj := parseResourceFromInfo[gatewayv1.HTTPRoute](info)
+	if routeObj == nil {
+		return fmt.Errorf("failed to parse HTTPRoute resource")
+	}
+
+	for i := range routeObj.Spec.Rules {
+		rule := &routeObj.Spec.Rules[i]
+		for j := range rule.BackendRefs {
+			backend := &rule.BackendRefs[j]
+			if (backend.Kind != nil && string(*backend.Kind) != RouteBackendServiceKind) || backend.Port == nil {
+				continue // ignore backends which are not services and which do not specify a port
+			}
+			namespace := routeObj.Namespace
+			if backend.Namespace != nil {
+				namespace = string(*backend.Namespace)
+			}
+			port := intstr.FromInt32(int32(*backend.Port))
+			toExpose.appendPort(namespace, string(backend.Name), &port)
+		}
+	}
+
+	return nil
+}
+
+func gatewayGRPCRouteFromInfo(info *resource.Info, toExpose servicesToExpose) error {
+	routeObj := parseResourceFromInfo[gatewayv1.GRPCRoute](info)
+	if routeObj == nil {
+		return fmt.Errorf("failed to parse GRPCRoute resource")
+	}
+
+	for i := range routeObj.Spec.Rules {
+		rule := &routeObj.Spec.Rules[i]
+		for j := range rule.BackendRefs {
+			backend := &rule.BackendRefs[j]
+			if (backend.Kind != nil && string(*backend.Kind) != RouteBackendServiceKind) || backend.Port == nil {
+				continue // ignore backends which are not services and which do not specify a port
+			}
+			port := intstr.FromInt32(int32(*backend.Port))
+			namespace := routeObj.Namespace
+			if backend.Namespace != nil {
+				namespace = string(*backend.Namespace)
+			}
+			toExpose.appendPort(namespace, string(backend.Name), &port)
+		}
+	}
+
+	return nil
 }
 
 func parseDeployResource(podSpec *v1.PodTemplateSpec, obj metaV1.Object, resourceCtx *Resource) {

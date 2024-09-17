@@ -8,7 +8,7 @@ package analyzer
 
 import (
 	"fmt"
-	"regexp"
+	"slices"
 
 	"k8s.io/cli-runtime/pkg/resource"
 
@@ -29,12 +29,13 @@ const (
 	configmap             string = "ConfigMap"
 	route                 string = "Route"
 	ingress               string = "Ingress"
+	httpRoute             string = "HTTPRoute"
+	grpcRoute             string = "GRPCRoute"
 )
 
 var (
-	acceptedK8sTypesRegex = fmt.Sprintf("(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)",
-		pod, replicaSet, replicationController, deployment, daemonSet, statefulSet, job, cronJob, service, configmap, route, ingress)
-	acceptedK8sTypes = regexp.MustCompile(acceptedK8sTypesRegex)
+	acceptedK8sKinds = []string{pod, replicaSet, replicationController, deployment, daemonSet, statefulSet, job, cronJob,
+		service, configmap, route, ingress, httpRoute, grpcRoute}
 )
 
 // resourceAccumulator is used to locate all relevant K8s resources in given file-system directories
@@ -116,7 +117,7 @@ func (ra *resourceAccumulator) parseInfo(info *resource.Info) error {
 	}
 
 	kind := info.Object.GetObjectKind().GroupVersionKind().Kind
-	if !acceptedK8sTypes.MatchString(kind) {
+	if !slices.Contains(acceptedK8sKinds, kind) {
 		msg := fmt.Sprintf("skipping object with type: %s", kind)
 		resourcePath := info.Source
 		if resourcePath != "" {
@@ -126,40 +127,37 @@ func (ra *resourceAccumulator) parseInfo(info *resource.Info) error {
 		return nil
 	}
 
+	var err error
 	switch kind {
 	case service:
-		res, err := k8sServiceFromInfo(info)
-		if err != nil {
-			return err
+		var svc *Service
+		svc, err = k8sServiceFromInfo(info)
+		if err == nil {
+			ra.services = append(ra.services, svc)
 		}
-		res.Resource.FilePath = info.Source
-		ra.services = append(ra.services, res)
 	case route:
-		err := ocRouteFromInfo(info, ra.servicesToExpose)
-		if err != nil {
-			return err
-		}
+		err = ocRouteFromInfo(info, ra.servicesToExpose)
 	case ingress:
-		err := k8sIngressFromInfo(info, ra.servicesToExpose)
-		if err != nil {
-			return err
-		}
+		err = k8sIngressFromInfo(info, ra.servicesToExpose)
+	case httpRoute:
+		err = gatewayHTTPRouteFromInfo(info, ra.servicesToExpose)
+	case grpcRoute:
+		err = gatewayGRPCRouteFromInfo(info, ra.servicesToExpose)
 	case configmap:
-		res, err := k8sConfigmapFromInfo(info)
-		if err != nil {
-			return err
+		var cfgmap *cfgMap
+		cfgmap, err = k8sConfigmapFromInfo(info)
+		if err == nil {
+			ra.configmaps = append(ra.configmaps, cfgmap)
 		}
-		ra.configmaps = append(ra.configmaps, res)
 	default:
-		res, err := k8sWorkloadObjectFromInfo(info)
-		if err != nil {
-			return err
+		var wl *Resource
+		wl, err = k8sWorkloadObjectFromInfo(info)
+		if err == nil {
+			ra.workloads = append(ra.workloads, wl)
 		}
-		res.Resource.FilePath = info.Source
-		ra.workloads = append(ra.workloads, res)
 	}
 
-	return nil
+	return err
 }
 
 // inlineConfigMapRefsAsEnvs appends to the Envs of each given resource the ConfigMap values it is referring to
