@@ -83,8 +83,8 @@ github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 h1:n6/
 github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00/go.mod h1:Pm3mSP3c5uWn86xMLZ5Sa7JB9GsEZySvHYXCTK4E9q4=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
-github.com/np-guard/netpol-analyzer v1.2.0 h1:Hk8cWkOZ6n/rAQRnTZJ9r61aKgRmoYkvW8VZhJgztS0=
-github.com/np-guard/netpol-analyzer v1.2.0/go.mod h1:TkDwB3ToxRSr8xdpa5TTvbya64VfjQ97je99DjVA+k4=
+github.com/np-guard/netpol-analyzer v1.2.1 h1:TmO0ObAEQymhxEbZ6h/iVaUItRXufMNpyUrDsGA9u88=
+github.com/np-guard/netpol-analyzer v1.2.1/go.mod h1:TkDwB3ToxRSr8xdpa5TTvbya64VfjQ97je99DjVA+k4=
 github.com/onsi/ginkgo/v2 v2.15.0 h1:79HwNRBAZHOEwrczrgSOPy+eFTTlIGELKy5as+ClttY=
 github.com/onsi/ginkgo/v2 v2.15.0/go.mod h1:HlxMHtYF57y6Dpf+mc5529KKmSq9h2FpCF+/ZkwUxKM=
 github.com/onsi/gomega v1.31.0 h1:54UJxxj6cPInHS3a35wm6BK/F9nHYueZ1NVujHDrnXE=
