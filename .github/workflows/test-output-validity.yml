@@ -18,10 +18,10 @@ jobs:
   build-and-test-output:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
     - name: Set up Go
-      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
+      uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a
       with:
         go-version-file: ./go.mod
 
@@ -29,7 +29,7 @@ jobs:
       run: make
 
     - name: Bring up a live cluster
-      uses: helm/kind-action@0025e74a8c7512023d06dc019c617aa3cf561fde
+      uses: helm/kind-action@a1b0e391336a6ee6713a0583f8c6240d70863de3
 
     - name: Test output on a live cluster
       run: |
