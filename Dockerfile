@@ -1,5 +1,5 @@
 # FROM golang:1.22-alpine
-FROM golang@sha256:51a6466e8dbf3e00e422eb0f7a97ac450b2d57b33617bbe8d2ee0bddcd9d0d37
+FROM sha256:161858498a61ce093c8e2bd704299bfb23e5bff79aef99b6c40bb9c6a43acf0f
 
 RUN apk update && apk upgrade && apk --no-cache add make
 
@@ -11,8 +11,7 @@ COPY go.mod go.sum Makefile ./
 
 RUN make
 
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:1b6d711648229a1c987f39cfdfccaebe2bd92d0b5d8caa5dbaa5234a9278a0b2
-RUN microdnf --nodocs -y upgrade
+FROM scratch
 
 WORKDIR /gitsecure
 COPY --from=0 go/src/github.ibm.com/gitsecure-net-top/bin/net-top .
