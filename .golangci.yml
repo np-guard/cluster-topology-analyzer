@@ -4,8 +4,6 @@ linters-settings:
   funlen:
     lines: 100
     statements: 50
-  gci:
-    prefix: github.com/np-guard
   goconst:
     min-len: 2
     min-occurrences: 2
