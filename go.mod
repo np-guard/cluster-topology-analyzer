@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.23.6
 
 require (
-	github.com/np-guard/netpol-analyzer v1.3.1
+	github.com/np-guard/netpol-analyzer v1.4.0
 	github.com/openshift/api v0.0.0-20230502160752-c71432710382
 	github.com/stretchr/testify v1.10.0
 	gopkg.in/yaml.v3 v3.0.1
