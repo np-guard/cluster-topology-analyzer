@@ -92,7 +92,7 @@ func k8sConfigmapFromInfo(info *resource.Info) (*cfgMap, error) {
 		return nil, fmt.Errorf("unable to parse configmap")
 	}
 
-	fullName := obj.ObjectMeta.Namespace + "/" + obj.ObjectMeta.Name
+	fullName := obj.Namespace + "/" + obj.Name
 	return &cfgMap{FullName: fullName, Data: obj.Data}, nil
 }
 
