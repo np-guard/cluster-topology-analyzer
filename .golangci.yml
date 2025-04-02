@@ -1,52 +1,6 @@
-linters-settings:
-  dupl:
-    threshold: 100
-  funlen:
-    lines: 100
-    statements: 50
-  goconst:
-    min-len: 2
-    min-occurrences: 2
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-  gocyclo:
-    min-complexity: 15
-  goimports:
-    local-prefixes: github.com/np-guard
-  lll:
-    line-length: 140
-  misspell:
-    locale: US
-  revive:
-    # see https://github.com/mgechev/revive#available-rules for details.
-    ignore-generated-header: true
-    severity: warning
-    rules:
-      - name: indent-error-flow
-        severity: warning
-      - name: exported
-        severity: warning
-        arguments:
-          - disableStutteringCheck
-      - name: add-constant
-        severity: warning
-        arguments:
-          - maxLitCount: "1"
-            allowStrs: '"",".","-","/","\n","\n\n","\t","error","true","false"'
-            allowInts: "0,1,2,404"
-            allowFloats: "0.0,0.,1.0,1.,2.0,2."
-  tagliatelle:
-    case:
-      rules:
-        json: snake
-
+version: "2"
 linters:
-  disable-all: true
+  default: none
   enable:
     - asasalint
     - asciicheck
@@ -65,12 +19,9 @@ linters:
     - goconst
     - gocritic
     - gocyclo
-    - gofmt
-    - goimports
     - gomoddirectives
     - goprintffuncname
     - gosec
-    - gosimple
     - govet
     - grouper
     - importas
@@ -93,25 +44,85 @@ linters:
     - reassign
     - revive
     - staticcheck
-    - stylecheck
     - tagliatelle
     - testableexamples
-    - typecheck
     - unconvert
     - unparam
     - unused
     - usestdlibvars
     - usetesting
     - whitespace
- 
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-       - dupl
-       - revive
-       - goconst
-       - funlen
-
-run:
-  timeout: 5m
+  settings:
+    dupl:
+      threshold: 100
+    funlen:
+      lines: 100
+      statements: 50
+    goconst:
+      min-len: 2
+      min-occurrences: 2
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - performance
+        - style
+    gocyclo:
+      min-complexity: 15
+    lll:
+      line-length: 140
+    misspell:
+      locale: US
+    revive:
+      severity: warning
+      rules:
+        - name: indent-error-flow
+          severity: warning
+        - name: exported
+          arguments:
+            - disableStutteringCheck
+          severity: warning
+        - name: add-constant
+          arguments:
+            - allowFloats: 0.0,0.,1.0,1.,2.0,2.
+              allowInts: 0,1,2,404
+              allowStrs: '"",".","-","/","\n","\n\n","\t","error","true","false"'
+              maxLitCount: "1"
+          severity: warning
+    tagliatelle:
+      case:
+        rules:
+          json: snake
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - dupl
+          - funlen
+          - goconst
+          - revive
+        path: _test\.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/np-guard
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
