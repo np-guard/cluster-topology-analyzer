@@ -1,17 +1,17 @@
 module github.com/np-guard/cluster-topology-analyzer/v2
 
-go 1.23.0
+go 1.23.4
 
 toolchain go1.23.6
 
 require (
-	github.com/np-guard/netpol-analyzer v1.4.2
-	github.com/openshift/api v0.0.0-20230502160752-c71432710382
+	github.com/np-guard/netpol-analyzer v1.4.4
+	github.com/openshift/api v0.0.0-20240415161129-d7aff303fa1a
 	github.com/stretchr/testify v1.10.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.32.3
-	k8s.io/apimachinery v0.32.3
-	k8s.io/cli-runtime v0.32.3
+	k8s.io/api v0.32.4
+	k8s.io/apimachinery v0.32.4
+	k8s.io/cli-runtime v0.32.4
 	sigs.k8s.io/gateway-api v1.2.1
 )
 
@@ -53,7 +53,7 @@ require (
 	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	k8s.io/client-go v0.32.3 // indirect
+	k8s.io/client-go v0.32.4 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f // indirect
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738 // indirect
