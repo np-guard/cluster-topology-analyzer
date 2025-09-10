@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/np-guard/netpol-analyzer v1.4.4
 	github.com/openshift/api v0.0.0-20240415161129-d7aff303fa1a
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.33.2
 	k8s.io/apimachinery v0.33.2
