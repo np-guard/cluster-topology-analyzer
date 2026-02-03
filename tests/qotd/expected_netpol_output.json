@@ -8,8 +8,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "qotd-author-netpol",
-                "namespace": "qotd",
-                "creationTimestamp": null
+                "namespace": "qotd"
             },
             "spec": {
                 "podSelector": {
@@ -96,8 +95,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "qotd-db-netpol",
-                "namespace": "qotd",
-                "creationTimestamp": null
+                "namespace": "qotd"
             },
             "spec": {
                 "podSelector": {
@@ -152,8 +150,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "qotd-engraving-netpol",
-                "namespace": "qotd",
-                "creationTimestamp": null
+                "namespace": "qotd"
             },
             "spec": {
                 "podSelector": {
@@ -191,8 +188,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "qotd-image-netpol",
-                "namespace": "qotd",
-                "creationTimestamp": null
+                "namespace": "qotd"
             },
             "spec": {
                 "podSelector": {
@@ -230,8 +226,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "qotd-pdf-netpol",
-                "namespace": "qotd",
-                "creationTimestamp": null
+                "namespace": "qotd"
             },
             "spec": {
                 "podSelector": {
@@ -301,8 +296,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "qotd-qrcode-netpol",
-                "namespace": "qotd",
-                "creationTimestamp": null
+                "namespace": "qotd"
             },
             "spec": {
                 "podSelector": {
@@ -340,8 +334,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "qotd-quote-netpol",
-                "namespace": "qotd",
-                "creationTimestamp": null
+                "namespace": "qotd"
             },
             "spec": {
                 "podSelector": {
@@ -428,8 +421,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "qotd-rating-netpol",
-                "namespace": "qotd",
-                "creationTimestamp": null
+                "namespace": "qotd"
             },
             "spec": {
                 "podSelector": {
@@ -467,8 +459,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "qotd-usecase-netpol",
-                "namespace": "qotd-load",
-                "creationTimestamp": null
+                "namespace": "qotd-load"
             },
             "spec": {
                 "podSelector": {
@@ -502,8 +493,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "qotd-web-netpol",
-                "namespace": "qotd",
-                "creationTimestamp": null
+                "namespace": "qotd"
             },
             "spec": {
                 "podSelector": {
@@ -654,8 +644,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "default-deny-in-namespace-qotd",
-                "namespace": "qotd",
-                "creationTimestamp": null
+                "namespace": "qotd"
             },
             "spec": {
                 "podSelector": {},
@@ -670,8 +659,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "default-deny-in-namespace-qotd-load",
-                "namespace": "qotd-load",
-                "creationTimestamp": null
+                "namespace": "qotd-load"
             },
             "spec": {
                 "podSelector": {},

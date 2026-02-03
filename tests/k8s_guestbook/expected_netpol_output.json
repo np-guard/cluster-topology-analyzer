@@ -8,8 +8,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "frontend-netpol",
-                "namespace": "default",
-                "creationTimestamp": null
+                "namespace": "default"
             },
             "spec": {
                 "podSelector": {
@@ -102,8 +101,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "redis-follower-netpol",
-                "namespace": "redis",
-                "creationTimestamp": null
+                "namespace": "redis"
             },
             "spec": {
                 "podSelector": {
@@ -183,8 +181,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "redis-leader-netpol",
-                "namespace": "redis",
-                "creationTimestamp": null
+                "namespace": "redis"
             },
             "spec": {
                 "podSelector": {
@@ -249,8 +246,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "default-deny-in-namespace-default",
-                "namespace": "default",
-                "creationTimestamp": null
+                "namespace": "default"
             },
             "spec": {
                 "podSelector": {},
@@ -265,8 +261,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "default-deny-in-namespace-redis",
-                "namespace": "redis",
-                "creationTimestamp": null
+                "namespace": "redis"
             },
             "spec": {
                 "podSelector": {},

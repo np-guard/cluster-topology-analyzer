@@ -31,8 +31,7 @@ func ExamplePoliciesSynthesizer() {
 	//         "kind": "NetworkPolicy",
 	//         "apiVersion": "networking.k8s.io/v1",
 	//         "metadata": {
-	//             "name": "wordpress-netpol",
-	//             "creationTimestamp": null
+	//             "name": "wordpress-netpol"
 	//         },
 	//         "spec": {
 	//             "podSelector": {
@@ -94,8 +93,7 @@ func ExamplePoliciesSynthesizer() {
 	//         "kind": "NetworkPolicy",
 	//         "apiVersion": "networking.k8s.io/v1",
 	//         "metadata": {
-	//             "name": "wordpress-mysql-netpol",
-	//             "creationTimestamp": null
+	//             "name": "wordpress-mysql-netpol"
 	//         },
 	//         "spec": {
 	//             "podSelector": {
@@ -134,8 +132,7 @@ func ExamplePoliciesSynthesizer() {
 	//         "kind": "NetworkPolicy",
 	//         "apiVersion": "networking.k8s.io/v1",
 	//         "metadata": {
-	//             "name": "default-deny-in-namespace",
-	//             "creationTimestamp": null
+	//             "name": "default-deny-in-namespace"
 	//         },
 	//         "spec": {
 	//             "podSelector": {},

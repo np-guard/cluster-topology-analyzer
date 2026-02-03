@@ -3,7 +3,6 @@ items:
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
-        creationTimestamp: null
         name: example-netpol
       spec:
         podSelector:
@@ -17,7 +16,6 @@ items:
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
-        creationTimestamp: null
         name: pg-sample-45ecb4b6-netpol
       spec:
         ingress:
@@ -41,7 +39,6 @@ items:
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
-        creationTimestamp: null
         name: sample-netpol
       spec:
         egress:
@@ -76,7 +73,6 @@ items:
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
-        creationTimestamp: null
         name: default-deny-in-namespace
       spec:
         podSelector: {}

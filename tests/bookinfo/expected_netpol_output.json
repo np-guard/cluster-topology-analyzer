@@ -7,8 +7,7 @@
             "kind": "NetworkPolicy",
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
-                "name": "details-v1-netpol",
-                "creationTimestamp": null
+                "name": "details-v1-netpol"
             },
             "spec": {
                 "podSelector": {
@@ -27,8 +26,7 @@
             "kind": "NetworkPolicy",
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
-                "name": "details-v2-netpol",
-                "creationTimestamp": null
+                "name": "details-v2-netpol"
             },
             "spec": {
                 "podSelector": {
@@ -47,8 +45,7 @@
             "kind": "NetworkPolicy",
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
-                "name": "mongodb-v1-netpol",
-                "creationTimestamp": null
+                "name": "mongodb-v1-netpol"
             },
             "spec": {
                 "podSelector": {
@@ -87,8 +84,7 @@
             "kind": "NetworkPolicy",
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
-                "name": "mysqldb-v1-netpol",
-                "creationTimestamp": null
+                "name": "mysqldb-v1-netpol"
             },
             "spec": {
                 "podSelector": {
@@ -127,8 +123,7 @@
             "kind": "NetworkPolicy",
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
-                "name": "productpage-v1-netpol",
-                "creationTimestamp": null
+                "name": "productpage-v1-netpol"
             },
             "spec": {
                 "podSelector": {
@@ -170,8 +165,7 @@
             "kind": "NetworkPolicy",
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
-                "name": "ratings-v1-netpol",
-                "creationTimestamp": null
+                "name": "ratings-v1-netpol"
             },
             "spec": {
                 "podSelector": {
@@ -190,8 +184,7 @@
             "kind": "NetworkPolicy",
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
-                "name": "ratings-v2-netpol",
-                "creationTimestamp": null
+                "name": "ratings-v2-netpol"
             },
             "spec": {
                 "podSelector": {
@@ -243,8 +236,7 @@
             "kind": "NetworkPolicy",
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
-                "name": "ratings-v2-mysql-netpol",
-                "creationTimestamp": null
+                "name": "ratings-v2-mysql-netpol"
             },
             "spec": {
                 "podSelector": {
@@ -296,8 +288,7 @@
             "kind": "NetworkPolicy",
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
-                "name": "ratings-v2-mysql-vm-netpol",
-                "creationTimestamp": null
+                "name": "ratings-v2-mysql-vm-netpol"
             },
             "spec": {
                 "podSelector": {
@@ -316,8 +307,7 @@
             "kind": "NetworkPolicy",
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
-                "name": "reviews-v1-netpol",
-                "creationTimestamp": null
+                "name": "reviews-v1-netpol"
             },
             "spec": {
                 "podSelector": {
@@ -336,8 +326,7 @@
             "kind": "NetworkPolicy",
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
-                "name": "reviews-v2-netpol",
-                "creationTimestamp": null
+                "name": "reviews-v2-netpol"
             },
             "spec": {
                 "podSelector": {
@@ -356,8 +345,7 @@
             "kind": "NetworkPolicy",
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
-                "name": "reviews-v3-netpol",
-                "creationTimestamp": null
+                "name": "reviews-v3-netpol"
             },
             "spec": {
                 "podSelector": {
@@ -376,8 +364,7 @@
             "kind": "NetworkPolicy",
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
-                "name": "default-deny-in-namespace",
-                "creationTimestamp": null
+                "name": "default-deny-in-namespace"
             },
             "spec": {
                 "podSelector": {},
