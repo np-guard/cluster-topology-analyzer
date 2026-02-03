@@ -124,7 +124,7 @@ func determineConnectivityPerDeployment(connections []*Connections) []*deploymen
 		}
 	}
 
-	retSlice := []*deploymentConnectivity{}
+	retSlice := make([]*deploymentConnectivity, 0, len(deploysConnectivity))
 	for _, deployConn := range deploysConnectivity {
 		retSlice = append(retSlice, deployConn)
 	}
@@ -226,7 +226,7 @@ func getDNSPort(portNum *intstr.IntOrString) network.NetworkPolicyPort {
 // NetpolListFromNetpolSlice converts a slice of Kubernetes NetworkPolicies to a Kubernetes NetworkPolicyList
 // containing all the policies in the slice.
 func NetpolListFromNetpolSlice(netpols []*network.NetworkPolicy) network.NetworkPolicyList {
-	netpols2 := []network.NetworkPolicy{}
+	netpols2 := make([]network.NetworkPolicy, 0, len(netpols))
 	for _, netpol := range netpols {
 		netpols2 = append(netpols2, *netpol)
 	}

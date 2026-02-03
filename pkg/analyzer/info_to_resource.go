@@ -78,7 +78,7 @@ func k8sWorkloadObjectFromInfo(info *resource.Info) (*Resource, error) {
 }
 
 func matchLabelSelectorToStrLabels(labels map[string]string) []string {
-	res := []string{}
+	res := make([]string, 0, len(labels))
 	for k, v := range labels {
 		res = append(res, fmt.Sprintf("%s:%s", k, v))
 	}
