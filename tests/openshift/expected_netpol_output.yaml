@@ -3,7 +3,6 @@ items:
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
-        creationTimestamp: null
         name: catalog-operator-netpol
         namespace: openshift-operator-lifecycle-manager
       spec:
@@ -22,7 +21,6 @@ items:
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
-        creationTimestamp: null
         name: collect-profiles-netpol
         namespace: openshift-operator-lifecycle-manager
       spec:
@@ -53,7 +51,6 @@ items:
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
-        creationTimestamp: null
         name: olm-operator-netpol
         namespace: openshift-operator-lifecycle-manager
       spec:
@@ -72,7 +69,6 @@ items:
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
-        creationTimestamp: null
         name: packageserver-netpol
         namespace: openshift-operator-lifecycle-manager
       spec:
@@ -85,7 +81,6 @@ items:
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
-        creationTimestamp: null
         name: default-deny-in-namespace-openshift-operator-lifecycle-manager
         namespace: openshift-operator-lifecycle-manager
       spec:

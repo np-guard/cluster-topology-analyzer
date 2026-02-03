@@ -8,8 +8,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "carts-netpol",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {
@@ -96,8 +95,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "carts-db-netpol",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {
@@ -135,8 +133,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "catalogue-netpol",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {
@@ -155,8 +152,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "catalogue-db-netpol",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {
@@ -175,8 +171,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "front-end-netpol",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {
@@ -205,8 +200,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "orders-netpol",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {
@@ -261,8 +255,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "orders-db-netpol",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {
@@ -281,8 +274,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "payment-netpol",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {
@@ -301,8 +293,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "queue-master-netpol",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {
@@ -321,8 +312,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "rabbitmq-netpol",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {
@@ -356,8 +346,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "session-db-netpol",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {
@@ -376,8 +365,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "shipping-netpol",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {
@@ -396,8 +384,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "user-netpol",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {
@@ -463,8 +450,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "user-db-netpol",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {
@@ -502,8 +488,7 @@
             "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "default-deny-in-namespace-sock-shop",
-                "namespace": "sock-shop",
-                "creationTimestamp": null
+                "namespace": "sock-shop"
             },
             "spec": {
                 "podSelector": {},
